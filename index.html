@@ -242,6 +242,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <option value="rating-desc">My rating ↓</option>
         <option value="title-asc">Title A–Z</option>
         <option value="author-asc">Author A–Z</option>
+        <option value="pages-asc">Pages ↑ (shortest first)</option>
+        <option value="pages-desc">Pages ↓ (longest first)</option>
       </select>
     </div>
     <div class="fbar-row">
@@ -267,6 +269,12 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       </select>
       <select class="fsel" id="lib-genre" onchange="renderLib()">
         <option value="">All genres</option>
+      </select>
+      <select class="fsel" id="lib-length" onchange="renderLib()">
+        <option value="">Any length</option>
+        <option value="short">Short (&lt;250pg)</option>
+        <option value="medium">Medium (250–450pg)</option>
+        <option value="long">Long (450pg+)</option>
       </select>
     </div>
   </div>
@@ -444,7 +452,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         </div>
         <div class="fg"><label>GoodReads Rating</label><input type="number" id="f-gr-rating" placeholder="e.g. 4.12" min="0" max="5" step="0.01"></div>
       </div>
-      <div class="fg"><label>ISBN / ASIN</label><input type="text" id="f-isbn" placeholder="Optional — used for cover art"></div>
+      <div class="frow">
+        <div class="fg"><label>ISBN / ASIN</label><input type="text" id="f-isbn" placeholder="Optional — used for cover art"></div>
+        <div class="fg"><label>Pages</label><input type="number" id="f-pages" min="0" placeholder="e.g. 320"></div>
+      </div>
       <div class="fg"><label>Notes</label><textarea id="f-notes" rows="2" placeholder="Personal notes…"></textarea></div>
       <div class="form-actions">
         <button class="btn btn-primary" onclick="saveBook()">Save</button>
@@ -520,9 +531,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
       <button class="btn btn-outline" onclick="backfillCovers()">🖼️ Backfill cover art</button>
       <button class="btn btn-outline" onclick="backfillGenres()">🏷️ Backfill genres (AI)</button>
+      <button class="btn btn-outline" onclick="backfillPages()">📏 Backfill page counts</button>
     </div>
     <div id="backfill-status" style="font-size:12px;color:var(--text2)"></div>
-    <p style="font-size:12px;color:var(--text3);margin-top:8px">Cover art uses Open Library (requires ISBN). Genre backfill uses AI for books with no genres.</p>
+    <p style="font-size:12px;color:var(--text3);margin-top:8px">Cover art uses Open Library (requires ISBN). Genre backfill uses AI for books with no genres. Page counts try Open Library first, then AI estimates (shown with a ~) for anything not found.</p>
   </div>
   <div class="settings-card">
     <h2>Library</h2>
@@ -614,7 +626,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <input class="tag-inp" id="m-genre-inp" placeholder="Add genre…" onkeydown="tagKeydown(event,true)" oninput="tagInput(event,true)">
       </div>
     </div>
-    <div class="fg"><label>ISBN / ASIN</label><input type="text" id="m-isbn"></div>
+    <div class="frow">
+      <div class="fg"><label>ISBN / ASIN</label><input type="text" id="m-isbn"></div>
+      <div class="fg"><label>Pages</label><input type="number" id="m-pages" min="0" placeholder="e.g. 320"></div>
+    </div>
     <div class="fg"><label>Notes</label><textarea id="m-notes" rows="2"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-danger btn-sm" onclick="deleteBook(currentId)">Delete</button>
@@ -673,6 +688,8 @@ function load(){
     if(!b.seriesNumber) b.seriesNumber='';
     if(!b.coverUrl) b.coverUrl='';
     if(!b.readFormat) b.readFormat='';
+    if(b.pages===undefined) b.pages=0;
+    if(b.pagesEstimated===undefined) b.pagesEstimated=false;
     if(b.status==='dnf'&&!b.dnfDate) b.dnfDate='';
     // Parse series from old notes
     if(!b.series&&b.notes&&b.notes.startsWith('Series: ')){const m=b.notes.match(/^Series: (.+?)(?:\s*#(.+))?$/);if(m){b.series=m[1];b.seriesNumber=m[2]||'';b.notes='';}}
@@ -806,6 +823,7 @@ function filterBooks(){
   const fmt=document.getElementById('lib-fmt')?.value||'';
   const genre=document.getElementById('lib-genre')?.value||'';
   const ownedFilter=document.getElementById('lib-owned')?.value||'';
+  const lengthFilter=document.getElementById('lib-length')?.value||'';
   return books.filter(b=>{
     if(statusFilter!=='all'&&b.status!==statusFilter)return false;
     if(fmt){
@@ -815,11 +833,18 @@ function filterBooks(){
     if(ownedFilter==='owned'&&!(b.formats||[]).length)return false;
     if(ownedFilter==='borrowed'&&!(b.borrowedFormats||[]).length)return false;
     if(genre&&!(b.genre||[]).includes(genre))return false;
+    if(lengthFilter){
+      const p=b.pages||0;
+      if(!p)return false;
+      if(lengthFilter==='short'&&p>=250)return false;
+      if(lengthFilter==='medium'&&(p<250||p>450))return false;
+      if(lengthFilter==='long'&&p<450)return false;
+    }
     if(q){const hay=[b.title,b.author,b.series,...(b.genre||[])].join(' ').toLowerCase();if(!hay.includes(q))return false;}
     return true;
   });
 }
-function sortBooks(arr){const s=document.getElementById('lib-sort')?.value||'date-desc';return[...arr].sort((a,b)=>{if(s==='date-desc')return(b.dateAdded||'').localeCompare(a.dateAdded||'');if(s==='date-asc')return(a.dateAdded||'').localeCompare(b.dateAdded||'');if(s==='read-desc')return(b.dateRead||'').localeCompare(a.dateRead||'');if(s==='rating-desc')return(b.rating||0)-(a.rating||0);if(s==='title-asc')return a.title.localeCompare(b.title);if(s==='author-asc')return a.author.localeCompare(b.author);return 0;});}
+function sortBooks(arr){const s=document.getElementById('lib-sort')?.value||'date-desc';return[...arr].sort((a,b)=>{if(s==='date-desc')return(b.dateAdded||'').localeCompare(a.dateAdded||'');if(s==='date-asc')return(a.dateAdded||'').localeCompare(b.dateAdded||'');if(s==='read-desc')return(b.dateRead||'').localeCompare(a.dateRead||'');if(s==='rating-desc')return(b.rating||0)-(a.rating||0);if(s==='title-asc')return a.title.localeCompare(b.title);if(s==='author-asc')return a.author.localeCompare(b.author);if(s==='pages-asc')return(a.pages||99999)-(b.pages||99999);if(s==='pages-desc')return(b.pages||0)-(a.pages||0);return 0;});}
 
 function fmtBadges(b){
   const owned=(b.formats||[]).map(f=>`<span class="badge b-fmt">${FMT_ICO[f]||'📄'} ${esc(f)}</span>`).join('');
@@ -855,6 +880,7 @@ function renderLib(){
         ${rfmt}
         ${stars?`<div class="bcard-stars">${stars}</div>`:''}
         ${b.grRating?`<div class="bcard-gr">GoodReads ★ ${b.grRating}</div>`:''}
+        ${b.pages?`<div style="font-size:11px;color:var(--text3)">${b.pagesEstimated?'~':''}${b.pages}pg</div>`:''}
         ${date?`<div class="bcard-date">${date}</div>`:''}
       </div>
     </div>`;
@@ -870,6 +896,43 @@ function getLocalGaps(seriesBooks){
   const max=Math.max(...nums),gaps=[];
   for(let i=1;i<max;i++){if(!nums.includes(i))gaps.push(i);}
   return gaps;
+}
+
+// ═══════════ SERIES AUTO-CHECK ═══════════
+let seriesAutoQueued=new Set();
+let seriesAutoQueue=[];
+let seriesAutoBusy=false;
+
+function queueSeriesAutoLookup(seriesName,authorName){
+  if(seriesAutoQueued.has(seriesName))return;
+  seriesAutoQueued.add(seriesName);
+  seriesAutoQueue.push({seriesName,authorName});
+  runSeriesAutoQueue();
+}
+
+async function runSeriesAutoQueue(){
+  if(seriesAutoBusy)return;
+  seriesAutoBusy=true;
+  while(seriesAutoQueue.length){
+    const{seriesName,authorName}=seriesAutoQueue.shift();
+    try{
+      const prompt=`List all published books in the "${seriesName}" series by ${authorName}. Return ONLY a valid JSON array: [{"num":"1","title":"Short Title"},{"num":"2","title":"..."}]. Short titles only, main series entries only.`;
+      const raw=await askClaude(prompt);
+      const clean=aiStr(raw).replace(/```(?:json)?\n?/g,'').replace(/```/g,'');
+      const jsonMatch=clean.match(/\[[\s\S]*?\]/);
+      if(jsonMatch){
+        const seriesBooks=JSON.parse(jsonMatch[0]);
+        if(Array.isArray(seriesBooks)&&seriesBooks.length){
+          const cache=getSeriesCache();
+          cache[seriesName.toLowerCase()]={books:seriesBooks,timestamp:Date.now()};
+          saveSeriesCache(cache);
+          if(currentPanel()==='series')renderSeries();
+        }
+      }
+    }catch(e){/* silent — local numbering gaps still show; manual Refresh button still works */}
+    await new Promise(r=>setTimeout(r,700));
+  }
+  seriesAutoBusy=false;
 }
 
 function renderSeries(){
@@ -939,11 +1002,16 @@ function renderSeries(){
       } else {
         missingHtml=`<div style="font-size:11px;color:var(--read);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">✅ Complete! All ${cachedSeries.books.length} books in your library.</div>`;
       }
-    } else if(localGaps.length){
-      missingHtml=`<div class="sc-missing-section">
-        <div class="sc-missing-title">⚠️ Gaps in your numbering: #${localGaps.join(', #')}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">Use "Check full series" for complete titles</div>
-      </div>`;
+    } else {
+      queueSeriesAutoLookup(s.name,s.authors);
+      if(localGaps.length){
+        missingHtml=`<div class="sc-missing-section">
+          <div class="sc-missing-title">⚠️ Gaps in your numbering: #${localGaps.join(', #')}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">🔍 Checking full series details…</div>
+        </div>`;
+      } else {
+        missingHtml=`<div style="font-size:11px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">🔍 Checking series for gaps…</div>`;
+      }
     }
 
     return`<div class="series-card">
@@ -961,7 +1029,7 @@ function renderSeries(){
       <div class="sc-books">${booksHtml}</div>
       ${missingHtml}
       <div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-series" onclick="lookupSeriesAI('${esc(s.name)}','${esc(s.authors)}','${sid}')">✨ ${cachedSeries?'Refresh':'Check full series'}</button>
+        <button class="btn btn-series" onclick="lookupSeriesAI('${esc(s.name)}','${esc(s.authors)}','${sid}')">✨ ${cachedSeries?'Refresh':'Check now'}</button>
         <span id="${sid}-total" style="font-size:11px;color:var(--text3)"></span>
       </div>
       <div id="${sid}-ai" style="margin-top:6px"></div>
@@ -1116,7 +1184,7 @@ function renderReportSeries(){
       </tr>`;
     }).join('')}</tbody>
   </table>
-  <p style="font-size:11px;color:var(--text3);margin-top:8px">* Based on highest book # in your library. Use ✨ Check full series on Series tab for accurate totals. Click series name → go to Series tab.</p></div>`;
+  <p style="font-size:11px;color:var(--text3);margin-top:8px">* Series are checked automatically in the background on the Series tab; totals update once that finishes. Click series name → go to Series tab.</p></div>`;
 }
 
 function renderReportGenre(){const rb=getReportBooks();const map={};rb.forEach(b=>{(b.genre||[]).forEach(g=>{if(!map[g])map[g]={name:g,read:0,owned:0,want:0,dnf:0};if(b.status==='read')map[g].read++;else if(b.status==='reading')map[g].owned++;else if(b.status==='dnf')map[g].dnf++;else map[g].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-genre');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">🏷️</div><p>No genre data. Add genres when editing books.</p></div>`;return;}el.innerHTML=`<div class="reports-grid"><div class="rcrd" style="grid-column:1/-1"><h3>Genre breakdown</h3><div class="chart-wrap" style="height:${Math.max(180,rows.length*28)}px"><canvas id="ch-genre"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Genre</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.dnf||0}</td><td class="num">${r.read+r.owned+r.want+r.dnf}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const ctx=document.getElementById('ch-genre');if(ctx)chartInst.genre=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Read',data:rows.map(r=>r.read),backgroundColor:'#2d7a4f'},{label:'Owned',data:rows.map(r=>r.owned),backgroundColor:'#1a5fa8'},{label:'Want',data:rows.map(r=>r.want),backgroundColor:'#c07a1a'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true,ticks:{precision:0}},y:{stacked:true}}}});},50);}
@@ -1243,6 +1311,45 @@ async function backfillGenres(){
   catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 
+async function backfillPages(){
+  const st=document.getElementById('backfill-status');
+  const toFill=books.filter(b=>!b.pages&&b.title&&b.author);
+  if(!toFill.length){st.textContent='All books already have page counts!';return;}
+  st.innerHTML=`<div class="loading"><div class="spinner"></div> Looking up page counts for ${toFill.length} books via Open Library…</div>`;
+  let found=0,done=0;
+  const stillMissing=[];
+  for(const b of toFill){
+    try{
+      const q=encodeURIComponent(`${b.title} ${b.author}`);
+      const res=await fetch(`https://openlibrary.org/search.json?q=${q}&fields=number_of_pages_median&limit=1`);
+      const data=await res.json();
+      const pages=data.docs&&data.docs[0]&&data.docs[0].number_of_pages_median;
+      if(pages){b.pages=Math.round(pages);b.pagesEstimated=false;found++;}else{stillMissing.push(b);}
+    }catch(e){stillMissing.push(b);}
+    done++;
+    if(done%10===0)st.textContent=`Progress: ${done}/${toFill.length}…`;
+    await new Promise(r=>setTimeout(r,120));
+  }
+  save();renderLib();
+  st.textContent=`✅ Found page counts for ${found} books via Open Library.`;
+  if(stillMissing.length){
+    const batch=stillMissing.slice(0,20);
+    st.textContent+=` Asking AI to estimate ${batch.length} more…`;
+    try{
+      const prompt=`For each book, give your best estimate of its page count (an integer, print edition, your best guess is fine). Return ONLY valid JSON: [{"title":"...","pages":320},...]. Books: ${batch.map(b=>`"${b.title}" by ${b.author}`).join('; ')}`;
+      const raw=await askClaude(prompt);
+      const text=aiStr(raw);
+      const jsonMatch=text.match(/\[[\s\S]*\]/);
+      if(!jsonMatch)throw new Error('No data returned');
+      const results=JSON.parse(jsonMatch[0]);
+      let estimated=0;
+      results.forEach(r=>{const b=batch.find(bk=>normTitle(bk.title)===normTitle(r.title));if(b&&r.pages){b.pages=parseInt(r.pages)||0;if(b.pages){b.pagesEstimated=true;estimated++;}}});
+      save();renderLib();
+      st.textContent=`✅ Found ${found} via Open Library, AI estimated ${estimated} more (shown with ~).${stillMissing.length>20?` ${stillMissing.length-20} still missing — run again for the rest.`:''}`;
+    }catch(e){st.textContent+=` AI estimate failed: ${esc(String(e))}`;}
+  }
+}
+
 // ═══════════ FORMAT CHECKBOXES ═══════════
 function toggleFmtCheck(label){const cb=label.querySelector('input');cb.checked=!cb.checked;label.classList.toggle('checked',cb.checked);}
 function getCheckedFormats(containerId){return[...document.querySelectorAll(`#${containerId} input[type=checkbox]:checked`)].map(cb=>cb.value);}
@@ -1258,12 +1365,12 @@ function tagInput(e,modal){if(e.data===','){const v=e.target.value.replace(',','
 async function suggestGenre(){const title=document.getElementById('f-title').value.trim(),author=document.getElementById('f-author').value.trim();if(!title){alert('Enter a title first.');return;}const btn=document.querySelector('.ai-suggest');btn.textContent='⏳ Suggesting…';try{const raw=await askClaude(`What are 2-3 genre tags for "${title}"${author?' by '+author:''}? Return ONLY a comma-separated list, e.g.: Fantasy, Dark Fantasy, YA.`);addTag(aiStr(raw),false);}catch(e){alert('Could not suggest: '+(e.message||String(e)));}btn.textContent='✨ Suggest genre from AI';}
 
 // ═══════════ FORM ═══════════
-function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-read','f-date-added','f-gr-rating','f-isbn','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';document.getElementById('f-rating').value='0';document.querySelectorAll('#star-row .starb').forEach(b=>b.classList.remove('on'));document.getElementById('form-h').textContent='Add a Book';setCheckedFormats('f-fmt-checks',[]);setCheckedFormats('f-borrow-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');}
+function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-read','f-date-added','f-gr-rating','f-isbn','f-pages','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';document.getElementById('f-rating').value='0';document.querySelectorAll('#star-row .starb').forEach(b=>b.classList.remove('on'));document.getElementById('form-h').textContent='Add a Book';setCheckedFormats('f-fmt-checks',[]);setCheckedFormats('f-borrow-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');}
 function setRating(n,modal){if(modal){document.getElementById('m-rating').value=n;document.querySelectorAll('#mstar-row .starb').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)<=n));}else{document.getElementById('f-rating').value=n;document.querySelectorAll('#star-row .starb').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)<=n));}}
-function saveBook(){const title=document.getElementById('f-title').value.trim(),author=document.getElementById('f-author').value.trim();if(!title||!author){alert('Title and author are required.');return;}const finpGenre=document.getElementById('genre-inp').value.trim();if(finpGenre)addTag(finpGenre,false);const editId=document.getElementById('f-id').value;const b={id:editId||genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateRead:document.getElementById('f-date-read').value||'',dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),rating:parseInt(document.getElementById('f-rating').value)||0,grRating:parseFloat(document.getElementById('f-gr-rating').value)||0,isbn:document.getElementById('f-isbn').value.trim(),notes:document.getElementById('f-notes').value.trim(),genre:[...formGenres],coverUrl:'',readFormat:document.getElementById('f-read-format').value};if(editId){const i=books.findIndex(x=>x.id===editId);if(i>=0)books[i]=b;}else books.push(b);save();clearForm();nav('library');}
+function saveBook(){const title=document.getElementById('f-title').value.trim(),author=document.getElementById('f-author').value.trim();if(!title||!author){alert('Title and author are required.');return;}const finpGenre=document.getElementById('genre-inp').value.trim();if(finpGenre)addTag(finpGenre,false);const editId=document.getElementById('f-id').value;const b={id:editId||genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateRead:document.getElementById('f-date-read').value||'',dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),rating:parseInt(document.getElementById('f-rating').value)||0,grRating:parseFloat(document.getElementById('f-gr-rating').value)||0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,notes:document.getElementById('f-notes').value.trim(),genre:[...formGenres],coverUrl:'',readFormat:document.getElementById('f-read-format').value};if(editId){const i=books.findIndex(x=>x.id===editId);if(i>=0)books[i]=b;}else books.push(b);save();clearForm();nav('library');}
 
 // ═══════════ MODAL ═══════════
-function openModal(id){const b=books.find(x=>x.id===id);if(!b)return;currentId=id;document.getElementById('modal-h').textContent=b.title;document.getElementById('m-title').value=b.title;document.getElementById('m-author').value=b.author;document.getElementById('m-status').value=b.status;document.getElementById('m-series').value=b.series||'';document.getElementById('m-series-num').value=b.seriesNumber||'';document.getElementById('m-date-read').value=b.dateRead||'';document.getElementById('m-gr-rating').value=b.grRating||'';document.getElementById('m-isbn').value=b.isbn||'';document.getElementById('m-notes').value=b.notes||'';document.getElementById('m-read-format').value=b.readFormat||'';setRating(b.rating||0,true);setCheckedFormats('m-fmt-checks',b.formats||[]);setCheckedFormats('m-borrow-checks',b.borrowedFormats||[]);modalGenres=[...(b.genre||[])];renderModalTags();toggleReadFormat('m-read-fmt-row',b.status);document.getElementById('modal').classList.add('open');}
+function openModal(id){const b=books.find(x=>x.id===id);if(!b)return;currentId=id;document.getElementById('modal-h').textContent=b.title;document.getElementById('m-title').value=b.title;document.getElementById('m-author').value=b.author;document.getElementById('m-status').value=b.status;document.getElementById('m-series').value=b.series||'';document.getElementById('m-series-num').value=b.seriesNumber||'';document.getElementById('m-date-read').value=b.dateRead||'';document.getElementById('m-gr-rating').value=b.grRating||'';document.getElementById('m-isbn').value=b.isbn||'';document.getElementById('m-pages').value=b.pages||'';document.getElementById('m-notes').value=b.notes||'';document.getElementById('m-read-format').value=b.readFormat||'';setRating(b.rating||0,true);setCheckedFormats('m-fmt-checks',b.formats||[]);setCheckedFormats('m-borrow-checks',b.borrowedFormats||[]);modalGenres=[...(b.genre||[])];renderModalTags();toggleReadFormat('m-read-fmt-row',b.status);document.getElementById('modal').classList.add('open');}
 
 async function aiLookupSeriesInfo(){
   const title=document.getElementById('m-title').value.trim();
@@ -1281,7 +1388,7 @@ async function aiLookupSeriesInfo(){
 function closeModal(){document.getElementById('modal').classList.remove('open');currentId=null;}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bc-modal'))closeBCModal();});
-function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=document.getElementById('m-author').value.trim();b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateRead=document.getElementById('m-date-read').value||'';b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();b.notes=document.getElementById('m-notes').value.trim();b.rating=parseInt(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;save();closeModal();renderLib();}
+function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=document.getElementById('m-author').value.trim();b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateRead=document.getElementById('m-date-read').value||'';b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.rating=parseInt(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
 // ═══════════ IMPORTS ═══════════
@@ -1308,15 +1415,16 @@ function upsertBook(title,author,status,format,extra={}){
     if(extra.notes&&!ex.notes)ex.notes=extra.notes;
     (extra.genre||[]).forEach(g=>{if(!(ex.genre||[]).includes(g)){if(!ex.genre)ex.genre=[];ex.genre.push(g);}});
     if(!ex.isbn&&extra.isbn)ex.isbn=extra.isbn;
+    if(!ex.pages&&extra.pages){ex.pages=extra.pages;ex.pagesEstimated=false;}
     if(!ex.borrowedFormats)ex.borrowedFormats=[];
     return'updated';
   }else{
-    books.push({id:genId(),title,author,status,formats:format&&format!=='Unknown'?[format]:[],borrowedFormats:[],series:extra.series||'',seriesNumber:extra.seriesNumber||'',dateRead:extra.dateRead||'',dateAdded:extra.dateAdded||new Date().toISOString().slice(0,10),rating:extra.rating||0,grRating:extra.grRating||0,isbn:extra.isbn||'',notes:extra.notes||'',genre:extra.genre||[],coverUrl:'',readFormat:''});
+    books.push({id:genId(),title,author,status,formats:format&&format!=='Unknown'?[format]:[],borrowedFormats:[],series:extra.series||'',seriesNumber:extra.seriesNumber||'',dateRead:extra.dateRead||'',dateAdded:extra.dateAdded||new Date().toISOString().slice(0,10),rating:extra.rating||0,grRating:extra.grRating||0,isbn:extra.isbn||'',pages:extra.pages||0,pagesEstimated:false,notes:extra.notes||'',genre:extra.genre||[],coverUrl:'',readFormat:''});
     return'added';
   }
 }
 
-function processGR(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]);const col=h=>hdr.findIndex(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,'')===h.toLowerCase().replace(/[^a-z0-9]/g,''));const iT=col('title'),iA=col('author'),iR=col('myrating'),iGR=col('averagerating'),iB=col('binding'),iDR=col('dateread'),iDA=col('dateadded'),iS=col('exclusiveshelf'),iISBN=col('isbn'),iRev=col('myreview');if(iT<0||iA<0)throw new Error('Could not find title/author columns.');let added=0,updated=0;for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);if(row.length<3)continue;const rawTitle=(row[iT]||'').trim(),author=(row[iA]||'').trim();if(!rawTitle||!author)continue;const shelf=(row[iS]||'').trim().toLowerCase();const status=shelf==='read'?'read':shelf==='currently-reading'?'reading':'tbr';const binding=(row[iB]||'').trim();let format='Unknown';if(/kindle/i.test(binding))format='Ebook';else if(/audio/i.test(binding))format='Audiobook';else if(/hardcover|hardback|paperback|mass market/i.test(binding))format='Hardcopy';else if(/ebook|digital/i.test(binding))format='Ebook';let dateRead=(row[iDR]||'').trim();if(dateRead&&dateRead!=='0000-00-00')dateRead=dateRead.slice(0,7);else dateRead='';let series='',seriesNumber='';const sm=rawTitle.match(/\(([^,]+),\s*#?([0-9.]+)\)\s*$/);if(sm){series=sm[1].trim();seriesNumber=sm[2];}const title=rawTitle.replace(/\s*\([^)]+\)\s*$/,'').trim();const r=upsertBook(title,author,status,format,{series,seriesNumber,dateRead,dateAdded:(row[iDA]||'').trim().slice(0,10),rating:parseInt(row[iR])||0,grRating:parseFloat(row[iGR])||0,isbn:(iISBN>=0?row[iISBN]:'').replace(/[="']/g,'').trim(),notes:(iRev>=0?row[iRev]:'').trim()});if(r==='added')added++;else if(r==='updated')updated++;}save();renderLib();document.getElementById('gr-result').innerHTML=`<div class="iresult ok">✅ ${added} new books added, ${updated} existing records updated.</div>`;}catch(err){document.getElementById('gr-result').innerHTML=`<div class="iresult err">❌ ${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
+function processGR(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]);const col=h=>hdr.findIndex(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,'')===h.toLowerCase().replace(/[^a-z0-9]/g,''));const iT=col('title'),iA=col('author'),iR=col('myrating'),iGR=col('averagerating'),iB=col('binding'),iDR=col('dateread'),iDA=col('dateadded'),iS=col('exclusiveshelf'),iISBN=col('isbn'),iRev=col('myreview'),iPages=col('numberofpages');if(iT<0||iA<0)throw new Error('Could not find title/author columns.');let added=0,updated=0;for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);if(row.length<3)continue;const rawTitle=(row[iT]||'').trim(),author=(row[iA]||'').trim();if(!rawTitle||!author)continue;const shelf=(row[iS]||'').trim().toLowerCase();const status=shelf==='read'?'read':shelf==='currently-reading'?'reading':'tbr';const binding=(row[iB]||'').trim();let format='Unknown';if(/kindle/i.test(binding))format='Ebook';else if(/audio/i.test(binding))format='Audiobook';else if(/hardcover|hardback|paperback|mass market/i.test(binding))format='Hardcopy';else if(/ebook|digital/i.test(binding))format='Ebook';let dateRead=(row[iDR]||'').trim();if(dateRead&&dateRead!=='0000-00-00')dateRead=dateRead.slice(0,7);else dateRead='';let series='',seriesNumber='';const sm=rawTitle.match(/\(([^,]+),\s*#?([0-9.]+)\)\s*$/);if(sm){series=sm[1].trim();seriesNumber=sm[2];}const title=rawTitle.replace(/\s*\([^)]+\)\s*$/,'').trim();const r=upsertBook(title,author,status,format,{series,seriesNumber,dateRead,dateAdded:(row[iDA]||'').trim().slice(0,10),rating:parseInt(row[iR])||0,grRating:parseFloat(row[iGR])||0,isbn:(iISBN>=0?row[iISBN]:'').replace(/[="']/g,'').trim(),pages:iPages>=0?(parseInt(row[iPages])||0):0,notes:(iRev>=0?row[iRev]:'').trim()});if(r==='added')added++;else if(r==='updated')updated++;}save();renderLib();document.getElementById('gr-result').innerHTML=`<div class="iresult ok">✅ ${added} new books added, ${updated} existing records updated.</div>`;}catch(err){document.getElementById('gr-result').innerHTML=`<div class="iresult err">❌ ${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
 function processAudible(file){const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);const raw=data.books||data;if(!Array.isArray(raw))throw new Error('No books array found.');let added=0,updated=0;raw.forEach(ab=>{const title=(ab.title||'').trim(),author=(ab.authors&&ab.authors[0])?ab.authors[0].name.trim():'Unknown';if(!title)return;const progress=(ab.progress||'').trim();const status=progress==='Finished'?'read':progress&&progress.includes('left')?'reading':'owned';const si=ab.series&&ab.series[0];const r=upsertBook(title,author,status,'Audiobook',{series:si?si.name:'',seriesNumber:si&&si.bookNumbers?si.bookNumbers[0]:'',isbn:ab.asin||''});if(r==='added')added++;else if(r==='updated')updated++;});save();renderLib();document.getElementById('au-result').innerHTML=`<div class="iresult ok">✅ ${added} new audiobooks added, ${updated} updated.</div>`;}catch(err){document.getElementById('au-result').innerHTML=`<div class="iresult err">❌ ${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
