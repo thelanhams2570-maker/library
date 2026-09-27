@@ -1326,7 +1326,7 @@ function processKindle(file){const reader=new FileReader();reader.onload=e=>{try
 function findDuplicates(){const groups=[],used=new Set();for(let i=0;i<books.length;i++){if(used.has(books[i].id))continue;const group=[books[i]];used.add(books[i].id);for(let j=i+1;j<books.length;j++){if(used.has(books[j].id))continue;if(books[i].author.trim().toLowerCase()===books[j].author.trim().toLowerCase()&&titlesMatch(books[i].title,books[j].title)){group.push(books[j]);used.add(books[j].id);}}if(group.length>1)groups.push(group);}return groups;}
 
 function exportJSON(){const blob=new Blob([JSON.stringify(books,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='my-books-backup.json';a.click();URL.revokeObjectURL(u);}
-function restoreJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!Array.isArray(d))throw new Error('Invalid format');books=d;load();save();alert(`Restored ${books.length} books.`);renderLib();}catch(err){alert('Failed: '+err.message);}};r.readAsText(f);}
+function restoreJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(!Array.isArray(d))throw new Error('Invalid format');localStorage.setItem(SK,JSON.stringify(d));load();save();alert(`Restored ${books.length} books.`);renderLib();}catch(err){alert('Failed: '+err.message);}};r.readAsText(f);}
 
 
 const BC_SEED=[
