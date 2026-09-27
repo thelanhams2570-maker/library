@@ -6,15 +6,16 @@
 <title>My Books</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#7c5cbf">
+<meta name="theme-color" content="#171b2b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="My Books">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script>if(window.Chart){Chart.defaults.color='#a8aec4';Chart.defaults.borderColor='#323a55';}</script>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
-:root{color-scheme:light;--bg:#f8f7f4;--surface:#fff;--surface2:#f2f0eb;--border:#e2ddd6;--text:#2c2825;--text2:#6b6460;--text3:#9e9892;--accent:#7c5cbf;--accent2:#a07dd4;--accent-bg:#f0ebf9;--read:#2d7a4f;--tbr:#6b4f9e;--want:#6b4f9e;--owned:#6b4f9e;--wishlist:#6b4f9e;--dnf:#888;--borrowed:#9b4c00;--danger:#c0392b;--star:#f5a623;--series:#0e7c7b;--r:10px;--shadow:0 2px 8px rgba(0,0,0,.07)}
+:root{color-scheme:dark;--bg:#171b2b;--surface:#1f2438;--surface2:#262c44;--border:#323a55;--text:#eef0f7;--text2:#a8aec4;--text3:#6f7690;--accent:#8b6ee0;--accent2:#a68af0;--accent-bg:#2a2456;--read:#2ecc8f;--tbr:#a68af0;--want:#a68af0;--owned:#a68af0;--wishlist:#a68af0;--dnf:#7d8299;--borrowed:#f0a34e;--danger:#ff6b7d;--star:#ffc94d;--series:#35d0c0;--r:10px;--shadow:0 4px 16px rgba(0,0,0,.35)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
 .app{display:flex;flex-direction:column;height:100vh}
@@ -50,11 +51,11 @@ select.fsel:hover{border-color:var(--accent2)}
 .bcard-author:hover{color:var(--accent2)}
 .bcard-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
 .badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
-.b-read{background:#e6f4ed;color:var(--read)}.b-want{background:#fdf3e0;color:var(--want)}
-.b-owned{background:#ede8f9;color:var(--accent)}.b-wishlist{background:#ede8f9;color:var(--accent)}.b-tbr{background:#ede8f9;color:var(--accent)}
-.b-reading{background:var(--accent-bg);color:var(--accent)}.b-fmt{background:var(--surface2);color:var(--text2)}
-.b-genre{background:#e8f4f8;color:#1a6a7a}.b-dnf{background:#eee;color:var(--dnf)}
-.b-borrowed{background:#fff3e0;color:var(--borrowed)}
+.b-read{background:rgba(46,204,143,.16);color:var(--read)}.b-want{background:rgba(166,138,240,.16);color:var(--want)}
+.b-owned{background:rgba(166,138,240,.16);color:var(--accent2)}.b-wishlist{background:rgba(166,138,240,.16);color:var(--accent2)}.b-tbr{background:rgba(166,138,240,.16);color:var(--accent2)}
+.b-reading{background:var(--accent-bg);color:var(--accent2)}.b-fmt{background:var(--surface2);color:var(--text2)}
+.b-genre{background:rgba(53,208,192,.16);color:var(--series)}.b-dnf{background:rgba(125,130,153,.18);color:var(--dnf)}
+.b-borrowed{background:rgba(240,163,78,.16);color:var(--borrowed)}
 .bcard-series{font-size:11px;color:var(--series);margin-bottom:3px;font-style:italic}
 .bcard-stars{color:var(--star);font-size:12px;letter-spacing:1px}
 .bcard-gr{font-size:11px;color:var(--text3)}.bcard-date{font-size:11px;color:var(--text3);margin-top:3px}
@@ -71,19 +72,21 @@ select.fsel:hover{border-color:var(--accent2)}
 .sc-stat{display:flex;align-items:center;gap:3px}
 .sc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .sc-books{border-top:1px solid var(--border);padding-top:8px}
-.sc-book-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;border-bottom:1px solid #f5f3f0}
+.sc-book-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.07)}
 .sc-book-row:last-child{border-bottom:none}
 .sc-book-num{font-size:11px;color:var(--text3);min-width:22px}
 .sc-book-title{flex:1;line-height:1.3;cursor:pointer;color:var(--text)}
 .sc-book-title:hover{color:var(--accent);text-decoration:underline}
-.sc-gap-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;color:var(--danger);border-bottom:1px solid #f5f3f0;opacity:.8}
+.sc-gap-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;color:var(--danger);border-bottom:1px solid rgba(255,255,255,.07);opacity:.8}
 .sc-gap-row:last-child{border-bottom:none}
 .sc-missing-section{margin-top:8px;border-top:1px dashed var(--danger);padding-top:8px}
 .sc-missing-title{font-size:11px;font-weight:600;color:var(--danger);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
-.sc-missing-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;border-bottom:1px solid #f5f3f0;color:var(--text2)}
+.sc-missing-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.07);color:var(--text2)}
 /* Authors */
 .author-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.author-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s}
+.author-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s;display:flex;gap:10px;align-items:flex-start}
+.ac-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.ac-body{flex:1;min-width:0}
 .author-card:hover{border-color:var(--accent2)}
 .ac-name{font-size:14px;font-weight:600;margin-bottom:4px}
 .ac-stats{font-size:12px;color:var(--text2);line-height:1.7}
@@ -93,7 +96,7 @@ select.fsel:hover{border-color:var(--accent2)}
 .ad-name{font-size:18px;font-weight:700}
 .ad-series-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:10px}
 .ad-series-name{font-size:12px;font-weight:700;color:var(--series);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.ad-book-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f5f3f0;font-size:12px;cursor:pointer}
+.ad-book-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12px;cursor:pointer}
 .ad-book-row:hover{background:var(--surface2);margin:0 -4px;padding:5px 4px}
 .ad-book-row:last-child{border-bottom:none}
 .ad-book-icons{display:flex;gap:3px;font-size:13px}
@@ -153,9 +156,9 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .fmt-check{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:5px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);transition:all .12s;user-select:none}
 .fmt-check input{display:none}
 .fmt-check.checked{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:500}
-.fmt-check.borrowed.checked{background:#fff3e0;border-color:#e0860a;color:var(--borrowed)}
+.fmt-check.borrowed.checked{background:rgba(240,163,78,.16);border-color:var(--borrowed);color:var(--borrowed)}
 .star-row{display:flex;gap:3px}
-.starb{background:none;border:none;font-size:22px;cursor:pointer;color:#ddd;transition:color .1s;padding:0}
+.starb{background:none;border:none;font-size:22px;cursor:pointer;color:#454b6e;transition:color .1s;padding:0}
 .starb.on{color:var(--star)}
 .tag-input-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);min-height:36px;cursor:text;align-items:center}
 .tag{background:var(--accent-bg);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:20px;display:flex;align-items:center;gap:4px}
@@ -172,10 +175,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .drop-zone:hover,.drop-zone.dv{border-color:var(--accent);background:var(--accent-bg)}
 .dz-icon{font-size:28px;margin-bottom:6px}.dz-p{font-size:13px;color:var(--text2);margin-top:4px}
 .iresult{margin-top:10px;padding:9px 12px;border-radius:8px;font-size:13px}
-.iresult.ok{background:#e6f4ed;color:var(--read)}.iresult.err{background:#fff0ee;color:var(--danger)}
-.dedup-card{background:#fff8e6;border:1px solid #f0d080;border-radius:var(--r);padding:16px;margin-bottom:14px;max-width:540px}
-.dedup-card h2{font-size:15px;font-weight:600;margin-bottom:6px;color:#7a5200}
-.dedup-card p{font-size:13px;color:#7a5200;line-height:1.5;margin-bottom:10px}
+.iresult.ok{background:rgba(46,204,143,.14);color:var(--read)}.iresult.err{background:rgba(255,107,125,.14);color:var(--danger)}
+.dedup-card{background:rgba(240,163,78,.1);border:1px solid rgba(240,163,78,.4);border-radius:var(--r);padding:16px;margin-bottom:14px;max-width:540px}
+.dedup-card h2{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--borrowed)}
+.dedup-card p{font-size:13px;color:var(--borrowed);line-height:1.5;margin-bottom:10px}
 .settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;max-width:500px;box-shadow:var(--shadow);margin-bottom:14px}
 .settings-card h2{font-size:15px;font-weight:600;margin-bottom:14px}
 .goal-setting{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -184,13 +187,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .btn{padding:7px 13px;border:none;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
 .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
 .btn-outline{background:var(--surface);border:1px solid var(--border);color:var(--text)}.btn-outline:hover{background:var(--surface2)}
-.btn-danger{background:var(--surface);border:1px solid var(--border);color:var(--danger)}.btn-danger:hover{background:#fff0ee}
-.btn-warn{background:#fff3cd;border:1px solid #f0c040;color:#7a5200}.btn-warn:hover{background:#ffe8a0}
+.btn-danger{background:var(--surface);border:1px solid var(--border);color:var(--danger)}.btn-danger:hover{background:rgba(255,107,125,.14)}
+.btn-warn{background:rgba(240,163,78,.18);border:1px solid var(--borrowed);color:var(--borrowed)}.btn-warn:hover{background:rgba(240,163,78,.3)}
 .btn-series{background:var(--accent-bg);border:1px solid var(--accent2);color:var(--accent);font-size:11px;padding:4px 10px}
 .btn-sm{padding:4px 9px;font-size:11px}
-.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:14px}
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:14px}
 .modal-ov.open{display:flex}
-.modal{background:var(--surface);border-radius:var(--r);padding:18px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.5)}
 .modal h2{font-size:15px;font-weight:600;margin-bottom:14px}
 .modal-actions{display:flex;gap:7px;margin-top:16px;justify-content:flex-end}
 .loading{color:var(--text2);font-size:13px;display:flex;align-items:center;gap:6px;padding:8px 0}
@@ -529,7 +532,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <h2>⚠️ Duplicate books detected</h2>
     <p id="dedup-msg"></p>
     <button class="btn btn-warn" onclick="runDedup()">🔀 Merge duplicates now</button>
-    <span style="font-size:12px;color:#7a5200;margin-left:10px" id="dedup-status"></span>
+    <span style="font-size:12px;color:var(--borrowed);margin-left:10px" id="dedup-status"></span>
   </div>
   <div class="import-card">
     <h2>GoodReads Library</h2>
@@ -1123,13 +1126,17 @@ function addMissingBook(title,author,series,seriesNumber,btn){
   const existing=findExisting(title,author);
   if(existing){btn.textContent='✓ Exists';btn.disabled=true;return;}
   books.push({id:genId(),title,author,status:'tbr',formats:[],borrowedFormats:[],series,seriesNumber:String(seriesNumber),dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:0,isbn:'',notes:'',genre:[],coverUrl:'',readFormat:''});
-  save();btn.textContent='✓ Added';btn.style.background='#e6f4ed';btn.style.borderColor='var(--read)';btn.style.color='var(--read)';btn.disabled=true;
+  save();btn.textContent='✓ Added';btn.style.background='rgba(46,204,143,.16)';btn.style.borderColor='var(--read)';btn.style.color='var(--read)';btn.disabled=true;
 }
 
 // ═══════════ AUTHORS ═══════════
+const AVATAR_COLORS=['#8b6ee0','#35d0c0','#ff6b7d','#f0a34e','#4d9de0','#2ecc8f'];
+function avatarColorFor(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
+function initialsFor(name){const parts=name.trim().split(/\s+/).filter(Boolean);if(!parts.length)return'?';if(parts.length===1)return parts[0][0].toUpperCase();return(parts[0][0]+parts[parts.length-1][0]).toUpperCase();}
+
 function buildAuthorMap(){const map={};books.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),borrowedFormats:new Set(),series:new Set(),books:[]};if(b.status==='read')map[a].read++;else if(b.status==='reading')map[a].owned++;else if(['tbr','owned','want','wishlist'].includes(b.status))map[a].want++;else if(b.status==='dnf')map[a].dnf++;(b.formats||[]).forEach(f=>map[a].formats.add(f));(b.borrowedFormats||[]).forEach(f=>map[a].borrowedFormats.add(f));if(b.series)map[a].series.add(b.series);map[a].books.push(b);});return map;}
 
-function renderAuthors(){const map=buildAuthorMap();const q=(document.getElementById('author-search')?.value||'').toLowerCase();const lenF=document.getElementById('author-length')?.value||'';const list=document.getElementById('author-list');const entries=Object.values(map).filter(a=>{if(q&&!a.name.toLowerCase().includes(q))return false;if(lenF&&!a.books.some(b=>{const p=b.pages||0;if(!p)return false;if(lenF==='short')return p<250;if(lenF==='medium')return p>=250&&p<=450;if(lenF==='long')return p>450;return false;}))return false;return true;}).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));if(!entries.length){list.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👤</div><p>No authors found.</p></div>`;return;}list.innerHTML=entries.map(a=>{const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');const ser=[...a.series].slice(0,2).join(', ')+(a.series.size>2?'…':'');return`<div class="author-card" onclick="openAuthorDetail('${esc(a.name)}')"><div class="ac-name">${esc(a.name)}</div><div class="ac-stats">${a.read} read · ${a.owned} owned · ${a.want} want${a.dnf?` · ${a.dnf} DNF`:''}<br>${fmts?fmts+'<br>':''}${ser?`<span style="color:var(--series)">${esc(ser)}</span>`:''}</div></div>`;}).join('');}
+function renderAuthors(){const map=buildAuthorMap();const q=(document.getElementById('author-search')?.value||'').toLowerCase();const lenF=document.getElementById('author-length')?.value||'';const list=document.getElementById('author-list');const entries=Object.values(map).filter(a=>{if(q&&!a.name.toLowerCase().includes(q))return false;if(lenF&&!a.books.some(b=>{const p=b.pages||0;if(!p)return false;if(lenF==='short')return p<250;if(lenF==='medium')return p>=250&&p<=450;if(lenF==='long')return p>450;return false;}))return false;return true;}).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));if(!entries.length){list.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👤</div><p>No authors found.</p></div>`;return;}list.innerHTML=entries.map(a=>{const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');const ser=[...a.series].slice(0,2).join(', ')+(a.series.size>2?'…':'');return`<div class="author-card" onclick="openAuthorDetail('${esc(a.name)}')"><div class="ac-avatar" style="background:${avatarColorFor(a.name)}">${esc(initialsFor(a.name))}</div><div class="ac-body"><div class="ac-name">${esc(a.name)}</div><div class="ac-stats">${a.read} read · ${a.owned} owned · ${a.want} want${a.dnf?` · ${a.dnf} DNF`:''}<br>${fmts?fmts+'<br>':''}${ser?`<span style="color:var(--series)">${esc(ser)}</span>`:''}</div></div></div>`;}).join('');}
 
 function openAuthorDetail(name){
   currentAuthor=name;
@@ -1214,7 +1221,7 @@ function renderReportSummary(){
   </div>`;
   setTimeout(()=>{
     if(years.length>1){const ctx=document.getElementById('ch-year');if(ctx)chartInst.yr=new Chart(ctx,{type:'bar',data:{labels:years,datasets:[{label:'Books',data:years.map(y=>byYear[y]),backgroundColor:'#7c5cbf',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
-    if(rated.length){const ctx=document.getElementById('ch-ratings');if(ctx)chartInst.rat=new Chart(ctx,{type:'bar',data:{labels:['★','★★','★★★','★★★★','★★★★★'],datasets:[{data:rDist,backgroundColor:['#e0d4f5','#c4a9e8','#a07dd4','#8a69cb','#7c5cbf'],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
+    if(rated.length){const ctx=document.getElementById('ch-ratings');if(ctx)chartInst.rat=new Chart(ctx,{type:'bar',data:{labels:['★','★★','★★★','★★★★','★★★★★'],datasets:[{data:rDist,backgroundColor:['#4a3b7a','#5f4a99','#7458b8','#8b6ee0','#a68af0'],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
     const sc=document.getElementById('ch-shelf');if(sc)chartInst.shelf=new Chart(sc,{type:'doughnut',data:{labels:['Read','Reading','TBR','DNF'],datasets:[{data:[read.length,rb.filter(b=>b.status==='reading').length,rb.filter(b=>['tbr','owned','want','wishlist'].includes(b.status)).length,rb.filter(b=>b.status==='dnf').length],backgroundColor:['#2d7a4f','#7c5cbf','#6b4f9e','#888'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});
   },50);
 }
@@ -1321,7 +1328,7 @@ async function getRecs(){
   try{
     if(topBooks.length){
       const exclude=[...myTitles,...continuations.map(c=>normTitle(c.title))];
-      const prompt=`Based on these highly-rated books: ${topBooks.map(b=>`"${b.title}" by ${b.author} (${b.rating}★, genres: ${(b.genre||[]).join(', ')||'unknown'})`).join('; ')} — recommend 10 NEW books (not sequels to series already covered) the reader would love that they haven't read yet. For each, also estimate an approximate print page count (integer), and pick whichever single format — Ebook, Audiobook, or Hardcopy — best suits that specific book's style (e.g. narration-driven or full-cast books suit Audiobook; dense reference or heavily-illustrated books suit Ebook/Hardcopy). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence why they'd love it based on their reading taste","pages":320,"format":"Audiobook"}]. Do not include any of: ${exclude.slice(0,40).join(', ')}.`;
+      const prompt=`Based on these highly-rated books: ${topBooks.map(b=>`"${b.title}" by ${b.author} (${b.rating}★, genres: ${(b.genre||[]).join(', ')||'unknown'})`).join('; ')} — recommend 10 NEW books (not sequels to series already covered) the reader would love that they haven't read yet. For each, also estimate: an approximate print page count (integer); whichever single format — Ebook, Audiobook, or Hardcopy — best suits that specific book's style (e.g. narration-driven or full-cast books suit Audiobook; dense reference or heavily-illustrated books suit Ebook/Hardcopy); and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate, not a rating of how well it matches). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence why they'd love it based on their reading taste","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${exclude.slice(0,40).join(', ')}.`;
       const raw=await askClaude(prompt);
       const text=aiStr(raw);
       const jsonMatch=text.match(/\[[\s\S]*\]/);
@@ -1350,8 +1357,8 @@ async function getRecsNL(){
   try{
     const topBooks=books.filter(b=>b.status==='read'&&b.rating>=4).sort((a,b)=>(b.rating||0)-(a.rating||0)).slice(0,10);
     const myTitles=[...new Set(books.map(b=>normTitle(b.title)))];
-    const context=topBooks.length?` For taste context, they loved: ${topBooks.map(b=>`"${b.title}" by ${b.author}`).join('; ')}.`:'';
-    const prompt=`The reader wants a book recommendation and says: "${q}".${context} Recommend up to 8 books matching this request as closely as possible. For each, estimate genre, an approximate print page count (integer), and whichever single format — Ebook, Audiobook, or Hardcopy — best suits that specific book. Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence tying it to their request","pages":320,"format":"Audiobook"}]. Do not include any of: ${myTitles.slice(0,40).join(', ')}.`;
+    const context=topBooks.length?`\n\nFor minor tone/pacing calibration ONLY — never let this override or broaden the genre of the request above — they have also separately rated these highly: ${topBooks.map(b=>`"${b.title}" by ${b.author}`).join('; ')}.`:'';
+    const prompt=`The reader typed this specific recommendation request: "${q}"\n\nTreat this request as the primary and complete instruction. Match the genre, subject matter, and style it describes or implies as closely as possible, even where that differs from the reader's general reading history. If a specific book or author is named, infer genre/tone/comparable titles from that specific book itself — do not substitute a different genre just because it appears more often in the reader's history below. If unfamiliar with a named book, make your best judgement from its title and any details given in the request, rather than defaulting to an unrelated genre.${context}\n\nRecommend up to 8 books matching the request as closely as possible. For each, estimate genre, an approximate print page count (integer), whichever single format — Ebook, Audiobook, or Hardcopy — best suits that specific book, and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence tying it to their request","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${myTitles.slice(0,40).join(', ')}.`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
@@ -1399,7 +1406,7 @@ function filterRecs(){
     const existing=findExisting(r.title,r.author);
     const ownStatus=!existing?'new':((existing.formats||[]).length?'owned':'wishlist');
     const ownBadge=ownStatus==='owned'?`<span class="badge b-fmt">Owned</span>`:ownStatus==='wishlist'?`<span class="badge b-tbr">Wishlisted</span>`:`<span class="badge b-genre">New</span>`;
-    const btn=existing?`<button class="btn btn-outline btn-sm" onclick="openModal('${existing.id}')">📖 ${ownStatus==='owned'?'In library':'On wishlist'}</button>`:`<button class="btn btn-series btn-sm" onclick="addRecToWishlist('${esc(r.title).replace(/'/g,"\\'")}','${esc(r.author).replace(/'/g,"\\'")}','${esc(r.series||'').replace(/'/g,"\\'")}','${esc(r.seriesNumber||'').replace(/'/g,"\\'")}','${esc(r.coverUrl||'').replace(/'/g,"\\'")}',${r.pages||0},this)">+ Wishlist</button>`;
+    const btn=existing?`<button class="btn btn-outline btn-sm" onclick="openModal('${existing.id}')">📖 ${ownStatus==='owned'?'In library':'On wishlist'}</button>`:`<button class="btn btn-series btn-sm" onclick="addRecToWishlist('${esc(r.title).replace(/'/g,"\\'")}','${esc(r.author).replace(/'/g,"\\'")}','${esc(r.series||'').replace(/'/g,"\\'")}','${esc(r.seriesNumber||'').replace(/'/g,"\\'")}','${esc(r.coverUrl||'').replace(/'/g,"\\'")}',${r.pages||0},${r.grRating||0},this)">+ Wishlist</button>`;
     const cover=r.coverUrl?`<img src="${esc(r.coverUrl)}" style="width:44px;height:60px;object-fit:cover;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'">`:`<div class="cover-placeholder" style="width:44px;height:60px;flex-shrink:0">📚</div>`;
     return`<div class="rec-card" style="display:flex;gap:10px">
       ${cover}
@@ -1410,6 +1417,7 @@ function filterRecs(){
         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:5px 0;font-size:11px;color:var(--text3)">
           ${r.pages?`<span>${r.pages}pg</span>`:''}
           ${r.format?`<span>${FMT_ICO[r.format]||''} ${esc(r.format)}</span>`:''}
+          ${r.grRating?`<span>GR ★ ${r.grRating}</span>`:''}
           ${ownBadge}
         </div>
         <div class="rec-reason">"${esc(r.reason)}"</div>
@@ -1419,7 +1427,7 @@ function filterRecs(){
   }).join('')}</div>`;
 }
 
-function addRecToWishlist(title,author,series,seriesNumber,coverUrl,pages,btn){const existing=findExisting(title,author);if(existing){btn.textContent='✓ Already added';btn.disabled=true;return;}books.push({id:genId(),title,author,status:'tbr',formats:[],borrowedFormats:[],series:series||'',seriesNumber:seriesNumber||'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:0,isbn:'',pages:pages||0,pagesEstimated:!!pages,notes:'',genre:[],coverUrl:coverUrl||'',readFormat:''});save();btn.textContent='✓ Added!';btn.style.background='#e6f4ed';btn.style.color='var(--read)';btn.disabled=true;}
+function addRecToWishlist(title,author,series,seriesNumber,coverUrl,pages,grRating,btn){const existing=findExisting(title,author);if(existing){btn.textContent='✓ Already added';btn.disabled=true;return;}books.push({id:genId(),title,author,status:'tbr',formats:[],borrowedFormats:[],series:series||'',seriesNumber:seriesNumber||'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:grRating||0,isbn:'',pages:pages||0,pagesEstimated:!!pages,notes:'',genre:[],coverUrl:coverUrl||'',readFormat:''});save();btn.textContent='✓ Added!';btn.style.background='rgba(46,204,143,.16)';btn.style.color='var(--read)';btn.disabled=true;}
 
 // ═══════════ BOOK CLUB ═══════════
 function renderBCMeetings(){
