@@ -13,6 +13,9 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // Cheaper alternative if you want to cut costs: "claude-haiku-4-5-20251001"
 const MODEL = "claude-sonnet-5";
 
+// This model returns a "thinking" content block before the "text" block, so
+// content[0] is not reliably the answer -- must search for the text block.
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -36,7 +39,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 1536,
+        max_tokens: 4096,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -47,7 +50,9 @@ serve(async (req) => {
     }
 
     const data = await resp.json();
-    const text = data?.content?.[0]?.text ?? "";
+    const blocks = data.content || [];
+    const textBlock = blocks.find((b: any) => b.type === "text");
+    const text = textBlock?.text ?? "";
 
     return new Response(JSON.stringify({ text }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
