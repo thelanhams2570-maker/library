@@ -89,15 +89,30 @@ select.fsel:hover{border-color:var(--accent2)}
 .view-toggle button{padding:var(--sp-2) var(--sp-3);border:none;border-radius:var(--r);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
 .view-toggle button:hover{color:var(--text)}
 .view-toggle button.on{background:var(--accent);color:var(--on-accent)}
+.lib-table-toolbar{display:none;align-items:center;gap:8px;margin-bottom:8px}
 .lib-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface)}
-table.lib-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
-table.lib-table th{position:sticky;top:0;background:var(--surface2);text-align:left;padding:var(--sp-2) var(--sp-3);font-weight:600;color:var(--text2);cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+table.lib-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap;table-layout:fixed}
+table.lib-table th{position:sticky;top:0;background:var(--surface2);text-align:left;padding:var(--sp-2) var(--sp-3);font-weight:600;color:var(--text2);cursor:pointer;user-select:none;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;z-index:1}
 table.lib-table th:hover{color:var(--text)}
 table.lib-table th.sorted{color:var(--accent2)}
-table.lib-table td{padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--border);color:var(--text)}
+table.lib-table th.col-check,table.lib-table td.col-check{width:36px;padding:var(--sp-2);cursor:default;position:sticky;left:0}
+table.lib-table th.col-check{z-index:5;background:var(--surface2)}
+table.lib-table td.col-check{z-index:2;background:var(--surface)}
+table.lib-table tbody tr:hover td.col-check{background:var(--surface2)}
+table.lib-table th.th-freeze,table.lib-table td.td-freeze{position:sticky;z-index:2;background:var(--surface)}
+table.lib-table th.th-freeze{background:var(--surface2);z-index:4}
+table.lib-table tbody tr:hover td.td-freeze{background:var(--surface2)}
+table.lib-table td{padding:var(--sp-2) var(--sp-3);border-bottom:1px solid var(--border);color:var(--text);overflow:hidden;text-overflow:ellipsis}
 table.lib-table tr:last-child td{border-bottom:none}
 table.lib-table tbody tr{cursor:pointer;transition:background .1s}
 table.lib-table tbody tr:hover{background:var(--surface2)}
+.col-resize-handle{position:absolute;right:0;top:0;bottom:0;width:7px;cursor:col-resize;z-index:2}
+.col-resize-handle:hover,.col-resize-handle.active{background:var(--accent2)}
+.td-rating{white-space:nowrap}
+.td-star{cursor:pointer;color:var(--rule);font-size:14px}
+.td-star.on{color:var(--star)}
+.td-lend{display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:400}
+.td-lend input{accent-color:var(--accent)}
 .kanban-board{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:6px}
 .kanban-col{flex:0 0 250px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-3);min-height:120px}
 .kanban-col-h{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:var(--sp-2);display:flex;justify-content:space-between;align-items:center}
@@ -331,10 +346,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- DASHBOARD -->
 <div id="panel-dashboard" class="panel active">
   <div class="settings-card" style="margin-bottom:var(--sp-4)">
-    <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">What do you feel like reading?</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> What do you feel like reading? <span style="font-weight:400;color:var(--text3);font-size:11px">AI-powered</span></label>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <input class="search-box" id="dash-recs-q" type="text" style="flex:1;min-width:220px" placeholder="e.g. &quot;something like Fourth Wing but shorter&quot; or &quot;a cozy fantasy for the holidays&quot;" onkeydown="if(event.key==='Enter'){event.preventDefault();dashboardRecsSearch();}">
-      <button class="btn btn-primary" onclick="dashboardRecsSearch()"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Ask</button>
+      <button class="btn btn-primary" onclick="dashboardRecsSearch()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Ask</button>
     </div>
   </div>
 
@@ -399,6 +414,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
   <div id="bulk-bar" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
     <span id="bulk-count" style="font-size:12px;color:var(--text2);font-weight:600"></span>
+    <button class="btn btn-outline btn-sm" onclick="selectAllFiltered()">Select all</button>
     <select class="fsel" id="bulk-status">
       <option value="">Set status to…</option>
       <option value="read">Read</option>
@@ -408,25 +424,36 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <option value="dnf">DNF</option>
     </select>
     <button class="btn btn-series btn-sm" onclick="applyBulkStatus()">Apply</button>
+    <button class="btn btn-series btn-sm" onclick="applyBulkLendable(true)"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12h7"/><path d="M7 8l-4 4 4 4"/><path d="M21 12h-7"/><path d="M17 8l4 4-4 4"/></svg> Mark willing to lend</button>
+    <button class="btn btn-outline btn-sm" onclick="applyBulkLendable(false)">Clear lending flag</button>
     <button class="btn btn-danger btn-sm" onclick="bulkDelete()"><svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/></svg> Delete selected</button>
     <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="clearSelection()">Clear selection</button>
   </div>
   <div class="books-grid" id="lib-grid"></div>
+  <div class="lib-table-toolbar" id="lib-table-toolbar">
+    <div class="msel">
+      <button type="button" class="msel-btn" onclick="toggleColPicker()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg> Columns <svg class="ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="msel-pop" id="col-picker-pop"></div>
+    </div>
+    <div style="margin-left:auto;font-size:11px;color:var(--text3)">Drag a column's right edge to resize. First column stays visible while you scroll.</div>
+  </div>
   <div class="lib-table-wrap" id="lib-table-wrap" style="display:none">
     <table class="lib-table" id="lib-table">
-      <thead><tr>
-        <th data-col="title" onclick="sortTableBy('title')">Title</th>
-        <th data-col="author" onclick="sortTableBy('author')">Author</th>
-        <th data-col="series" onclick="sortTableBy('series')">Series</th>
-        <th data-col="status" onclick="sortTableBy('status')">Status</th>
-        <th data-col="format" onclick="sortTableBy('format')">Format</th>
-        <th data-col="pages" onclick="sortTableBy('pages')">Pages</th>
-        <th data-col="rating" onclick="sortTableBy('rating')">Rating</th>
-        <th data-col="dateRead" onclick="sortTableBy('dateRead')">Date read</th>
-        <th data-col="bookclub" onclick="sortTableBy('bookclub')">Book club</th>
-      </tr></thead>
+      <colgroup id="lib-table-colgroup"></colgroup>
+      <thead><tr id="lib-table-head-row"></tr></thead>
       <tbody id="lib-table-body"></tbody>
     </table>
+  </div>
+  <div id="kanban-group-row" style="display:none;align-items:center;gap:8px;margin-bottom:10px">
+    <label style="font-size:12px;color:var(--text2);font-weight:500">Group by</label>
+    <select class="fsel" id="kanban-group-sel" onchange="setKanbanGrouping(this.value)">
+      <option value="status">Status</option>
+      <option value="yearRead">Year read</option>
+      <option value="format">Format</option>
+      <option value="genre">Genre</option>
+      <option value="rating">My rating</option>
+    </select>
+    <span id="kanban-group-note" style="font-size:11px;color:var(--text3)"></span>
   </div>
   <div class="kanban-board" id="lib-kanban" style="display:none"></div>
 </div>
@@ -1598,8 +1625,10 @@ function setLibView(v){
   libView=v;
   ['grid','table','kanban'].forEach(x=>document.getElementById('view-btn-'+x).classList.toggle('on',x===v));
   document.getElementById('lib-grid').style.display=v==='grid'?'':'none';
+  document.getElementById('lib-table-toolbar').style.display=v==='table'?'flex':'none';
   document.getElementById('lib-table-wrap').style.display=v==='table'?'':'none';
   document.getElementById('lib-kanban').style.display=v==='kanban'?'':'none';
+  document.getElementById('kanban-group-row').style.display=v==='kanban'?'flex':'none';
   renderLib();
 }
 function renderLib(){
@@ -1648,39 +1677,182 @@ function sortTableBy(col){
   if(tableSort.col===col)tableSort.dir*=-1;else tableSort={col,dir:1};
   renderLib();
 }
+const TABLE_COLUMNS=[
+  {id:'title',label:'Title',width:200,sortable:true,freeze:true},
+  {id:'author',label:'Author',width:150,sortable:true},
+  {id:'series',label:'Series',width:150,sortable:true},
+  {id:'status',label:'Status',width:110,sortable:true},
+  {id:'format',label:'Format',width:110,sortable:true},
+  {id:'pages',label:'Pages',width:70,sortable:true},
+  {id:'rating',label:'Rating',width:120,sortable:true},
+  {id:'dateRead',label:'Date read',width:100,sortable:true},
+  {id:'bookclub',label:'Book club',width:90,sortable:true},
+  {id:'genre',label:'Genre',width:150,sortable:false},
+  {id:'dateAdded',label:'Date added',width:100,sortable:true},
+  {id:'grRating',label:'GoodReads',width:90,sortable:true},
+  {id:'lending',label:'Lending',width:140,sortable:false},
+  {id:'notes',label:'Notes',width:220,sortable:false},
+];
+const DEFAULT_TABLE_COLS=['title','author','series','status','format','pages','rating','dateRead','bookclub'];
+function loadTableColState(){
+  try{const raw=JSON.parse(localStorage.getItem('booktracker_table_cols')||'null');if(raw&&Array.isArray(raw.visible))return raw;}catch(e){}
+  return{visible:[...DEFAULT_TABLE_COLS],widths:{}};
+}
+let tableColState=loadTableColState();
+function saveTableColState(){localStorage.setItem('booktracker_table_cols',JSON.stringify(tableColState));}
+function toggleTableColumn(id){
+  const i=tableColState.visible.indexOf(id);
+  if(i>=0){if(tableColState.visible.length<=1)return;tableColState.visible.splice(i,1);}
+  else tableColState.visible.push(id);
+  saveTableColState();renderColPicker();renderLib();
+}
+function resetTableColumns(){tableColState={visible:[...DEFAULT_TABLE_COLS],widths:{}};saveTableColState();renderColPicker();renderLib();}
+function toggleColPicker(){
+  const pop=document.getElementById('col-picker-pop');
+  const wasOpen=pop.classList.contains('open');
+  pop.classList.toggle('open',!wasOpen);
+  if(!wasOpen)renderColPicker();
+}
+function renderColPicker(){
+  const pop=document.getElementById('col-picker-pop');
+  if(!pop)return;
+  pop.innerHTML=`<div class="msel-list">${TABLE_COLUMNS.map(c=>`<label class="msel-opt"><input type="checkbox" ${tableColState.visible.includes(c.id)?'checked':''} onchange="toggleTableColumn('${c.id}')">${esc(c.label)}</label>`).join('')}</div><div class="msel-clear-row"><button type="button" class="msel-clear-all" onclick="resetTableColumns()">Reset to default</button></div>`;
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#col-picker-pop')||e.target.closest('.lib-table-toolbar .msel-btn'))return;
+  const pop=document.getElementById('col-picker-pop');
+  if(pop&&pop.classList.contains('open'))pop.classList.remove('open');
+});
+function toggleSelectAllTable(checked){
+  if(checked)filterBooks().forEach(b=>selectedIds.add(b.id));else selectedIds.clear();
+  updateBulkBar();renderLib();
+}
+function setTableRating(id,n){
+  const b=books.find(x=>x.id===id);if(!b)return;
+  b.rating=(b.rating===n)?0:n;
+  save();renderLib();
+}
+function setTableLendable(id,val){
+  const b=books.find(x=>x.id===id);if(!b)return;
+  b.lendable=val;
+  save();renderLib();
+}
+function renderTableCell(b,c){
+  const cls=c.freeze?' class="td-freeze"':'';
+  const style=c.freeze?` style="left:${selectMode?'36px':'0'}"`:'';
+  const go=`openModal('${b.id}')`;
+  switch(c.id){
+    case'title':return`<td${cls}${style} onclick="${go}">${esc(b.title)}</td>`;
+    case'author':return`<td onclick="${go}">${esc(b.author)}</td>`;
+    case'series':return`<td onclick="${go}">${b.series?esc(b.series)+(b.seriesNumber?' #'+esc(b.seriesNumber):''):''}</td>`;
+    case'status':return`<td onclick="${go}"><span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span></td>`;
+    case'format':return`<td onclick="${go}">${(b.formats||[]).map(f=>FMT_ICO[f]||f).join(' ')}</td>`;
+    case'pages':return`<td onclick="${go}">${b.pages?(b.pagesEstimated?'~':'')+b.pages:''}</td>`;
+    case'rating':return`<td class="td-rating">${[1,2,3,4,5].map(n=>`<span class="td-star ${n<=(b.rating||0)?'on':''}" onclick="setTableRating('${b.id}',${n})">★</span>`).join('')}</td>`;
+    case'dateRead':return`<td onclick="${go}">${esc(b.dateRead||'')}</td>`;
+    case'dateAdded':return`<td onclick="${go}">${esc((b.dateAdded||'').slice(0,10))}</td>`;
+    case'grRating':return`<td onclick="${go}">${b.grRating||''}</td>`;
+    case'genre':return`<td onclick="${go}">${(b.genre||[]).join(', ')}</td>`;
+    case'bookclub':return`<td onclick="${go}">${bookInBookClub(b)?ICON.bookmark:''}</td>`;
+    case'lending':return`<td><label class="td-lend"><input type="checkbox" ${b.lendable?'checked':''} onchange="setTableLendable('${b.id}',this.checked)">${b.lentTo?'Out: '+esc(b.lentTo):'Will lend'}</label></td>`;
+    case'notes':return`<td onclick="${go}" title="${esc(b.notes||'')}">${esc((b.notes||'').slice(0,60))}${(b.notes||'').length>60?'…':''}</td>`;
+    default:return`<td></td>`;
+  }
+}
 function renderLibTable(filtered){
-  document.querySelectorAll('table.lib-table th').forEach(th=>{th.classList.toggle('sorted',th.dataset.col===tableSort.col);th.textContent=th.textContent.replace(/ [▲▼]$/,'')+(th.dataset.col===tableSort.col?(tableSort.dir===1?' ▲':' ▼'):'');});
+  const cols=TABLE_COLUMNS.filter(c=>tableColState.visible.includes(c.id));
+  const colgroup=document.getElementById('lib-table-colgroup');
+  colgroup.innerHTML=(selectMode?`<col style="width:36px">`:'')+cols.map(c=>`<col style="width:${tableColState.widths[c.id]||c.width}px">`).join('');
+  const headRow=document.getElementById('lib-table-head-row');
+  const freezeLeft=selectMode?'36px':'0';
+  headRow.innerHTML=(selectMode?`<th class="col-check"><input type="checkbox" onclick="toggleSelectAllTable(this.checked)" title="Select all"></th>`:'')+
+    cols.map(c=>{
+      const sortedCls=c.sortable&&tableSort.col===c.id?' sorted':'';
+      const arrow=c.sortable&&tableSort.col===c.id?(tableSort.dir===1?' ▲':' ▼'):'';
+      const freezeCls=c.freeze?' th-freeze':'';
+      const style=c.freeze?` style="left:${freezeLeft}"`:'';
+      return`<th class="${sortedCls}${freezeCls}"${style} data-col="${c.id}" ${c.sortable?`onclick="sortTableBy('${c.id}')"`:''}>${esc(c.label)}${arrow}<span class="col-resize-handle" onmousedown="startColResize(event,'${c.id}')" onclick="event.stopPropagation()"></span></th>`;
+    }).join('');
   const body=document.getElementById('lib-table-body');
   const{col,dir}=tableSort;
   const rows=[...filtered].sort((a,b)=>{
     let va,vb;
     if(col==='format')va=(a.formats||[]).join(','),vb=(b.formats||[]).join(',');
     else if(col==='bookclub')va=bookInBookClub(a)?1:0,vb=bookInBookClub(b)?1:0;
-    else if(col==='pages'||col==='rating')va=a[col]||0,vb=b[col]||0;
+    else if(col==='pages'||col==='rating'||col==='grRating')va=a[col]||0,vb=b[col]||0;
     else va=(a[col]||'').toString().toLowerCase(),vb=(b[col]||'').toString().toLowerCase();
     if(va<vb)return -1*dir;if(va>vb)return 1*dir;return 0;
   });
-  if(!rows.length){body.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px">No books match your filters.</td></tr>`;return;}
-  body.innerHTML=rows.map(b=>`<tr onclick="openModal('${b.id}')">
-    <td>${esc(b.title)}</td>
-    <td>${esc(b.author)}</td>
-    <td>${b.series?esc(b.series)+(b.seriesNumber?' #'+esc(b.seriesNumber):''):''}</td>
-    <td><span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span></td>
-    <td>${(b.formats||[]).map(f=>FMT_ICO[f]||f).join(' ')}</td>
-    <td>${b.pages?(b.pagesEstimated?'~':'')+b.pages:''}</td>
-    <td>${b.rating?'★'.repeat(b.rating):''}</td>
-    <td>${esc(b.dateRead||'')}</td>
-    <td>${bookInBookClub(b)?ICON.bookmark:''}</td>
-  </tr>`).join('');
+  if(!rows.length){body.innerHTML=`<tr><td colspan="${cols.length+(selectMode?1:0)}" style="text-align:center;color:var(--text3);padding:24px">No books match your filters.</td></tr>`;return;}
+  body.innerHTML=rows.map(b=>{
+    const checkCell=selectMode?`<td class="col-check" onclick="event.stopPropagation()"><input type="checkbox" ${selectedIds.has(b.id)?'checked':''} onchange="toggleSelect('${b.id}')"></td>`:'';
+    return`<tr>${checkCell}${cols.map(c=>renderTableCell(b,c)).join('')}</tr>`;
+  }).join('');
+}
+let colResizing=null;
+function startColResize(e,colId){
+  e.preventDefault();e.stopPropagation();
+  const th=e.target.closest('th');
+  e.target.classList.add('active');
+  colResizing={colId,startX:e.clientX,startWidth:th.getBoundingClientRect().width,handle:e.target};
+  document.addEventListener('mousemove',onColResizeMove);
+  document.addEventListener('mouseup',onColResizeUp);
+}
+function onColResizeMove(e){
+  if(!colResizing)return;
+  const newWidth=Math.max(50,Math.round(colResizing.startWidth+(e.clientX-colResizing.startX)));
+  tableColState.widths[colResizing.colId]=newWidth;
+  const cols=TABLE_COLUMNS.filter(c=>tableColState.visible.includes(c.id));
+  const idx=cols.findIndex(c=>c.id===colResizing.colId)+(selectMode?1:0);
+  const colEl=document.getElementById('lib-table-colgroup').children[idx];
+  if(colEl)colEl.style.width=newWidth+'px';
+}
+function onColResizeUp(){
+  if(colResizing){colResizing.handle.classList.remove('active');saveTableColState();}
+  colResizing=null;
+  document.removeEventListener('mousemove',onColResizeMove);
+  document.removeEventListener('mouseup',onColResizeUp);
 }
 const KANBAN_COLS=['wishlist','tbr','reading','read','dnf'];
+let kanbanGrouping=localStorage.getItem('booktracker_kanban_group')||'status';
+function setKanbanGrouping(mode){kanbanGrouping=mode;localStorage.setItem('booktracker_kanban_group',mode);renderLib();}
+function kanbanColumnsFor(mode,filtered){
+  if(mode==='status')return KANBAN_COLS.map(s=>({id:s,label:STATUS_LABELS[s]||s}));
+  if(mode==='yearRead'){
+    const years=[...new Set(filtered.map(b=>(b.dateRead||'').slice(0,4)).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
+    return[...years.map(y=>({id:y,label:y})),{id:'none',label:'No date'}];
+  }
+  if(mode==='format')return[...FMT_ALL.map(f=>({id:f,label:f})),{id:'none',label:'No format'}];
+  if(mode==='genre'){
+    const genres=[...new Set(filtered.flatMap(b=>b.genre||[]))].sort((a,b)=>a.localeCompare(b));
+    return[...genres.map(g=>({id:g,label:g})),{id:'none',label:'No genre'}];
+  }
+  if(mode==='rating')return[5,4,3,2,1,0].map(n=>({id:String(n),label:n?('★'.repeat(n)):'Unrated'}));
+  return KANBAN_COLS.map(s=>({id:s,label:STATUS_LABELS[s]||s}));
+}
+function kanbanGroupKeys(b,mode){
+  if(mode==='status')return[b.status];
+  if(mode==='yearRead')return[(b.dateRead||'').slice(0,4)||'none'];
+  if(mode==='format')return(b.formats&&b.formats.length)?b.formats:['none'];
+  if(mode==='genre')return(b.genre&&b.genre.length)?b.genre:['none'];
+  if(mode==='rating')return[String(b.rating||0)];
+  return[b.status];
+}
 function renderLibKanban(filtered){
   const board=document.getElementById('lib-kanban');
-  board.innerHTML=KANBAN_COLS.map(st=>{
-    const colBooks=filtered.filter(b=>b.status===st);
-    return`<div class="kanban-col" ondragover="kanbanDragOver(event)" ondragleave="kanbanDragLeave(event)" ondrop="kanbanDrop(event,'${st}')">
-      <div class="kanban-col-h"><span>${STATUS_LABELS[st]||st}</span><span>${colBooks.length}</span></div>
-      ${colBooks.map(b=>`<div class="kanban-card" draggable="true" ondragstart="kanbanDragStart(event,'${b.id}')" ondragend="kanbanDragEnd(event)" onclick="openModal('${b.id}')">
+  const mode=kanbanGrouping;
+  const sel=document.getElementById('kanban-group-sel');
+  if(sel)sel.value=mode;
+  const note=document.getElementById('kanban-group-note');
+  if(note)note.textContent=mode==='status'?'Drag a card to change its status.':'Drag and drop is only available when grouped by status.';
+  const draggable=mode==='status';
+  const cols=kanbanColumnsFor(mode,filtered);
+  board.innerHTML=cols.map(col=>{
+    const colBooks=filtered.filter(b=>kanbanGroupKeys(b,mode).includes(col.id));
+    const dragAttrs=draggable?`ondragover="kanbanDragOver(event)" ondragleave="kanbanDragLeave(event)" ondrop="kanbanDrop(event,'${col.id}')"`:'';
+    return`<div class="kanban-col" ${dragAttrs}>
+      <div class="kanban-col-h"><span>${esc(col.label)}</span><span>${colBooks.length}</span></div>
+      ${colBooks.map(b=>`<div class="kanban-card" ${draggable?`draggable="true" ondragstart="kanbanDragStart(event,'${b.id}')" ondragend="kanbanDragEnd(event)"`:''} onclick="openModal('${b.id}')">
         <div class="kanban-card-title">${esc(b.title)}</div>
         <div class="kanban-card-author">${esc(b.author)}</div>
         ${bookInBookClub(b)?`<div style="font-size:10px;color:var(--series);margin-top:3px">${ICON.bookmark} Book club</div>`:''}
@@ -1695,6 +1867,7 @@ function kanbanDragLeave(ev){ev.currentTarget.classList.remove('dragover');}
 function kanbanDrop(ev,status){
   ev.preventDefault();
   ev.currentTarget.classList.remove('dragover');
+  if(kanbanGrouping!=='status')return;
   const id=ev.dataTransfer.getData('text/plain');
   const b=books.find(x=>x.id===id);
   if(b&&b.status!==status){b.status=status;save();renderLib();}
@@ -1717,9 +1890,13 @@ function toggleSelect(id){
   renderLib();
 }
 function clearSelection(){selectedIds.clear();updateBulkBar();renderLib();}
+function selectAllFiltered(){
+  filterBooks().forEach(b=>selectedIds.add(b.id));
+  updateBulkBar();renderLib();
+}
 function updateBulkBar(){
   const bar=document.getElementById('bulk-bar');
-  if(selectMode&&selectedIds.size){
+  if(selectMode){
     bar.style.display='flex';
     document.getElementById('bulk-count').textContent=`${selectedIds.size} selected`;
   }else{
@@ -1727,13 +1904,19 @@ function updateBulkBar(){
   }
 }
 function applyBulkStatus(){
+  if(!selectedIds.size){alert('Select at least one book first.');return;}
   const status=document.getElementById('bulk-status').value;
   if(!status){alert('Choose a status first.');return;}
   books.forEach(b=>{if(selectedIds.has(b.id))b.status=status;});
   save();selectedIds.clear();updateBulkBar();renderLib();
 }
+function applyBulkLendable(value){
+  if(!selectedIds.size){alert('Select at least one book first.');return;}
+  books.forEach(b=>{if(selectedIds.has(b.id))b.lendable=value;});
+  save();selectedIds.clear();updateBulkBar();renderLib();
+}
 function bulkDelete(){
-  if(!selectedIds.size)return;
+  if(!selectedIds.size){alert('Select at least one book first.');return;}
   if(!confirm(`Delete ${selectedIds.size} book${selectedIds.size!==1?'s':''}? This can't be undone.`))return;
   books=books.filter(b=>!selectedIds.has(b.id));
   save();selectedIds.clear();updateBulkBar();renderLib();
