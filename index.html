@@ -41,9 +41,6 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-hei
 .app{display:flex;flex-direction:row;height:100vh}
 .sidebar{width:222px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
 .sb-brand{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);flex-shrink:0}
-.theme-toggle{margin-left:auto;width:30px;height:30px;flex-shrink:0;border:1px solid var(--border);border-radius:var(--r);background:var(--surface2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.theme-toggle:hover{color:var(--accent);border-color:var(--accent2)}
-.theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .sb-lockup{height:26px;width:auto;display:block}
 .sb-nav{display:flex;flex-direction:column;gap:2px;padding:var(--sp-2);flex:1}
 .sb-goal{padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--border);font-size:12px;color:var(--text2);flex-shrink:0}
@@ -208,8 +205,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .bc-meeting-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .bc-meeting-title{font-family:var(--font-serif);font-size:16px;font-weight:600}
 .bc-meeting-date{font-size:12px;color:var(--text3)}
-.bc-book-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)}
-.bc-book-row:last-child{border-bottom:none}
+.bc-book-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px}
 /* Form */
 .form-wrap{max-width:680px;margin:0 auto}
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);box-shadow:var(--shadow)}
@@ -253,10 +249,15 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 #panel-settings.active{display:grid}
 .settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);box-shadow:var(--shadow)}
 .settings-card h2{font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:14px}
+.archivist-tool{display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-3) 0;border-top:1px solid var(--rule)}
+.archivist-tool:first-of-type{border-top:none;padding-top:0}
+.archivist-tool .btn{flex-shrink:0;min-width:220px}
+.archivist-tool p{font-size:13px;color:var(--text2);line-height:1.5;margin:0}
+@media(max-width:600px){.archivist-tool{flex-direction:column;align-items:flex-start;gap:8px}.archivist-tool .btn{min-width:0}}
 .goal-setting{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .goal-setting label{font-size:13px;font-weight:500;min-width:140px}
 .goal-input{width:80px;padding:var(--sp-2) var(--sp-3);border:1px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-weight:600;text-align:center}
-.btn{padding:var(--sp-2) var(--sp-4);border:none;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn{padding:var(--sp-2) var(--sp-4);border:none;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
 .btn-primary{background:var(--accent);color:var(--on-accent)}.btn-primary:hover{background:var(--accent2)}
 .btn-outline{background:var(--surface);border:1px solid var(--border);color:var(--text)}.btn-outline:hover{background:var(--surface2)}
 .btn-danger{background:var(--surface);border:1px solid var(--border);color:var(--danger)}.btn-danger:hover{background:var(--bg-alt)}
@@ -305,7 +306,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <nav class="sidebar">
   <div class="sb-brand">
     <img class="sb-lockup" id="brand-lockup" src="anecdote-lockup-light.svg" alt="Anecdote">
-    <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle light/dark mode" aria-label="Toggle light/dark mode"></button>
   </div>
   <div class="sb-nav" id="sb-nav">
     <button class="nb active" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
@@ -740,46 +740,70 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
 <!-- SETTINGS -->
 <div id="panel-settings" class="panel">
+  <div style="grid-column:1/-1;margin-bottom:var(--sp-2)">
+    <h1 style="font-family:var(--font-serif);font-size:26px;font-weight:600;margin-bottom:8px">About Anecdote</h1>
+    <p style="font-size:15px;color:var(--text2);line-height:1.6;max-width:640px">Data syncs automatically to your private Supabase database and updates in real time across your devices. Export a JSON backup regularly via the Add tab's Import section as an extra safety net.</p>
+  </div>
+  <div class="settings-card">
+    <h2>Appearance</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:14px;font-weight:500">Theme</div>
+        <div style="font-size:12px;color:var(--text2)">Switch between light and dark mode.</div>
+      </div>
+      <button class="btn btn-outline" id="settings-theme-btn" onclick="toggleTheme()"></button>
+    </div>
+  </div>
   <div class="settings-card">
     <h2>Reading Goal</h2>
     <div class="goal-setting">
-      <label>Books to read in <span id="goal-year-label"></span></label>
-      <input type="number" class="goal-input" id="goal-inp" min="1" max="500" placeholder="52" onchange="saveGoal()">
+      <label>Books to read in</label>
+      <select class="fsel" id="goal-year-sel" onchange="renderSettings()" style="margin-right:8px"></select>
+      <input type="number" class="goal-input" id="goal-inp" min="0" max="500" placeholder="52" onchange="saveGoal()">
     </div>
-    <div id="goal-progress-detail" style="font-size:13px;color:var(--text2)"></div>
-  </div>
-  <div class="settings-card">
-    <h2>Backfill Data</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="btn btn-outline" onclick="backfillCovers()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 15.5l-5-5-10 10"/></svg> Backfill cover art</button>
-      <button class="btn btn-outline" onclick="backfillGenres()"><svg class="ico" viewBox="0 0 24 24"><path d="M20.5 12.5L12 21l-9-9V4a2 2 0 012-2h8z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Backfill genres (AI)</button>
-      <button class="btn btn-outline" onclick="backfillPages()"><svg class="ico" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="1.5"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="11" y1="7" x2="11" y2="11"/><line x1="15" y1="7" x2="15" y2="11"/><line x1="19" y1="7" x2="19" y2="11"/></svg> Backfill page counts</button>
-    </div>
-    <div id="backfill-status" style="font-size:12px;color:var(--text2)"></div>
-    <p style="font-size:12px;color:var(--text3);margin-top:8px">Cover art uses Open Library (requires ISBN). Genre backfill uses AI for books with no genres. Page counts try Open Library first, then AI estimates (shown with a ~) for anything not found.</p>
-  </div>
-  <div class="settings-card">
-    <h2>Library</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="btn btn-warn" onclick="runDedup()"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find &amp; merge duplicate books</button>
-    </div>
-    <p style="font-size:12px;color:var(--text2)">Merges books with the same title + author, combining formats and keeping the best status/rating.</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 10px;padding-top:10px;border-top:1px solid var(--border)">
-      <button class="btn btn-warn" onclick="findSimilarNames('series')"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find similar series names</button>
-      <button class="btn btn-warn" onclick="findSimilarNames('author')"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find similar author names</button>
-    </div>
-    <p style="font-size:12px;color:var(--text2)">AI scans your series/author names for likely duplicates (e.g. "ACOTAR" vs "A Court of Thorns and Roses") — you approve each merge.</p>
-    <div id="merge-names-status" style="font-size:12px;color:var(--text2);margin-top:6px"></div>
-    <div id="merge-names-results" style="margin-top:8px"></div>
+    <div id="goal-progress-detail" style="font-size:13px;color:var(--text2);margin-top:8px"></div>
+    <div id="goal-history" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
   </div>
   <div class="settings-card">
     <h2>Account</h2>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6" id="account-email">Signed in.</p>
-    <button class="btn btn-outline" onclick="signOut()">Sign out</button>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px" id="account-email">Signed in.</p>
+    <div class="fg"><label>New email</label><input type="email" id="acc-new-email" placeholder="you@example.com"></div>
+    <button class="btn btn-outline btn-sm" onclick="updateAccountEmail()">Update email</button>
+    <div class="fg" style="margin-top:14px"><label>New password</label><input type="password" id="acc-new-password" placeholder="At least 6 characters" autocomplete="new-password"></div>
+    <button class="btn btn-outline btn-sm" onclick="updateAccountPassword()">Update password</button>
+    <div id="account-status" style="font-size:12px;color:var(--text2);margin-top:10px"></div>
+    <button class="btn btn-outline" style="margin-top:14px" onclick="signOut()">Sign out</button>
   </div>
-  <div class="settings-card">
-    <h2>About</h2>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6">Data syncs automatically to your private Supabase database and updates in real time across your devices. Export a JSON backup regularly via the Add tab's Import section as an extra safety net.</p>
+  <div class="settings-card" style="grid-column:1/-1">
+    <h2>The Archivist</h2>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Housekeeping tools that keep your library tidy and complete.</p>
+    <div class="archivist-tool">
+      <button class="btn btn-outline" onclick="backfillCovers()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 15.5l-5-5-10 10"/></svg> Backfill cover art</button>
+      <p>Uses Open Library to fill in missing cover art for any book with an ISBN on file.</p>
+    </div>
+    <div class="archivist-tool">
+      <button class="btn btn-outline" onclick="backfillGenres()"><svg class="ico" viewBox="0 0 24 24"><path d="M20.5 12.5L12 21l-9-9V4a2 2 0 012-2h8z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Backfill genres (AI)</button>
+      <p>Asks AI to suggest 2–3 genre tags for any book that doesn't have one yet.</p>
+    </div>
+    <div class="archivist-tool">
+      <button class="btn btn-outline" onclick="backfillPages()"><svg class="ico" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="1.5"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="11" y1="7" x2="11" y2="11"/><line x1="15" y1="7" x2="15" y2="11"/><line x1="19" y1="7" x2="19" y2="11"/></svg> Backfill page counts</button>
+      <p>Tries Open Library first, then falls back to an AI estimate (shown with a ~) for anything not found.</p>
+    </div>
+    <div class="archivist-tool">
+      <button class="btn btn-outline" onclick="runDedup()"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find &amp; merge duplicate books</button>
+      <p>Merges books with the same title and author, combining formats and keeping the best status and rating.</p>
+    </div>
+    <div class="archivist-tool">
+      <button class="btn btn-outline" onclick="findSimilarNames('series')"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find similar series names</button>
+      <p>Scans your series names for likely duplicates (e.g. "ACOTAR" vs "A Court of Thorns and Roses") — you approve each merge. Checks up to 60 at a time.</p>
+    </div>
+    <div class="archivist-tool">
+      <button class="btn btn-outline" onclick="findSimilarNames('author')"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find similar author names</button>
+      <p>Same idea, for author names — catches spelling variants and name-order differences.</p>
+    </div>
+    <div id="backfill-status" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
+    <div id="merge-names-status" style="font-size:12px;color:var(--text2);margin-top:6px"></div>
+    <div id="merge-names-results" style="margin-top:8px"></div>
   </div>
 </div>
 
@@ -861,9 +885,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       </div>
     </div>
     <div class="frow">
-      <div class="fg"><label>ISBN / ASIN</label><input type="text" id="m-isbn"></div>
+      <div class="fg"><label>GoodReads Rating</label><input type="number" id="m-gr-rating" placeholder="e.g. 4.12" min="0" max="5" step="0.01"></div>
       <div class="fg"><label>Pages</label><input type="number" id="m-pages" min="0" placeholder="e.g. 320"></div>
     </div>
+    <div class="fg"><label>ISBN / ASIN</label><input type="text" id="m-isbn"></div>
     <div class="frow">
       <div class="fg" style="align-self:center">
         <label class="fmt-check" id="m-lendable-label" style="display:inline-flex" onclick="event.preventDefault();toggleFmtCheck(this)"><input type="checkbox" id="m-lendable"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12h7"/><path d="M7 8l-4 4 4 4"/><path d="M21 12h-7"/><path d="M17 8l4 4-4 4"/></svg> Willing to lend</label>
@@ -966,9 +991,9 @@ function toggleTheme(){
   if(window.Chart){Chart.defaults.color=next==='dark'?'#a9a59d':'#5a5f6b';Chart.defaults.borderColor=next==='dark'?'#343c50':'#d9cfc2';destroyCharts();if(currentPanel()==='reports')renderReports();}
 }
 function updateThemeToggleIcon(){
-  const btn=document.getElementById('theme-toggle-btn');
   const cur=document.documentElement.getAttribute('data-theme')||'light';
-  if(btn)btn.innerHTML=cur==='dark'?ICON.sun:ICON.moon;
+  const btn=document.getElementById('settings-theme-btn');
+  if(btn)btn.innerHTML=(cur==='dark'?ICON.sun:ICON.moon)+(cur==='dark'?' Switch to light':' Switch to dark');
   const logo=document.getElementById('brand-lockup');
   if(logo)logo.src=cur==='dark'?'anecdote-lockup-dark.svg':'anecdote-lockup-light.svg';
 }
@@ -1007,8 +1032,23 @@ function load(){
 }
 
 function save(){localStorage.setItem(SK,JSON.stringify(books));updateGoalWidget();updateGenreFilters();checkDuplicates();cloudPush('books',books);}
-function getGoal(){try{return JSON.parse(localStorage.getItem(GK)||'{}');}catch(e){return{};}}
-function saveGoal(){const v=parseInt(document.getElementById('goal-inp').value)||0;const g={goal:v,year:new Date().getFullYear()};localStorage.setItem(GK,JSON.stringify(g));updateGoalWidget();cloudPush('goal',g);}
+function getGoalsMap(){
+  let raw;
+  try{raw=JSON.parse(localStorage.getItem(GK)||'{}');}catch(e){raw={};}
+  if(raw&&typeof raw.goal==='number'){const migrated={};if(raw.goal)migrated[raw.year||new Date().getFullYear()]=raw.goal;return migrated;}
+  return raw||{};
+}
+function saveGoalsMap(map){localStorage.setItem(GK,JSON.stringify(map));cloudPush('goal',map);}
+function getGoal(year){const map=getGoalsMap();return map[year||new Date().getFullYear()]||0;}
+function saveGoal(){
+  const year=parseInt(document.getElementById('goal-year-sel').value)||new Date().getFullYear();
+  const v=parseInt(document.getElementById('goal-inp').value)||0;
+  const map=getGoalsMap();
+  if(v)map[year]=v;else delete map[year];
+  saveGoalsMap(map);
+  updateGoalWidget();
+  renderSettings();
+}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fmtDateDMY(iso){if(!iso)return'';const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return iso;return`${m[3]}/${m[2]}/${m[1]}`;}
@@ -1045,6 +1085,31 @@ async function requireAuth(){
 }
 
 function signOut(){sb.auth.signOut().then(()=>location.reload());}
+
+async function updateAccountEmail(){
+  const email=document.getElementById('acc-new-email').value.trim();
+  const st=document.getElementById('account-status');
+  if(!email){st.textContent='Enter a new email address first.';return;}
+  st.textContent='Updating…';
+  try{
+    const{error}=await sb.auth.updateUser({email});
+    if(error)throw error;
+    st.textContent='Check your new email address for a confirmation link to finish the change.';
+    document.getElementById('acc-new-email').value='';
+  }catch(e){st.textContent='Failed: '+(e.message||String(e));}
+}
+async function updateAccountPassword(){
+  const pw=document.getElementById('acc-new-password').value;
+  const st=document.getElementById('account-status');
+  if(!pw||pw.length<6){st.textContent='Password must be at least 6 characters.';return;}
+  st.textContent='Updating…';
+  try{
+    const{error}=await sb.auth.updateUser({password:pw});
+    if(error)throw error;
+    st.textContent='Password updated.';
+    document.getElementById('acc-new-password').value='';
+  }catch(e){st.textContent='Failed: '+(e.message||String(e));}
+}
 
 async function cloudPullAll(){
   const{data,error}=await sb.from('kv_store').select('key,value');
@@ -1102,18 +1167,24 @@ async function findSimilarNames(type){
   const st=document.getElementById('merge-names-status');
   const out=document.getElementById('merge-names-results');
   out.innerHTML='';
-  const names=[...new Set(books.map(b=>b[field]).filter(Boolean))].sort();
-  if(names.length<2){st.textContent='Not enough '+type+' names to compare.';return;}
+  const allNames=[...new Set(books.map(b=>b[field]).filter(Boolean))].sort();
+  if(allNames.length<2){st.textContent='Not enough '+type+' names to compare.';return;}
+  const BATCH=60;
+  const names=allNames.slice(0,BATCH);
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Asking AI to compare ${names.length} ${type} names…</div>`;
   try{
-    const prompt=`Here is a list of ${type} names from a personal book library, as a JSON array: ${JSON.stringify(names)}. Identify pairs that most likely refer to the exact same ${type} but are written differently — abbreviations, alternate titles, "and"/"&", subtitle differences, spelling variants, or name order. Only include pairs you are genuinely confident are duplicates, not just similar-sounding different things. Return ONLY valid JSON: [{"a":"name one","b":"name two","reason":"short reason"}]. Return an empty array [] if none found.`;
+    const prompt=`Here is a list of ${type} names from a personal book library, as a JSON array: ${JSON.stringify(names)}. Identify pairs that most likely refer to the exact same ${type} but are written differently — abbreviations, alternate titles, "and"/"&", subtitle differences, spelling variants, or name order. Only include pairs you are genuinely confident are duplicates, not just similar-sounding different things. Return ONLY valid JSON, no other text: [{"a":"name one","b":"name two","reason":"short reason"}]. Return an empty array [] if none found.`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
-    if(!jsonMatch)throw new Error('No response returned');
-    const pairs=JSON.parse(jsonMatch[0]).filter(p=>p.a&&p.b&&names.includes(p.a)&&names.includes(p.b)&&p.a!==p.b);
-    if(!pairs.length){st.textContent=`No likely duplicate ${type} names found.`;return;}
-    st.textContent=`Found ${pairs.length} possible duplicate pair${pairs.length!==1?'s':''} — review below:`;
+    if(!jsonMatch)throw new Error('AI did not return valid JSON. Raw response: '+(text?text.slice(0,200):'(empty)'));
+    let pairs;
+    try{pairs=JSON.parse(jsonMatch[0]);}
+    catch(parseErr){throw new Error('AI response was cut off or malformed — try again, or there may be too many '+type+' names to compare in one go.');}
+    pairs=pairs.filter(p=>p.a&&p.b&&names.includes(p.a)&&names.includes(p.b)&&p.a!==p.b);
+    const moreNote=allNames.length>BATCH?` (checked first ${BATCH} of ${allNames.length} — run again to check more)`:'';
+    if(!pairs.length){st.textContent=`No likely duplicate ${type} names found${moreNote}.`;return;}
+    st.textContent=`Found ${pairs.length} possible duplicate pair${pairs.length!==1?'s':''}${moreNote} — review below:`;
     out.innerHTML=pairs.map((p,i)=>{
       const countA=books.filter(b=>b[field]===p.a).length;
       const countB=books.filter(b=>b[field]===p.b).length;
@@ -1190,7 +1261,7 @@ function computePace(read,goal){
     ?`On track — at ${pace.toFixed(1)} books/week you'll hit ${goal} by ~${dateStr}.`
     :`Behind pace — at ${pace.toFixed(1)} books/week you'd reach ${goal} around ${dateStr}.`;
 }
-function updateGoalWidget(){const g=getGoal();const yr=new Date().getFullYear();const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr))).length;if(!g.goal){document.getElementById('goal-widget').style.display='none';return;}const pct=Math.min(100,Math.round(read/g.goal*100));document.getElementById('goal-widget').style.display='block';document.getElementById('goal-label').textContent=`${read}/${g.goal}`;document.getElementById('goal-bar').style.width=pct+'%';document.getElementById('goal-pct').textContent=pct+'%';const paceEl=document.getElementById('goal-pace');if(paceEl)paceEl.textContent=computePace(read,g.goal);}
+function updateGoalWidget(){const yr=new Date().getFullYear();const goal=getGoal(yr);const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr))).length;if(!goal){document.getElementById('goal-widget').style.display='none';return;}const pct=Math.min(100,Math.round(read/goal*100));document.getElementById('goal-widget').style.display='block';document.getElementById('goal-label').textContent=`${read}/${goal}`;document.getElementById('goal-bar').style.width=pct+'%';document.getElementById('goal-pct').textContent=pct+'%';const paceEl=document.getElementById('goal-pace');if(paceEl)paceEl.textContent=computePace(read,goal);}
 
 // ═══════════ GENRE FILTER ═══════════
 function updateGenreFilters(){
@@ -1797,7 +1868,7 @@ function renderReportSummary(){
   const years=Object.keys(byYear).sort();
   const rated=read.filter(b=>b.rating>0);const avg=rated.length?(rated.reduce((s,b)=>s+b.rating,0)/rated.length).toFixed(2):'N/A';
   const rDist=[0,0,0,0,0];rated.forEach(b=>{if(b.rating>=1&&b.rating<=5)rDist[b.rating-1]++;});
-  const g=getGoal();const goalHtml=g.goal?`<div class="stat-row"><span>Goal ${g.year} (${g.goal})</span><span class="stat-val">${thisYear.length}/${g.goal} · ${Math.round(thisYear.length/g.goal*100)}%</span></div>`:'';
+  const curGoal=getGoal(yr);const goalHtml=curGoal?`<div class="stat-row"><span>Goal ${yr} (${curGoal})</span><span class="stat-val">${thisYear.length}/${curGoal} · ${Math.round(thisYear.length/curGoal*100)}%</span></div>`:'';
   const streaks=computeMonthStreaks(read);
   const el=document.getElementById('rpanel-summary');
   el.innerHTML=`<div class="reports-grid">
@@ -2054,7 +2125,7 @@ function renderBCMeetings(){
         <div>${statusHtml}</div>
         ${libBook?`<button class="btn btn-series btn-sm" onclick="openModal('${libBook.id}')">Edit</button>`:`<button class="btn btn-series btn-sm" onclick="addBCBookToLibrary('${esc(m.bookTitle).replace(/'/g,"\\'")}','${esc(m.bookAuthor).replace(/'/g,"\\'")}')">+ Library</button>`}
       </div>
-      ${m.notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5">${esc(m.notes)}</div>`:''}
+      ${m.notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);line-height:1.5">${esc(m.notes)}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -2065,6 +2136,7 @@ const UP_SEED=[
   {id:'up1',series:'A Court of Thorns and Roses',book:'A Court of Splintered Harmony',author:'Sarah J. Maas',releaseDate:'2026-10-27',note:'ACOTAR Book 6'},
   {id:'up2',series:'A Court of Thorns and Roses',book:'A Court of Forgotten Melody',author:'Sarah J. Maas',releaseDate:'2027-01-12',note:'ACOTAR Book 7'},
   {id:'up3',series:'Metal Slinger',book:'Light Wielder',author:'Rachel Schneider',releaseDate:'2026-06-11',note:'Conclusion to Metal Slinger — already released'},
+  {id:'up4',series:'Crowns of Nyaxia',book:'The Lion & the Deathless Dark',author:'Carissa Broadbent',releaseDate:'2026-08-04',note:'Book 5, first in the Bloodborn Duet — already released. Series is planned for 6 books; no date yet for Book 6.'},
 ];
 function seedUpcoming(){
   const existing=getUpcoming();
@@ -2180,7 +2252,36 @@ function deleteBCMeeting(id){if(!confirm('Delete this meeting?'))return;const me
 function addBCBookToLibrary(title,author){books.push({id:genId(),title,author,status:'tbr',formats:[],borrowedFormats:[],series:'',seriesNumber:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:0,isbn:'',notes:'Book club read',genre:[],coverUrl:'',readFormat:''});save();renderBCMeetings();}
 
 // ═══════════ SETTINGS ═══════════
-function renderSettings(){const yr=new Date().getFullYear();document.getElementById('goal-year-label').textContent=yr;const g=getGoal();document.getElementById('goal-inp').value=g.goal||'';const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr))).length;const det=document.getElementById('goal-progress-detail');if(g.goal){const left=Math.max(0,g.goal-read);const weeksLeft=Math.ceil((new Date(yr,11,31)-new Date())/604800000);det.innerHTML=`${read} read this year · ${left} to go · ~${weeksLeft} weeks remaining${left&&weeksLeft?' · pace: '+(left/weeksLeft).toFixed(1)+' books/week needed':' · goal reached!'}<br><span style="color:var(--text3)">${esc(computePace(read,g.goal))}</span>`;}else{det.textContent='Set a goal above to track your reading pace.';}}
+function renderSettings(){
+  const nowYr=new Date().getFullYear();
+  const selEl=document.getElementById('goal-year-sel');
+  const curSel=selEl&&selEl.value?parseInt(selEl.value):nowYr;
+  const map=getGoalsMap();
+  const yearsWithGoals=Object.keys(map).map(Number);
+  const yearOptions=new Set([nowYr-1,nowYr,nowYr+1,...yearsWithGoals]);
+  if(selEl){
+    selEl.innerHTML=[...yearOptions].sort((a,b)=>a-b).map(y=>`<option value="${y}"${y===curSel?' selected':''}>${y}</option>`).join('');
+  }
+  const yr=curSel;
+  const goal=map[yr]||0;
+  document.getElementById('goal-inp').value=goal||'';
+  const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr))).length;
+  const det=document.getElementById('goal-progress-detail');
+  if(goal){
+    if(yr===nowYr){
+      const left=Math.max(0,goal-read);
+      const weeksLeft=Math.ceil((new Date(yr,11,31)-new Date())/604800000);
+      det.innerHTML=`${read} read in ${yr} · ${left} to go · ~${weeksLeft} weeks remaining${left&&weeksLeft?' · pace: '+(left/weeksLeft).toFixed(1)+' books/week needed':' · goal reached!'}<br><span style="color:var(--text3)">${esc(computePace(read,goal))}</span>`;
+    }else{
+      det.textContent=`${read} read in ${yr} of a ${goal}-book goal.`;
+    }
+  }else{
+    det.textContent=yr===nowYr?'Set a goal above to track your reading pace.':`No goal set for ${yr}.`;
+  }
+  const history=yearsWithGoals.filter(y=>y!==yr).sort((a,b)=>b-a);
+  const histEl=document.getElementById('goal-history');
+  if(histEl)histEl.innerHTML=history.length?'Other years: '+history.map(y=>`<a href="#" onclick="event.preventDefault();document.getElementById('goal-year-sel').value='${y}';renderSettings();" style="color:var(--accent)">${y} (${map[y]})</a>`).join(', '):'';
+}
 
 async function backfillCovers(){
   const st=document.getElementById('backfill-status');
