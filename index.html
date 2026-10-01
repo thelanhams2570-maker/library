@@ -1371,7 +1371,7 @@ function fmtBadges(b){
 }
 
 function coverHtml(b){
-  if(b.coverUrl)return`<div class="bcard-cover"><img src="${esc(b.coverUrl)}" onerror="this.parentNode.innerHTML='<div class=cover-placeholder>${ICON.bookStack}</div>'" loading="lazy"></div>`;
+  if(b.coverUrl)return`<div class="bcard-cover"><img src="${esc(b.coverUrl)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-placeholder" style="display:none">${ICON.bookStack}</div></div>`;
   return`<div class="bcard-cover"><div class="cover-placeholder">${ICON.bookStack}</div></div>`;
 }
 
