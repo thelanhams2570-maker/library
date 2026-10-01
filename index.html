@@ -479,6 +479,45 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <button class="btn btn-primary" style="margin-left:auto" onclick="openBCForm()">+ Add Meeting</button>
   </div>
   <div id="bc-meetings-grid" class="bc-grid"></div>
+
+  <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:3px">Upcoming Releases</div>
+      <div style="font-size:12px;color:var(--text2)">New books in series you or book club have already read</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm" onclick="checkForSequels()">✨ Check for sequels</button>
+      <button class="btn btn-primary btn-sm" onclick="openUpForm()">+ Add Release</button>
+    </div>
+  </div>
+  <div id="upcoming-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
+  <div id="upcoming-grid" class="bc-grid"></div>
+
+  <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:3px">Series We've Read</div>
+      <div style="font-size:12px;color:var(--text2)">Grouped by series across all book club meetings</div>
+    </div>
+    <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="backfillBCSeries()">Backfill series info</button>
+  </div>
+  <div id="bc-series-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
+  <div id="series-read-grid" class="bc-grid"></div>
+</div>
+
+<!-- Upcoming Release Form Modal -->
+<div class="modal-ov" id="up-modal">
+  <div class="modal">
+    <h2>Add Upcoming Release</h2>
+    <div class="fg"><label>Series</label><input type="text" id="up-series" placeholder="e.g. Crowns of Nyaxia"></div>
+    <div class="fg"><label>Book Title</label><input type="text" id="up-book" placeholder="Upcoming book title"></div>
+    <div class="fg"><label>Author</label><input type="text" id="up-author" placeholder="Author"></div>
+    <div class="fg"><label>Release Date</label><input type="date" id="up-date"></div>
+    <div class="fg"><label>Note</label><textarea id="up-note" rows="2" placeholder="e.g. Final book in the trilogy"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeUpModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveUpcomingEntry()">Save</button>
+    </div>
+  </div>
 </div>
 
 <!-- ADD -->
@@ -784,6 +823,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="fg"><label>Date</label><input type="date" id="bc-date"></div>
     <div class="fg"><label>Book Title</label><input type="text" id="bc-book-title" placeholder="Book discussed"></div>
     <div class="fg"><label>Author</label><input type="text" id="bc-book-author" placeholder="Author"></div>
+    <div class="frow">
+      <div class="fg"><label>Series</label><input type="text" id="bc-series" placeholder="e.g. Crowns of Nyaxia"></div>
+      <div class="fg"><label>Book #</label><input type="text" id="bc-series-num" placeholder="1"></div>
+    </div>
     <div class="fg"><label>Notes</label><textarea id="bc-notes" rows="2" placeholder="Discussion notes…"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeBCModal()">Cancel</button>
@@ -807,7 +850,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
 <script>
 // ═══════════ DATA MODEL ═══════════
-const SK='booktracker_v3', GK='booktracker_goal', SCK='booktracker_series_cache', BCK='booktracker_bookclub';
+const SK='booktracker_v3', GK='booktracker_goal', SCK='booktracker_series_cache', BCK='booktracker_bookclub', UPK='booktracker_upcoming';
 let books=[], formGenres=[], modalGenres=[], currentId=null, statusFilter='all', currentAuthor=null, currentReportTab='summary', chartInst={}, allRecs=[], currentBCEdit=null;
 
 const STATUS_PRI={read:5,reading:4,tbr:3,owned:3,want:3,wishlist:2,dnf:0};
@@ -862,7 +905,7 @@ function saveBCMeetings(m){localStorage.setItem(BCK,JSON.stringify(m));cloudPush
 
 // ═══════════ CLOUD SYNC (Supabase) ═══════════
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-const KEY_MAP={books:SK,goal:GK,series_cache:SCK,bookclub:BCK};
+const KEY_MAP={books:SK,goal:GK,series_cache:SCK,bookclub:BCK,upcoming:UPK};
 let pushTimers={};
 
 async function requireAuth(){
@@ -992,7 +1035,7 @@ function renderPanel(p){
   if(p==='authors')renderAuthors();
   if(p==='reports')renderReports();
   if(p==='recs')renderRecsPanel();
-  if(p==='bookclub')renderBCMeetings();
+  if(p==='bookclub'){renderBCMeetings();renderUpcoming();renderSeriesRead();}
   if(p==='settings')renderSettings();
   if(p==='import')checkDuplicates();
 }
@@ -1680,7 +1723,7 @@ function renderBCMeetings(){
         ${libBook&&libBook.coverUrl?`<img src="${esc(libBook.coverUrl)}" style="width:28px;height:40px;object-fit:cover;border-radius:3px;flex-shrink:0" onerror="this.style.display='none'">`:''}
         <span style="flex:1">
           <div style="font-weight:500;font-size:13px">${esc(m.bookTitle)}</div>
-          <div style="font-size:11px;color:var(--text2)">by ${esc(m.bookAuthor)}</div>
+          <div style="font-size:11px;color:var(--text2)">by ${esc(m.bookAuthor)}${m.series?` · <span style="color:var(--series)">${esc(m.series)}${m.seriesNumber?' #'+esc(m.seriesNumber):''}</span>`:''}</div>
         </span>
         <div>${statusHtml}</div>
         ${libBook?`<button class="btn btn-series btn-sm" onclick="openModal('${libBook.id}')">Edit</button>`:`<button class="btn btn-series btn-sm" onclick="addBCBookToLibrary('${esc(m.bookTitle).replace(/'/g,"\\'")}','${esc(m.bookAuthor).replace(/'/g,"\\'")}')">+ Library</button>`}
@@ -1690,10 +1733,124 @@ function renderBCMeetings(){
   }).join('');
 }
 
-function openBCForm(){currentBCEdit=null;['bc-name','bc-date','bc-book-title','bc-book-author','bc-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('bc-modal').classList.add('open');}
+function getUpcoming(){try{return JSON.parse(localStorage.getItem(UPK)||'[]');}catch(e){return[];}}
+function saveUpcoming(list){localStorage.setItem(UPK,JSON.stringify(list));cloudPush('upcoming',list);}
+const UP_SEED=[
+  {id:'up1',series:'A Court of Thorns and Roses',book:'A Court of Splintered Harmony',author:'Sarah J. Maas',releaseDate:'2026-10-27',note:'ACOTAR Book 6'},
+  {id:'up2',series:'A Court of Thorns and Roses',book:'A Court of Forgotten Melody',author:'Sarah J. Maas',releaseDate:'2027-01-12',note:'ACOTAR Book 7'},
+  {id:'up3',series:'Metal Slinger',book:'Light Wielder',author:'Rachel Schneider',releaseDate:'2026-06-11',note:'Conclusion to Metal Slinger — already released'},
+];
+function seedUpcoming(){
+  const existing=getUpcoming();
+  const existingIds=new Set(existing.map(u=>u.id));
+  const missing=UP_SEED.filter(s=>!existingIds.has(s.id));
+  if(!missing.length)return;
+  saveUpcoming([...existing,...missing]);
+}
+function bcSeriesList(){
+  const meetings=getBCMeetings();
+  const names=new Set();
+  meetings.forEach(m=>{if(m.series)names.add(m.series);});
+  books.forEach(b=>{if(b.series)names.add(b.series);});
+  return names;
+}
+function renderUpcoming(){
+  const grid=document.getElementById('upcoming-grid');
+  if(!grid)return;
+  const known=bcSeriesList();
+  const list=getUpcoming().slice().sort((a,b)=>(a.releaseDate||'').localeCompare(b.releaseDate||''));
+  if(!list.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No upcoming releases tracked yet.</p></div>`;return;}
+  const today=new Date().toISOString().slice(0,10);
+  grid.innerHTML=list.map(u=>{
+    const isKnownSeries=known.has(u.series);
+    const released=u.releaseDate&&u.releaseDate<today;
+    return`<div class="bc-meeting">
+      <div class="bc-meeting-header">
+        <div class="bc-meeting-title">${esc(u.book)}</div>
+        <button class="btn btn-danger btn-sm" onclick="deleteUpcoming('${u.id}')">×</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px">by ${esc(u.author)} · <span style="color:var(--series)">${esc(u.series)}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span class="badge ${released?'b-owned':'b-want'}" style="font-size:10px">${released?'Released':'Releases'} ${esc(fmtDateDMY(u.releaseDate))}</span>
+        ${isKnownSeries?`<span class="badge b-read" style="font-size:10px">Series you've read</span>`:''}
+      </div>
+      ${u.note?`<div style="font-size:11px;color:var(--text3);margin-top:6px">${esc(u.note)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function openUpForm(){['up-series','up-book','up-author','up-date','up-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('up-modal').classList.add('open');}
+function closeUpModal(){document.getElementById('up-modal').classList.remove('open');}
+function saveUpcomingEntry(){
+  const book=document.getElementById('up-book').value.trim();
+  const series=document.getElementById('up-series').value.trim();
+  if(!book||!series){alert('Series and book title required.');return;}
+  const list=getUpcoming();
+  list.push({id:genId(),series,book,author:document.getElementById('up-author').value.trim(),releaseDate:document.getElementById('up-date').value,note:document.getElementById('up-note').value.trim()});
+  saveUpcoming(list);closeUpModal();renderUpcoming();
+}
+function deleteUpcoming(id){if(!confirm('Remove this release?'))return;saveUpcoming(getUpcoming().filter(u=>u.id!==id));renderUpcoming();}
+async function checkForSequels(){
+  const st=document.getElementById('upcoming-status');
+  const series=[...bcSeriesList()].filter(Boolean);
+  if(!series.length){st.textContent='No series found yet in Book Club or Library to check.';return;}
+  st.innerHTML=`<div class="loading"><div class="spinner"></div> Asking AI to check for upcoming releases in ${series.length} series…</div>`;
+  try{
+    const existing=getUpcoming().map(u=>u.book.toLowerCase());
+    const prompt=`For each of these book series, tell me if there is a confirmed or announced upcoming/new release (a book not yet widely considered "old news") that continues the series. Only include ones you are reasonably confident about — skip any you're unsure of. Return ONLY valid JSON array: [{"series":"...","book":"...","author":"...","releaseDate":"YYYY-MM-DD (or YYYY-MM or YYYY if exact day unknown)","note":"..."}]. If none, return []. Series: ${series.join('; ')}`;
+    const raw=await askClaude(prompt);
+    const text=aiStr(raw);
+    const jsonMatch=text.match(/\[[\s\S]*\]/);
+    if(!jsonMatch)throw new Error('No data returned');
+    const results=JSON.parse(jsonMatch[0]);
+    const list=getUpcoming();
+    let added=0;
+    results.forEach(r=>{
+      if(!r.book||existing.includes(String(r.book).toLowerCase()))return;
+      list.push({id:genId(),series:r.series||'',book:r.book,author:r.author||'',releaseDate:r.releaseDate||'',note:(r.note||'')+' (AI-found — please verify)'});
+      added++;
+    });
+    saveUpcoming(list);renderUpcoming();
+    st.textContent=added?`✅ Found ${added} new possible release(s) — please verify dates before relying on them.`:'No new releases found beyond what you already have.';
+  }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
+}
+function renderSeriesRead(){
+  const grid=document.getElementById('series-read-grid');
+  if(!grid)return;
+  const meetings=getBCMeetings();
+  const map={};
+  meetings.forEach(m=>{if(!m.series)return;if(!map[m.series])map[m.series]=[];map[m.series].push(m);});
+  const names=Object.keys(map).sort();
+  if(!names.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No series tagged yet. Add a series when logging a meeting, or use "Backfill series info" below.</p></div>`;return;}
+  grid.innerHTML=names.map(n=>{
+    const entries=map[n].sort((a,b)=>(a.seriesNumber||'').localeCompare(b.seriesNumber||'',undefined,{numeric:true}));
+    return`<div class="bc-meeting"><div class="bc-meeting-title" style="margin-bottom:6px">${esc(n)}</div>${entries.map(e=>`<div style="font-size:11px;color:var(--text2)">#${esc(e.seriesNumber||'?')} — ${esc(e.bookTitle)}</div>`).join('')}</div>`;
+  }).join('');
+}
+async function backfillBCSeries(){
+  const st=document.getElementById('bc-series-status');
+  const meetings=getBCMeetings();
+  const toFill=meetings.filter(m=>!m.series&&m.bookTitle);
+  if(!toFill.length){st.textContent='All meetings already have series info!';return;}
+  st.innerHTML=`<div class="loading"><div class="spinner"></div> Looking up series info for ${toFill.length} books…</div>`;
+  try{
+    const prompt=`For each book, tell me the series name and book number it belongs to, if any (if it's a standalone, use empty strings). Return ONLY valid JSON: [{"title":"...","series":"...","seriesNumber":"1"},...]. Books: ${toFill.map(b=>`"${b.bookTitle}" by ${b.bookAuthor}`).join('; ')}`;
+    const raw=await askClaude(prompt);
+    const text=aiStr(raw);
+    const jsonMatch=text.match(/\[[\s\S]*\]/);
+    if(!jsonMatch)throw new Error('No data returned');
+    const results=JSON.parse(jsonMatch[0]);
+    let updated=0;
+    results.forEach(r=>{const m=toFill.find(mm=>normTitle(mm.bookTitle)===normTitle(r.title));if(m&&r.series){m.series=r.series;m.seriesNumber=r.seriesNumber||'';updated++;}});
+    saveBCMeetings(meetings);
+    renderBCMeetings();renderUpcoming();renderSeriesRead();
+    st.textContent=`✅ Series info added for ${updated} meetings — double-check accuracy, AI estimates can be wrong.`;
+  }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
+}
+
+function openBCForm(){currentBCEdit=null;['bc-name','bc-date','bc-book-title','bc-book-author','bc-series','bc-series-num','bc-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('bc-modal').classList.add('open');}
 function closeBCModal(){document.getElementById('bc-modal').classList.remove('open');}
-function saveBCMeeting(){const name=document.getElementById('bc-name').value.trim();const bookTitle=document.getElementById('bc-book-title').value.trim();const bookAuthor=document.getElementById('bc-book-author').value.trim();if(!name||!bookTitle){alert('Name and book title required.');return;}const meetings=getBCMeetings();meetings.push({id:genId(),name,date:document.getElementById('bc-date').value,bookTitle,bookAuthor,notes:document.getElementById('bc-notes').value.trim()});saveBCMeetings(meetings);closeBCModal();renderBCMeetings();}
-function deleteBCMeeting(id){if(!confirm('Delete this meeting?'))return;const meetings=getBCMeetings().filter(m=>m.id!==id);saveBCMeetings(meetings);renderBCMeetings();}
+function saveBCMeeting(){const name=document.getElementById('bc-name').value.trim();const bookTitle=document.getElementById('bc-book-title').value.trim();const bookAuthor=document.getElementById('bc-book-author').value.trim();if(!name||!bookTitle){alert('Name and book title required.');return;}const meetings=getBCMeetings();meetings.push({id:genId(),name,date:document.getElementById('bc-date').value,bookTitle,bookAuthor,series:document.getElementById('bc-series').value.trim(),seriesNumber:document.getElementById('bc-series-num').value.trim(),notes:document.getElementById('bc-notes').value.trim()});saveBCMeetings(meetings);closeBCModal();renderBCMeetings();renderUpcoming();renderSeriesRead();}
+function deleteBCMeeting(id){if(!confirm('Delete this meeting?'))return;const meetings=getBCMeetings().filter(m=>m.id!==id);saveBCMeetings(meetings);renderBCMeetings();renderSeriesRead();}
 function addBCBookToLibrary(title,author){books.push({id:genId(),title,author,status:'tbr',formats:[],borrowedFormats:[],series:'',seriesNumber:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:0,isbn:'',notes:'Book club read',genre:[],coverUrl:'',readFormat:''});save();renderBCMeetings();}
 
 // ═══════════ SETTINGS ═══════════
@@ -1882,6 +2039,7 @@ async function aiLookupSeriesInfo(){
 function closeModal(){document.getElementById('modal').classList.remove('open');currentId=null;}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bc-modal'))closeBCModal();});
+document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===document.getElementById('up-modal'))closeUpModal();});
 function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=document.getElementById('m-author').value.trim();b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateRead=document.getElementById('m-date-read').value||'';b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.rating=parseInt(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
@@ -1942,35 +2100,38 @@ function restoreJSON(e){const f=e.target.files[0];if(!f)return;const r=new FileR
 
 
 const BC_SEED=[
-  {id:'nsc1',name:'Book 2 - July 2024',date:'2024-07-31',bookTitle:'Powerless',bookAuthor:'Lauren Roberts',notes:''},
-  {id:'nsc2',name:'Book 3 - August 2024',date:'2024-08-28',bookTitle:'One Dark Window',bookAuthor:'Rachel Gillig',notes:''},
-  {id:'nsc3',name:'Book 4 - October 2024',date:'2024-10-02',bookTitle:'Fourth Wing',bookAuthor:'Rebecca Yarros',notes:''},
-  {id:'nsc4',name:'Book 5 - October 2024',date:'2024-10-30',bookTitle:'The Prison Healer',bookAuthor:'Lynette Noni',notes:''},
-  {id:'nsc5',name:'Book 6 - December 2024',date:'2024-12-11',bookTitle:'A Court This Cruel and Lovely',bookAuthor:'Stacia Stark',notes:''},
-  {id:'nsc6',name:'Book 7 - January 2025',date:'2025-01-22',bookTitle:'Quicksilver',bookAuthor:'Callie Hart',notes:''},
-  {id:'nsc7',name:'Book 8 - February 2025',date:'2025-02-19',bookTitle:'Onyx Storm',bookAuthor:'Rebecca Yarros',notes:''},
-  {id:'nsc8',name:'Book 9 - March 2025',date:'2025-03-26',bookTitle:'Phantasma',bookAuthor:'Kaylie Smith',notes:''},
-  {id:'nsc9',name:'Book 10 - April 2025',date:'2025-04-30',bookTitle:'Serpent & Dove',bookAuthor:'Shelby Mahurin',notes:''},
-  {id:'nsc10',name:'Book 11 - May 2025',date:'2025-05-16',bookTitle:'Blood of Hercules',bookAuthor:'Jasmine Mas',notes:''},
-  {id:'nsc11',name:'Book 12 - June 2025',date:'2025-06-25',bookTitle:'A Fate Inked in Blood',bookAuthor:'Danielle L. Jensen',notes:''},
-  {id:'nsc12',name:'Book 13 - July 2025',date:'2025-07-30',bookTitle:'Metal Slinger',bookAuthor:'Rachel Schneider',notes:''},
-  {id:'nsc13',name:'Book 14 - August 2025',date:'2025-08-27',bookTitle:'The Crimson Moth',bookAuthor:'Kristen Ciccarelli',notes:''},
-  {id:'nsc14',name:'Book 15 - September 2025',date:'2025-09-24',bookTitle:'The Ever King',bookAuthor:'L.J. Andrews',notes:''},
-  {id:'nsc15',name:'Book 16 - October 2025',date:'2025-10-29',bookTitle:'Shield of Sparrows',bookAuthor:'Devney Perry',notes:''},
-  {id:'nsc16',name:'Book 17 - November 2025',date:'2025-11-26',bookTitle:'Brimstone',bookAuthor:'Callie Hart',notes:''},
-  {id:'nsc17',name:'Book 18 - January 2026',date:'2026-01-28',bookTitle:'A Court of Thorns and Roses (ACOTAR)',bookAuthor:'Sarah J. Maas',notes:'Series read'},
-  {id:'nsc18',name:'Book 19 - February 2026',date:'2026-02-25',bookTitle:'Alchemised',bookAuthor:'Sen Lin Yu',notes:''},
-  {id:'nsc19',name:'Book 20 - March 2026',date:'2026-03-25',bookTitle:'The Stars Are Dying',bookAuthor:'C.C. Peñaranda',notes:''},
-  {id:'nsc20',name:'Book 21 - April 2026',date:'2026-04-29',bookTitle:'The Wolf King',bookAuthor:'Lauren Palphreyman',notes:''},
-  {id:'nsc21',name:'Book 22 - May 2026',date:'2026-05-27',bookTitle:'Dire Bound',bookAuthor:'Sable Sorensen',notes:''},
-  {id:'nsc22',name:'Book 23 - June 2026',date:'2026-06-24',bookTitle:'Iron & Embers',bookAuthor:'Helen Scheuerer',notes:''},
-  {id:'nsc23',name:'Book 24 - July 2026',date:'2026-07-31',bookTitle:'The Serpent and the Wings of Night',bookAuthor:'Carissa Broadbent',notes:'Upcoming'},
+  {id:'nsc1',name:'Book 2 - July 2024',date:'2024-07-31',bookTitle:'Powerless',bookAuthor:'Lauren Roberts',notes:'',series:'Powerless',seriesNumber:'1'},
+  {id:'nsc2',name:'Book 3 - August 2024',date:'2024-08-28',bookTitle:'One Dark Window',bookAuthor:'Rachel Gillig',notes:'',series:'The Shepherd King',seriesNumber:'1'},
+  {id:'nsc3',name:'Book 4 - October 2024',date:'2024-10-02',bookTitle:'Fourth Wing',bookAuthor:'Rebecca Yarros',notes:'',series:'The Empyrean',seriesNumber:'1'},
+  {id:'nsc4',name:'Book 5 - October 2024',date:'2024-10-30',bookTitle:'The Prison Healer',bookAuthor:'Lynette Noni',notes:'',series:'The Prison Healer',seriesNumber:'1'},
+  {id:'nsc5',name:'Book 6 - December 2024',date:'2024-12-11',bookTitle:'A Court This Cruel and Lovely',bookAuthor:'Stacia Stark',notes:'',series:'A Vicious Court',seriesNumber:'1'},
+  {id:'nsc6',name:'Book 7 - January 2025',date:'2025-01-22',bookTitle:'Quicksilver',bookAuthor:'Callie Hart',notes:'',series:'Quicksilver',seriesNumber:'1'},
+  {id:'nsc7',name:'Book 8 - February 2025',date:'2025-02-19',bookTitle:'Onyx Storm',bookAuthor:'Rebecca Yarros',notes:'',series:'The Empyrean',seriesNumber:'3'},
+  {id:'nsc8',name:'Book 9 - March 2025',date:'2025-03-26',bookTitle:'Phantasma',bookAuthor:'Kaylie Smith',notes:'',series:'Phantasma',seriesNumber:'1'},
+  {id:'nsc9',name:'Book 10 - April 2025',date:'2025-04-30',bookTitle:'Serpent & Dove',bookAuthor:'Shelby Mahurin',notes:'',series:'Serpent & Dove',seriesNumber:'1'},
+  {id:'nsc10',name:'Book 11 - May 2025',date:'2025-05-16',bookTitle:'Blood of Hercules',bookAuthor:'Jasmine Mas',notes:'',series:'',seriesNumber:''},
+  {id:'nsc11',name:'Book 12 - June 2025',date:'2025-06-25',bookTitle:'A Fate Inked in Blood',bookAuthor:'Danielle L. Jensen',notes:'',series:'Saga of the Unfated',seriesNumber:'1'},
+  {id:'nsc12',name:'Book 13 - July 2025',date:'2025-07-30',bookTitle:'Metal Slinger',bookAuthor:'Rachel Schneider',notes:'',series:'Metal Slinger',seriesNumber:'1'},
+  {id:'nsc13',name:'Book 14 - August 2025',date:'2025-08-27',bookTitle:'The Crimson Moth',bookAuthor:'Kristen Ciccarelli',notes:'',series:'The Crimson Moth',seriesNumber:'1'},
+  {id:'nsc14',name:'Book 15 - September 2025',date:'2025-09-24',bookTitle:'The Ever King',bookAuthor:'L.J. Andrews',notes:'',series:'The Ever King',seriesNumber:'1'},
+  {id:'nsc15',name:'Book 16 - October 2025',date:'2025-10-29',bookTitle:'Shield of Sparrows',bookAuthor:'Devney Perry',notes:'',series:'',seriesNumber:''},
+  {id:'nsc16',name:'Book 17 - November 2025',date:'2025-11-26',bookTitle:'Brimstone',bookAuthor:'Callie Hart',notes:'',series:'',seriesNumber:''},
+  {id:'nsc17',name:'Book 18 - January 2026',date:'2026-01-28',bookTitle:'A Court of Thorns and Roses (ACOTAR)',bookAuthor:'Sarah J. Maas',notes:'Series read',series:'A Court of Thorns and Roses',seriesNumber:'1'},
+  {id:'nsc18',name:'Book 19 - February 2026',date:'2026-02-25',bookTitle:'Alchemised',bookAuthor:'Sen Lin Yu',notes:'',series:'',seriesNumber:''},
+  {id:'nsc19',name:'Book 20 - March 2026',date:'2026-03-25',bookTitle:'The Stars Are Dying',bookAuthor:'C.C. Peñaranda',notes:'',series:'Nytefall',seriesNumber:'1'},
+  {id:'nsc20',name:'Book 21 - April 2026',date:'2026-04-29',bookTitle:'The Wolf King',bookAuthor:'Lauren Palphreyman',notes:'',series:'',seriesNumber:''},
+  {id:'nsc21',name:'Book 22 - May 2026',date:'2026-05-27',bookTitle:'Dire Bound',bookAuthor:'Sable Sorensen',notes:'',series:'',seriesNumber:''},
+  {id:'nsc22',name:'Book 23 - June 2026',date:'2026-06-24',bookTitle:'Iron & Embers',bookAuthor:'Helen Scheuerer',notes:'',series:'',seriesNumber:''},
+  {id:'nsc23',name:'Book 24 - July 2026',date:'2026-07-31',bookTitle:'The Serpent and the Wings of Night',bookAuthor:'Carissa Broadbent',notes:'',series:'Crowns of Nyaxia',seriesNumber:'1'},
+  {id:'nsc24',name:'Book 25 - August 2026',date:'2026-08-26',bookTitle:'The Book of Azrael',bookAuthor:'Amber V. Nicole',notes:'',series:'Gods and Monsters',seriesNumber:'1'},
+  {id:'nsc25',name:'Book 26 - September 2026',date:'2026-09-30',bookTitle:'Our Vicious Oaths',bookAuthor:'N. E. Davenport',notes:'',series:'',seriesNumber:''},
 ];
 function seedBookClub(){
   const existing=getBCMeetings();
-  if(existing.some(m=>m.id&&m.id.startsWith('nsc')))return; // already seeded
-  const merged=[...BC_SEED,...existing];
-  saveBCMeetings(merged);
+  const existingIds=new Set(existing.map(m=>m.id));
+  const missing=BC_SEED.filter(s=>!existingIds.has(s.id));
+  if(!missing.length)return;
+  saveBCMeetings([...existing,...missing]);
 }
 // ═══════════ INIT ═══════════
 (async function init(){
@@ -1979,6 +2140,7 @@ function seedBookClub(){
   await cloudPullAll();
   load();
   seedBookClub();
+  seedUpcoming();
   updateGoalWidget();
   updateGenreFilters();
   renderLib();
