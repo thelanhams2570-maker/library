@@ -47,6 +47,28 @@ select.fsel:hover{border-color:var(--accent2)}
 .books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
 .bcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s;display:flex;gap:10px}
 .bcard:hover{border-color:var(--accent2)}
+.view-toggle{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:3px}
+.view-toggle button{padding:5px 10px;border:none;border-radius:7px;background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .12s}
+.view-toggle button:hover{color:var(--text)}
+.view-toggle button.on{background:var(--accent);color:#fff}
+.lib-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface)}
+table.lib-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+table.lib-table th{position:sticky;top:0;background:var(--surface2);text-align:left;padding:9px 12px;font-weight:600;color:var(--text2);cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+table.lib-table th:hover{color:var(--text)}
+table.lib-table th.sorted{color:var(--accent2)}
+table.lib-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+table.lib-table tr:last-child td{border-bottom:none}
+table.lib-table tbody tr{cursor:pointer;transition:background .1s}
+table.lib-table tbody tr:hover{background:var(--surface2)}
+.kanban-board{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:6px}
+.kanban-col{flex:0 0 250px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;min-height:120px}
+.kanban-col-h{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.kanban-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:grab;font-size:12px}
+.kanban-card:active{cursor:grabbing}
+.kanban-card.dragging{opacity:.4}
+.kanban-col.dragover{border-color:var(--accent2);background:var(--accent-bg)}
+.kanban-card-title{font-weight:600;margin-bottom:2px}
+.kanban-card-author{color:var(--text2);font-size:11px}
 .bcard-cover{width:44px;flex-shrink:0;display:flex;align-items:flex-start}
 .bcard-cover img{width:44px;height:60px;object-fit:cover;border-radius:4px;display:block}
 .bcard-cover .cover-placeholder{width:44px;height:60px;background:var(--surface2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text3)}
@@ -310,10 +332,28 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <option value="long">Long (450pg+)</option>
       </select>
     </div>
+    <div class="fbar-row">
+      <select class="fsel" id="lib-author" onchange="renderLib()">
+        <option value="">All authors</option>
+      </select>
+      <select class="fsel" id="lib-series" onchange="renderLib()">
+        <option value="">All series</option>
+      </select>
+      <select class="fsel" id="lib-bookclub" onchange="renderLib()">
+        <option value="">Book club: any</option>
+        <option value="yes">📖 Book club picks only</option>
+        <option value="no">Not a book club pick</option>
+      </select>
+    </div>
   </div>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
     <div id="lib-count" style="font-size:12px;color:var(--text3)"></div>
-    <button class="btn btn-outline btn-sm" style="margin-left:auto" id="select-toggle-btn" onclick="toggleSelectMode()">☑️ Select</button>
+    <div class="view-toggle" style="margin-left:auto">
+      <button id="view-btn-grid" class="on" onclick="setLibView('grid')">▦ Grid</button>
+      <button id="view-btn-table" onclick="setLibView('table')">☰ Table</button>
+      <button id="view-btn-kanban" onclick="setLibView('kanban')">▤ Kanban</button>
+    </div>
+    <button class="btn btn-outline btn-sm" id="select-toggle-btn" onclick="toggleSelectMode()">☑️ Select</button>
   </div>
   <div id="bulk-bar" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
     <span id="bulk-count" style="font-size:12px;color:var(--text2);font-weight:600"></span>
@@ -330,6 +370,23 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="clearSelection()">Clear selection</button>
   </div>
   <div class="books-grid" id="lib-grid"></div>
+  <div class="lib-table-wrap" id="lib-table-wrap" style="display:none">
+    <table class="lib-table" id="lib-table">
+      <thead><tr>
+        <th data-col="title" onclick="sortTableBy('title')">Title</th>
+        <th data-col="author" onclick="sortTableBy('author')">Author</th>
+        <th data-col="series" onclick="sortTableBy('series')">Series</th>
+        <th data-col="status" onclick="sortTableBy('status')">Status</th>
+        <th data-col="format" onclick="sortTableBy('format')">Format</th>
+        <th data-col="pages" onclick="sortTableBy('pages')">Pages</th>
+        <th data-col="rating" onclick="sortTableBy('rating')">Rating</th>
+        <th data-col="dateRead" onclick="sortTableBy('dateRead')">Date read</th>
+        <th data-col="bookclub" onclick="sortTableBy('bookclub')">Book club</th>
+      </tr></thead>
+      <tbody id="lib-table-body"></tbody>
+    </table>
+  </div>
+  <div class="kanban-board" id="lib-kanban" style="display:none"></div>
 </div>
 
 <!-- SERIES -->
@@ -1073,7 +1130,17 @@ function computePace(read,goal){
 function updateGoalWidget(){const g=getGoal();const yr=new Date().getFullYear();const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr))).length;if(!g.goal){document.getElementById('goal-widget').style.display='none';return;}const pct=Math.min(100,Math.round(read/g.goal*100));document.getElementById('goal-widget').style.display='flex';document.getElementById('goal-label').textContent=`${read}/${g.goal}`;document.getElementById('goal-bar').style.width=pct+'%';document.getElementById('goal-pct').textContent=pct+'%';const paceEl=document.getElementById('goal-pace');if(paceEl)paceEl.textContent=computePace(read,g.goal);}
 
 // ═══════════ GENRE FILTER ═══════════
-function updateGenreFilters(){const genres=[...new Set(books.flatMap(b=>b.genre||[]))].sort();['lib-genre','rf-genre','recs-genre-filter'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${id==='recs-genre-filter'?'All genres':'All genres'}</option>`+genres.map(g=>`<option value="${esc(g)}"${g===cur?' selected':''}>${esc(g)}</option>`).join('');});}
+function updateGenreFilters(){
+  const genres=[...new Set(books.flatMap(b=>b.genre||[]))].sort();
+  ['lib-genre','rf-genre','recs-genre-filter'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=`<option value="">${id==='recs-genre-filter'?'All genres':'All genres'}</option>`+genres.map(g=>`<option value="${esc(g)}"${g===cur?' selected':''}>${esc(g)}</option>`).join('');});
+  const authors=[...new Set(books.map(b=>b.author).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const authorEl=document.getElementById('lib-author');
+  if(authorEl){const cur=authorEl.value;authorEl.innerHTML=`<option value="">All authors</option>`+authors.map(a=>`<option value="${esc(a)}"${a===cur?' selected':''}>${esc(a)}</option>`).join('');}
+  const seriesNames=[...new Set(books.map(b=>b.series).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const seriesEl=document.getElementById('lib-series');
+  if(seriesEl){const cur=seriesEl.value;seriesEl.innerHTML=`<option value="">All series</option>`+seriesNames.map(s=>`<option value="${esc(s)}"${s===cur?' selected':''}>${esc(s)}</option>`).join('');}
+}
+function bookInBookClub(b){return getBCMeetings().some(m=>m.bookTitle&&titlesMatch(m.bookTitle,b.title)&&(m.bookAuthor||'').trim().toLowerCase()===(b.author||'').trim().toLowerCase());}
 
 function toggleReadFormat(rowId,status){const row=document.getElementById(rowId);if(row)row.style.display=(status==='read'||status==='dnf')?'':'none';}
 function toggleRowIf(rowId,show){const row=document.getElementById(rowId);if(row)row.style.display=show?'':'none';}
@@ -1087,6 +1154,9 @@ function filterBooks(){
   const genre=document.getElementById('lib-genre')?.value||'';
   const ownedFilter=document.getElementById('lib-owned')?.value||'';
   const lengthFilter=document.getElementById('lib-length')?.value||'';
+  const authorFilter=document.getElementById('lib-author')?.value||'';
+  const seriesFilter=document.getElementById('lib-series')?.value||'';
+  const bcFilter=document.getElementById('lib-bookclub')?.value||'';
   return books.filter(b=>{
     if(statusFilter!=='all'&&b.status!==statusFilter)return false;
     if(fmt){
@@ -1096,6 +1166,10 @@ function filterBooks(){
     if(ownedFilter==='owned'&&!(b.formats||[]).length)return false;
     if(ownedFilter==='borrowed'&&!(b.borrowedFormats||[]).length)return false;
     if(genre&&!(b.genre||[]).includes(genre))return false;
+    if(authorFilter&&b.author!==authorFilter)return false;
+    if(seriesFilter&&b.series!==seriesFilter)return false;
+    if(bcFilter==='yes'&&!bookInBookClub(b))return false;
+    if(bcFilter==='no'&&bookInBookClub(b))return false;
     if(lengthFilter){
       const p=b.pages||0;
       if(!p)return false;
@@ -1120,10 +1194,25 @@ function coverHtml(b){
   return`<div class="bcard-cover"><div class="cover-placeholder">📚</div></div>`;
 }
 
+let libView='grid';
+let tableSort={col:'title',dir:1};
+function setLibView(v){
+  libView=v;
+  ['grid','table','kanban'].forEach(x=>document.getElementById('view-btn-'+x).classList.toggle('on',x===v));
+  document.getElementById('lib-grid').style.display=v==='grid'?'':'none';
+  document.getElementById('lib-table-wrap').style.display=v==='table'?'':'none';
+  document.getElementById('lib-kanban').style.display=v==='kanban'?'':'none';
+  renderLib();
+}
 function renderLib(){
   const filtered=sortBooks(filterBooks());
-  const grid=document.getElementById('lib-grid');
   document.getElementById('lib-count').textContent=`${filtered.length} book${filtered.length!==1?'s':''}`;
+  if(libView==='table')renderLibTable(filtered);
+  else if(libView==='kanban')renderLibKanban(filtered);
+  else renderLibGrid(filtered);
+}
+function renderLibGrid(filtered){
+  const grid=document.getElementById('lib-grid');
   if(!filtered.length){grid.innerHTML=`<div class="empty"><div class="ei">📭</div><p>No books match your filters.<br>Import from GoodReads, Audible, or Kindle.</p></div>`;return;}
   grid.innerHTML=filtered.map(b=>{
     const stars=b.rating?'★'.repeat(b.rating)+'☆'.repeat(5-b.rating):'';
@@ -1132,6 +1221,7 @@ function renderLib(){
     const rfmt=b.readFormat?`<span style="font-size:10px;color:var(--text3)">Read on ${FMT_ICO[b.readFormat]||''} ${esc(b.readFormat)}</span>`:'';
     const progressHtml=(b.status==='reading'&&b.progress)?`<div class="pct-bar" style="margin-top:4px"><div class="pct-fill" style="width:${b.progress}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px">${b.progress}% done</div>`:'';
     const lentHtml=b.lentTo?`<div style="font-size:11px;color:var(--borrowed);margin-top:3px">🤝 Lent to ${esc(b.lentTo)}</div>`:'';
+    const bcHtml=bookInBookClub(b)?`<div style="font-size:11px;color:var(--series);margin-top:3px">📖 Book club pick</div>`:'';
     const checkbox=selectMode?`<input type="checkbox" style="position:absolute;top:8px;left:8px;width:18px;height:18px;z-index:2;accent-color:var(--accent)" ${selectedIds.has(b.id)?'checked':''} onclick="event.stopPropagation();toggleSelect('${b.id}')">`:'';
     return`<div class="bcard" style="position:relative" onclick="${selectMode?`toggleSelect('${b.id}')`:`openModal('${b.id}')`}">
       ${checkbox}
@@ -1151,9 +1241,65 @@ function renderLib(){
         ${date?`<div class="bcard-date">${date}</div>`:''}
         ${progressHtml}
         ${lentHtml}
+        ${bcHtml}
       </div>
     </div>`;
   }).join('');
+}
+function sortTableBy(col){
+  if(tableSort.col===col)tableSort.dir*=-1;else tableSort={col,dir:1};
+  renderLib();
+}
+function renderLibTable(filtered){
+  document.querySelectorAll('table.lib-table th').forEach(th=>{th.classList.toggle('sorted',th.dataset.col===tableSort.col);th.textContent=th.textContent.replace(/ [▲▼]$/,'')+(th.dataset.col===tableSort.col?(tableSort.dir===1?' ▲':' ▼'):'');});
+  const body=document.getElementById('lib-table-body');
+  const{col,dir}=tableSort;
+  const rows=[...filtered].sort((a,b)=>{
+    let va,vb;
+    if(col==='format')va=(a.formats||[]).join(','),vb=(b.formats||[]).join(',');
+    else if(col==='bookclub')va=bookInBookClub(a)?1:0,vb=bookInBookClub(b)?1:0;
+    else if(col==='pages'||col==='rating')va=a[col]||0,vb=b[col]||0;
+    else va=(a[col]||'').toString().toLowerCase(),vb=(b[col]||'').toString().toLowerCase();
+    if(va<vb)return -1*dir;if(va>vb)return 1*dir;return 0;
+  });
+  if(!rows.length){body.innerHTML=`<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px">No books match your filters.</td></tr>`;return;}
+  body.innerHTML=rows.map(b=>`<tr onclick="openModal('${b.id}')">
+    <td>${esc(b.title)}</td>
+    <td>${esc(b.author)}</td>
+    <td>${b.series?esc(b.series)+(b.seriesNumber?' #'+esc(b.seriesNumber):''):''}</td>
+    <td><span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span></td>
+    <td>${(b.formats||[]).map(f=>FMT_ICO[f]||f).join(' ')}</td>
+    <td>${b.pages?(b.pagesEstimated?'~':'')+b.pages:''}</td>
+    <td>${b.rating?'★'.repeat(b.rating):''}</td>
+    <td>${esc(b.dateRead||'')}</td>
+    <td>${bookInBookClub(b)?'📖':''}</td>
+  </tr>`).join('');
+}
+const KANBAN_COLS=['wishlist','tbr','reading','read','dnf'];
+function renderLibKanban(filtered){
+  const board=document.getElementById('lib-kanban');
+  board.innerHTML=KANBAN_COLS.map(st=>{
+    const colBooks=filtered.filter(b=>b.status===st);
+    return`<div class="kanban-col" ondragover="kanbanDragOver(event)" ondragleave="kanbanDragLeave(event)" ondrop="kanbanDrop(event,'${st}')">
+      <div class="kanban-col-h"><span>${STATUS_LABELS[st]||st}</span><span>${colBooks.length}</span></div>
+      ${colBooks.map(b=>`<div class="kanban-card" draggable="true" ondragstart="kanbanDragStart(event,'${b.id}')" ondragend="kanbanDragEnd(event)" onclick="openModal('${b.id}')">
+        <div class="kanban-card-title">${esc(b.title)}</div>
+        <div class="kanban-card-author">${esc(b.author)}</div>
+        ${bookInBookClub(b)?`<div style="font-size:10px;color:var(--series);margin-top:3px">📖 Book club</div>`:''}
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+function kanbanDragStart(ev,id){ev.dataTransfer.setData('text/plain',id);ev.target.classList.add('dragging');}
+function kanbanDragEnd(ev){ev.target.classList.remove('dragging');}
+function kanbanDragOver(ev){ev.preventDefault();ev.currentTarget.classList.add('dragover');}
+function kanbanDragLeave(ev){ev.currentTarget.classList.remove('dragover');}
+function kanbanDrop(ev,status){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('dragover');
+  const id=ev.dataTransfer.getData('text/plain');
+  const b=books.find(x=>x.id===id);
+  if(b&&b.status!==status){b.status=status;save();renderLib();}
 }
 
 // ═══════════ BULK SELECT ═══════════
