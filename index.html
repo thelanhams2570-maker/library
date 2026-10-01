@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anecdote</title>
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon.svg?v=2" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg?v=2">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4a6b5e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1494,7 +1495,7 @@ async function autoFillFromLookup(){
   const dupMsg=st&&st.innerHTML.includes('Already in your library');
   if(st&&!dupMsg)st.textContent=foundAny?'Auto-filled what we could find — double-check before saving.':'';
 }
-function bookInBookClub(b){return getAllBCMeetings().some(m=>m.bookTitle&&titlesMatch(m.bookTitle,b.title)&&(m.bookAuthor||'').trim().toLowerCase()===(b.author||'').trim().toLowerCase());}
+function bookInBookClub(b){return getAllBCMeetings().some(m=>m.bookId===b.id||(m.bookTitle&&titlesMatch(m.bookTitle,b.title)&&(m.bookAuthor||'').trim().toLowerCase()===(b.author||'').trim().toLowerCase()));}
 
 function toggleReadFormat(rowId,status){const row=document.getElementById(rowId);if(row)row.style.display=(status==='read'||status==='dnf')?'':'none';}
 function toggleRowIf(rowId,show){const row=document.getElementById(rowId);if(row)row.style.display=show?'':'none';}
@@ -2497,12 +2498,26 @@ function filterRecs(){
 function addRecToWishlist(title,author,series,seriesNumber,coverUrl,pages,grRating,btn){const existing=findExisting(title,author);if(existing){btn.textContent='✓ Already added';btn.disabled=true;return;}books.push({id:genId(),title,author,status:'wishlist',formats:[],borrowedFormats:[],series:series||'',seriesNumber:seriesNumber||'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:grRating||0,isbn:'',pages:pages||0,pagesEstimated:!!pages,notes:'',genre:[],coverUrl:coverUrl||'',readFormat:''});save();btn.textContent='✓ Added!';btn.style.background='var(--accent-bg)';btn.style.color='var(--accent)';btn.disabled=true;}
 
 // ═══════════ BOOK CLUB ═══════════
+function getLinkedBook(m){
+  if(m.bookId){
+    const b=books.find(x=>x.id===m.bookId);
+    if(b)return b;
+  }
+  return findExisting(m.bookTitle,m.bookAuthor)||null;
+}
 function renderBCMeetings(){
   const meetings=getBCMeetings();
   const grid=document.getElementById('bc-meetings-grid');
   if(!meetings.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>No book club meetings yet.<br>Add your first meeting to get started!</p></div>`;return;}
-  grid.innerHTML=meetings.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(m=>{
-    const libBook=findExisting(m.bookTitle,m.bookAuthor);
+  let linkedChanged=false;
+  grid.innerHTML=meetings.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(m=>{
+    let libBook=m.bookId?books.find(x=>x.id===m.bookId):null;
+    if(!libBook){
+      const match=findExisting(m.bookTitle,m.bookAuthor);
+      if(match){m.bookId=match.id;libBook=match;linkedChanged=true;}
+    }
+    const displayTitle=libBook?libBook.title:m.bookTitle;
+    const displayAuthor=libBook?libBook.author:m.bookAuthor;
     const statusHtml=libBook?`<span class="badge ${STATUS_BADGE[libBook.status]||'b-owned'}" style="font-size:10px">${STATUS_LABELS[libBook.status]}</span>`:`<span style="font-size:11px;color:var(--text3)">Not in library</span>`;
     return`<div class="bc-meeting">
       <div class="bc-meeting-header">
@@ -2515,15 +2530,16 @@ function renderBCMeetings(){
       <div class="bc-book-row">
         ${libBook&&libBook.coverUrl?`<img src="${esc(libBook.coverUrl)}" style="width:28px;height:40px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:''}
         <span style="flex:1">
-          <div style="font-weight:500;font-size:13px">${esc(m.bookTitle)}</div>
-          <div style="font-size:11px;color:var(--text2)">by ${esc(m.bookAuthor)}${m.series?` · <span style="color:var(--series)">${esc(m.series)}${m.seriesNumber?' #'+esc(m.seriesNumber):''}</span>`:''}</div>
+          <div style="font-weight:500;font-size:13px">${esc(displayTitle)}</div>
+          <div style="font-size:11px;color:var(--text2)">by ${esc(displayAuthor)}${m.series?` · <span style="color:var(--series)">${esc(m.series)}${m.seriesNumber?' #'+esc(m.seriesNumber):''}</span>`:''}</div>
         </span>
         <div>${statusHtml}</div>
-        ${libBook?`<button class="btn btn-series btn-sm" onclick="openModal('${libBook.id}')">Edit</button>`:`<button class="btn btn-series btn-sm" onclick="addBCBookToLibrary('${esc(m.bookTitle).replace(/'/g,"\\'")}','${esc(m.bookAuthor).replace(/'/g,"\\'")}')">+ Library</button>`}
+        ${libBook?`<button class="btn btn-series btn-sm" onclick="openModal('${libBook.id}')">Edit</button>`:`<button class="btn btn-series btn-sm" onclick="addBCBookToLibrary('${m.id}')">+ Library</button>`}
       </div>
       ${m.notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);line-height:1.5">${esc(m.notes)}</div>`:''}
     </div>`;
   }).join('');
+  if(linkedChanged)saveBCMeetings(meetings);
 }
 
 function getUpcoming(){try{return JSON.parse(localStorage.getItem(UPK)||'[]');}catch(e){return[];}}
@@ -2644,7 +2660,17 @@ function openBCForm(){currentBCEdit=null;['bc-name','bc-date','bc-book-title','b
 function closeBCModal(){document.getElementById('bc-modal').classList.remove('open');}
 function saveBCMeeting(){const name=document.getElementById('bc-name').value.trim();const bookTitle=document.getElementById('bc-book-title').value.trim();const bookAuthor=document.getElementById('bc-book-author').value.trim();if(!name||!bookTitle){alert('Name and book title required.');return;}const meetings=getBCMeetings();meetings.push({id:genId(),name,date:document.getElementById('bc-date').value,bookTitle,bookAuthor,series:document.getElementById('bc-series').value.trim(),seriesNumber:document.getElementById('bc-series-num').value.trim(),notes:document.getElementById('bc-notes').value.trim()});saveBCMeetings(meetings);closeBCModal();renderBCMeetings();renderUpcoming();renderSeriesRead();}
 function deleteBCMeeting(id){if(!confirm('Delete this meeting?'))return;const meetings=getBCMeetings().filter(m=>m.id!==id);saveBCMeetings(meetings);renderBCMeetings();renderSeriesRead();}
-function addBCBookToLibrary(title,author){books.push({id:genId(),title,author,status:'tbr',formats:[],borrowedFormats:[],series:'',seriesNumber:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:0,isbn:'',notes:'Book club read',genre:[],coverUrl:'',readFormat:''});save();renderBCMeetings();}
+function addBCBookToLibrary(meetingId){
+  const meetings=getBCMeetings();
+  const m=meetings.find(x=>x.id===meetingId);
+  if(!m)return;
+  const newBook={id:genId(),title:m.bookTitle,author:m.bookAuthor,status:'tbr',formats:[],borrowedFormats:[],series:m.series||'',seriesNumber:m.seriesNumber||'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),rating:0,grRating:0,isbn:'',notes:'Book club read',genre:[],coverUrl:'',readFormat:''};
+  books.push(newBook);
+  m.bookId=newBook.id;
+  save();
+  saveBCMeetings(meetings);
+  renderBCMeetings();
+}
 
 // ═══════════ SETTINGS ═══════════
 function renderSettings(){
