@@ -33,6 +33,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nb{display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;border-radius:8px;transition:all .15s;width:100%;text-align:left}
 .nb svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nb:hover{color:var(--text);background:var(--surface2)}.nb.active{color:#fff;background:var(--accent)}
+.sb-sub{display:none;flex-direction:column;gap:2px;padding-left:16px;overflow:hidden}
+.sb-sub.open{display:flex}
+.nb-sub{font-size:12px;padding:6px 10px}
+.nb-sub svg{width:15px;height:15px}
 .content{flex:1;overflow-y:auto;padding:20px 26px}
 .panel{display:none}.panel.active{display:block}
 .fbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
@@ -194,9 +198,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .form-actions{display:flex;gap:8px;margin-top:14px}
 .ai-suggest{font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline;margin-top:3px;display:inline-block}
 /* Import */
-#panel-import{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
-#panel-import.active{display:grid}
-#dedup-banner{grid-column:1/-1}
+.import-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
+#dedup-banner{margin-bottom:14px}
 .import-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
 .import-card h2{font-size:15px;font-weight:600;margin-bottom:7px}
 .import-card p,.import-card ol{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
@@ -240,6 +243,9 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   .sb-title{display:none}
   .sb-nav{flex-direction:row;flex:none;padding:6px;gap:2px}
   .nb{flex-direction:column;gap:2px;padding:7px 10px;font-size:9px}
+  .sb-sub{display:flex!important;flex-direction:row;padding-left:0;gap:2px}
+  .nb-sub{flex-direction:column;gap:2px;padding:7px 8px;font-size:9px}
+  .nb-sub svg{width:18px;height:18px}
   .sb-goal{display:none}
 }
 @media(max-width:500px){.books-grid,.series-grid,.author-list,.recs-grid,.bc-grid{grid-template-columns:1fr}.frow{grid-template-columns:1fr}.content{padding:10px}}
@@ -264,16 +270,16 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <img class="sb-logo" src="icon.svg" alt="">
     <div class="sb-title">My Books</div>
   </div>
-  <div class="sb-nav">
-    <button class="nb active" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
-    <button class="nb" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Series</span></button>
-    <button class="nb" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Authors</span></button>
-    <button class="nb" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Reports</span></button>
-    <button class="nb" onclick="nav('recs')"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg><span>Recs</span></button>
-    <button class="nb" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4V5z"/></svg><span>Book Club</span></button>
-    <button class="nb" onclick="nav('add')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Add</span></button>
-    <button class="nb" onclick="nav('import')"><svg viewBox="0 0 24 24"><path d="M12 3v10M8 9l4 4 4-4"/><path d="M4 15v4h16v-4"/></svg><span>Import</span></button>
-    <button class="nb" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="17" cy="6" r="2"/><circle cx="9" cy="18" r="2"/></svg><span>Settings</span></button>
+  <div class="sb-nav" id="sb-nav">
+    <button class="nb active" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
+    <div class="sb-sub" id="sb-sub-library">
+      <button class="nb nb-sub" data-p="series" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Series</span></button>
+      <button class="nb nb-sub" data-p="authors" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Authors</span></button>
+    </div>
+    <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Reports</span></button>
+    <button class="nb" data-p="recs" onclick="nav('recs')"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg><span>Recs</span></button>
+    <button class="nb" data-p="bookclub" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4V5z"/></svg><span>Book Club</span></button>
+    <button class="nb" data-p="settings" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="17" cy="6" r="2"/><circle cx="9" cy="18" r="2"/></svg><span>Settings</span></button>
   </div>
   <div class="sb-goal" id="goal-widget" style="display:none">
     <div class="sb-goal-row"><span id="goal-label"></span><span id="goal-pct" style="font-weight:600;color:var(--accent2)"></span></div>
@@ -289,6 +295,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div class="fbar">
     <div class="fbar-row">
       <input class="search-box" id="lib-search" type="search" placeholder="Search title, author, series…" oninput="renderLib()">
+      <button class="btn btn-primary btn-sm" onclick="nav('add')">+ Add Book</button>
       <select class="fsel" id="lib-sort" onchange="renderLib()">
         <option value="date-desc">Date added ↓</option>
         <option value="date-asc">Date added ↑</option>
@@ -579,6 +586,17 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
 <!-- ADD -->
 <div id="panel-add" class="panel">
+  <div id="dedup-banner" class="dedup-card" style="display:none">
+    <h2>⚠️ Duplicate books detected</h2>
+    <p id="dedup-msg"></p>
+    <button class="btn btn-warn" onclick="runDedup()">🔀 Merge duplicates now</button>
+    <span style="font-size:12px;color:var(--borrowed);margin-left:10px" id="dedup-status"></span>
+  </div>
+  <div class="view-toggle" style="margin-bottom:14px">
+    <button id="add-tab-manual" class="on" onclick="setAddTab('manual')">✏️ Add Manually</button>
+    <button id="add-tab-import" onclick="setAddTab('import')">⬆️ Import / Bulk</button>
+  </div>
+  <div id="add-tab-manual-panel">
   <div class="form-wrap">
     <div class="form-card">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
@@ -587,8 +605,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       </div>
       <input type="hidden" id="f-id">
       <input type="hidden" id="f-cover">
-      <div class="fg"><label>Title *</label><input type="text" id="f-title" placeholder="Book title"></div>
-      <div class="fg"><label>Author *</label><input type="text" id="f-author" placeholder="Author name"></div>
+      <datalist id="dl-titles"></datalist>
+      <datalist id="dl-authors"></datalist>
+      <datalist id="dl-series"></datalist>
+      <div class="fg"><label>Title *</label><input type="text" id="f-title" list="dl-titles" placeholder="Book title" onblur="checkAddDuplicate()"></div>
+      <div class="fg"><label>Author *</label><input type="text" id="f-author" list="dl-authors" placeholder="Author name" onblur="autoFillFromLookup()"></div>
       <div class="frow">
         <div class="fg">
           <label>Status</label>
@@ -630,7 +651,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         </div>
       </div>
       <div class="frow">
-        <div class="fg"><label>Series Name</label><input type="text" id="f-series" placeholder="e.g. Dungeon Crawler Carl"></div>
+        <div class="fg"><label>Series Name</label><input type="text" id="f-series" list="dl-series" placeholder="e.g. Dungeon Crawler Carl"></div>
         <div class="fg"><label>Book # in Series</label><input type="text" id="f-series-num" placeholder="e.g. 3"></div>
       </div>
       <div class="frow">
@@ -677,16 +698,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       </div>
     </div>
   </div>
-</div>
-
-<!-- IMPORT -->
-<div id="panel-import" class="panel">
-  <div id="dedup-banner" class="dedup-card" style="display:none">
-    <h2>⚠️ Duplicate books detected</h2>
-    <p id="dedup-msg"></p>
-    <button class="btn btn-warn" onclick="runDedup()">🔀 Merge duplicates now</button>
-    <span style="font-size:12px;color:var(--borrowed);margin-left:10px" id="dedup-status"></span>
   </div>
+  <div id="add-tab-import-panel" class="import-grid" style="display:none">
   <div class="import-card">
     <h2>GoodReads Library</h2>
     <p>Go to <strong>goodreads.com → My Books → Import and Export → Export Library</strong>. Download the CSV and drop it below.</p>
@@ -728,6 +741,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <button class="btn btn-danger" onclick="if(confirm('Delete all data?')){books=[];save();renderLib()}">🗑️ Clear all</button>
     </div>
     <input type="file" id="restore-inp" accept=".json" style="display:none" onchange="restoreJSON(event)">
+  </div>
   </div>
 </div>
 
@@ -772,7 +786,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
   <div class="settings-card">
     <h2>About</h2>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6">Data syncs automatically to your private Supabase database and updates in real time across your devices. Export a JSON backup regularly via the Import tab as an extra safety net.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6">Data syncs automatically to your private Supabase database and updates in real time across your devices. Export a JSON backup regularly via the Add tab's Import section as an extra safety net.</p>
   </div>
 </div>
 
@@ -1085,7 +1099,6 @@ function mergeNames(type,from,to,btn){
 }
 
 // ═══════════ NAVIGATION ═══════════
-const PANELS=['library','series','authors','reports','recs','bookclub','add','import','settings'];
 function renderPanel(p){
   if(p==='library')renderLib();
   if(p==='series')renderSeries();
@@ -1094,17 +1107,24 @@ function renderPanel(p){
   if(p==='recs')renderRecsPanel();
   if(p==='bookclub'){renderBCMeetings();renderUpcoming();renderSeriesRead();}
   if(p==='settings')renderSettings();
-  if(p==='import')checkDuplicates();
+  if(p==='add')checkDuplicates();
 }
 function currentPanel(){const el=document.querySelector('.panel.active');return el?el.id.replace('panel-',''):'library';}
 function nav(p){
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('active',PANELS[i]===p));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+  document.getElementById('sb-sub-library').classList.toggle('open',p==='library'||p==='series'||p==='authors');
   document.getElementById('panel-'+p).classList.add('active');
   renderPanel(p);
 }
 function navToSeries(name){nav('series');const el=document.getElementById('series-search');if(el){el.value=name;renderSeries();}}
 function navToAuthor(name){nav('authors');openAuthorDetail(name);}
+function setAddTab(t){
+  document.getElementById('add-tab-manual').classList.toggle('on',t==='manual');
+  document.getElementById('add-tab-import').classList.toggle('on',t==='import');
+  document.getElementById('add-tab-manual-panel').style.display=t==='manual'?'':'none';
+  document.getElementById('add-tab-import-panel').style.display=t==='import'?'grid':'none';
+}
 
 // ═══════════ GOAL ═══════════
 function computePace(read,goal){
@@ -1139,6 +1159,56 @@ function updateGenreFilters(){
   const seriesNames=[...new Set(books.map(b=>b.series).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   const seriesEl=document.getElementById('lib-series');
   if(seriesEl){const cur=seriesEl.value;seriesEl.innerHTML=`<option value="">All series</option>`+seriesNames.map(s=>`<option value="${esc(s)}"${s===cur?' selected':''}>${esc(s)}</option>`).join('');}
+  const dlTitles=document.getElementById('dl-titles');
+  if(dlTitles)dlTitles.innerHTML=[...new Set(books.map(b=>b.title).filter(Boolean))].map(t=>`<option value="${esc(t)}">`).join('');
+  const dlAuthors=document.getElementById('dl-authors');
+  if(dlAuthors)dlAuthors.innerHTML=authors.map(a=>`<option value="${esc(a)}">`).join('');
+  const dlSeries=document.getElementById('dl-series');
+  if(dlSeries)dlSeries.innerHTML=seriesNames.map(s=>`<option value="${esc(s)}">`).join('');
+}
+
+function checkAddDuplicate(){
+  const title=document.getElementById('f-title').value.trim();
+  const author=document.getElementById('f-author').value.trim();
+  const st=document.getElementById('scan-fill-status');
+  if(!st||!title||!author)return;
+  const editId=document.getElementById('f-id').value;
+  const existing=findExisting(title,author);
+  if(existing&&existing.id!==editId){
+    st.innerHTML=`⚠️ Already in your library (${STATUS_LABELS[existing.status]||existing.status}). <button type="button" class="btn btn-outline btn-sm" onclick="openModal('${existing.id}')">Edit existing instead</button>`;
+  }
+}
+
+async function autoFillFromLookup(){
+  const title=document.getElementById('f-title').value.trim();
+  const author=document.getElementById('f-author').value.trim();
+  checkAddDuplicate();
+  if(!title||!author)return;
+  const st=document.getElementById('scan-fill-status');
+  if(st&&!st.innerHTML)st.innerHTML=`<div class="loading"><div class="spinner"></div> Looking up "${esc(title)}"…</div>`;
+  let foundAny=false;
+  try{
+    const q=encodeURIComponent(`${title} ${author}`);
+    const res=await fetch(`https://openlibrary.org/search.json?q=${q}&fields=cover_i,number_of_pages_median&limit=1`);
+    if(res.ok){
+      const data=await res.json();
+      const info=data.docs&&data.docs[0];
+      if(info){
+        if(info.cover_i&&!document.getElementById('f-cover').value)document.getElementById('f-cover').value=`https://covers.openlibrary.org/b/id/${info.cover_i}-M.jpg`;
+        if(info.number_of_pages_median&&!document.getElementById('f-pages').value){document.getElementById('f-pages').value=Math.round(info.number_of_pages_median);foundAny=true;}
+      }
+    }
+  }catch(e){/* best-effort */}
+  if(!document.getElementById('f-series').value.trim()){
+    try{
+      const raw=await askClaude(`For the book "${title}" by ${author}: what series does it belong to and what number is it? Reply ONLY with JSON: {"series":"series name or null","num":"book number or null"}. If not part of a series reply {"series":null,"num":null}.`);
+      const clean=aiStr(raw).replace(/```(?:json)?\n?/g,'').replace(/```/g,'');
+      const m=clean.match(/\{[\s\S]*?\}/);
+      if(m){const d=JSON.parse(m[0]);if(d.series&&d.series!=='null'){document.getElementById('f-series').value=d.series;if(d.num&&d.num!=='null')document.getElementById('f-series-num').value=d.num;foundAny=true;}}
+    }catch(e){/* best-effort */}
+  }
+  const dupMsg=st&&st.innerHTML.includes('Already in your library');
+  if(st&&!dupMsg)st.textContent=foundAny?'✅ Auto-filled what we could find — double-check before saving.':'';
 }
 function bookInBookClub(b){return getBCMeetings().some(m=>m.bookTitle&&titlesMatch(m.bookTitle,b.title)&&(m.bookAuthor||'').trim().toLowerCase()===(b.author||'').trim().toLowerCase());}
 
@@ -2137,6 +2207,7 @@ async function onScanSuccess(decodedText){
 async function lookupISBNAndFillForm(rawCode){
   const isbn=rawCode.replace(/[^0-9Xx]/g,'');
   nav('add');
+  setAddTab('manual');
   clearForm();
   document.getElementById('f-isbn').value=isbn;
   document.getElementById('f-status').value='wishlist';
