@@ -1,11 +1,11 @@
 {
-  "name": "My Books",
-  "short_name": "My Books",
-  "description": "Personal book tracker — library, series gaps, recommendations, and book club.",
+  "name": "Anecdote",
+  "short_name": "Anecdote",
+  "description": "A personal library, kept by hand — books, series, recommendations, and book club.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f8f7f4",
-  "theme_color": "#7c5cbf",
+  "background_color": "#f5f1eb",
+  "theme_color": "#4a6b5e",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
