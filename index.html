@@ -308,7 +308,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <img class="sb-lockup" id="brand-lockup" src="anecdote-lockup-light.svg" alt="Anecdote">
   </div>
   <div class="sb-nav" id="sb-nav">
-    <button class="nb active" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
+    <button class="nb active" data-p="dashboard" onclick="nav('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>Dashboard</span></button>
+    <button class="nb" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
     <div class="sb-sub" id="sb-sub-library">
       <button class="nb nb-sub" data-p="series" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Series</span></button>
       <button class="nb nb-sub" data-p="authors" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Authors</span></button>
@@ -327,8 +328,49 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <div class="main">
 <div class="content">
 
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel active">
+  <div class="settings-card" style="margin-bottom:var(--sp-4)">
+    <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">What do you feel like reading?</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input class="search-box" id="dash-recs-q" type="text" style="flex:1;min-width:220px" placeholder="e.g. &quot;something like Fourth Wing but shorter&quot; or &quot;a cozy fantasy for the holidays&quot;" onkeydown="if(event.key==='Enter'){event.preventDefault();dashboardRecsSearch();}">
+      <button class="btn btn-primary" onclick="dashboardRecsSearch()"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Ask</button>
+    </div>
+  </div>
+
+  <div class="reports-grid" style="margin-bottom:var(--sp-5)">
+    <div class="rcrd">
+      <h3>This year's reading goal</h3>
+      <div class="chart-wrap" style="height:170px"><canvas id="dash-goal-chart"></canvas></div>
+      <div id="dash-goal-summary" style="font-size:13px;color:var(--text2);margin-top:10px"></div>
+    </div>
+    <div class="rcrd">
+      <h3>Add a book</h3>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Scan a barcode to look it up and add it instantly.</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="nav('add');openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg> Scan barcode</button>
+      <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px" onclick="nav('add')">Or search / add manually</button>
+    </div>
+  </div>
+
+  <div id="dash-bc-section" style="margin-bottom:var(--sp-5)">
+    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Upcoming book club meetings</div>
+    <div id="dash-bc-grid" class="bc-grid"></div>
+  </div>
+
+  <div style="margin-bottom:var(--sp-5)">
+    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Currently reading</div>
+    <div id="dash-reading-grid" class="books-grid"></div>
+  </div>
+
+  <div>
+    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:3px">Upcoming releases</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">New books in series you or book club have already read</div>
+    <div id="dash-upcoming-grid" class="bc-grid"></div>
+  </div>
+</div>
+
 <!-- LIBRARY -->
-<div id="panel-library" class="panel active">
+<div id="panel-library" class="panel">
   <div class="fbar">
     <div class="fbar-row">
       <input class="search-box" id="lib-search" type="search" placeholder="Search title, author, series…" oninput="renderLib()">
@@ -1315,6 +1357,7 @@ function normalizeAllAuthors(){
 
 // ═══════════ NAVIGATION ═══════════
 function renderPanel(p){
+  if(p==='dashboard')renderDashboard();
   if(p==='library')renderLib();
   if(p==='series')renderSeries();
   if(p==='authors')renderAuthors();
@@ -1324,7 +1367,7 @@ function renderPanel(p){
   if(p==='settings')renderSettings();
   if(p==='add')checkDuplicates();
 }
-function currentPanel(){const el=document.querySelector('.panel.active');return el?el.id.replace('panel-',''):'library';}
+function currentPanel(){const el=document.querySelector('.panel.active');return el?el.id.replace('panel-',''):'dashboard';}
 function nav(p){
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
@@ -1939,6 +1982,72 @@ function setReportTab(t,btn){currentReportTab=t;document.querySelectorAll('.rtab
 function clearReportFilters(){['rf-status','rf-format','rf-genre','rf-length'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['rf-rating','rf-year-from','rf-year-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderReports();}
 function getReportBooks(){const status=document.getElementById('rf-status')?.value||'';const fmt=document.getElementById('rf-format')?.value||'';const genre=document.getElementById('rf-genre')?.value||'';const lengthFilter=document.getElementById('rf-length')?.value||'';const minRating=parseFloat(document.getElementById('rf-rating')?.value)||0;const yearFrom=parseInt(document.getElementById('rf-year-from')?.value)||0;const yearTo=parseInt(document.getElementById('rf-year-to')?.value)||9999;return books.filter(b=>{if(status&&b.status!==status)return false;if(fmt){const allFmts=[...(b.formats||[]),...(b.borrowedFormats||[])];if(!allFmts.includes(fmt))return false;}if(genre&&!(b.genre||[]).includes(genre))return false;if(lengthFilter){const p=b.pages||0;if(!p)return false;if(lengthFilter==='short'&&p>=250)return false;if(lengthFilter==='medium'&&(p<250||p>450))return false;if(lengthFilter==='long'&&p<450)return false;}if(minRating&&(b.rating||0)<minRating)return false;const yr=parseInt((b.dateRead||b.dateAdded||'').slice(0,4))||0;if(yr&&(yr<yearFrom||yr>yearTo))return false;return true;});}
 function destroyCharts(){Object.values(chartInst).forEach(c=>{try{c.destroy();}catch(e){}});chartInst={};}
+function dashboardRecsSearch(){
+  const q=document.getElementById('dash-recs-q').value.trim();
+  if(!q)return;
+  nav('recs');
+  document.getElementById('recs-nl-input').value=q;
+  getRecsNL();
+}
+function renderDashboard(){
+  destroyCharts();
+  renderDashGoalChart();
+  renderDashReading();
+  renderDashBCUpcoming();
+  renderUpcoming('dash-upcoming-grid');
+}
+function renderDashGoalChart(){
+  const yr=new Date().getFullYear();
+  const goal=getGoal(yr);
+  const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr)));
+  const byMonth=Array(12).fill(0);
+  read.forEach(b=>{const m=parseInt((b.dateRead||'').slice(5,7),10);if(m>=1&&m<=12)byMonth[m-1]++;});
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const ctx=document.getElementById('dash-goal-chart');
+  if(ctx){
+    chartInst.dashGoal=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'Books read',data:byMonth,backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+  }
+  const summary=document.getElementById('dash-goal-summary');
+  if(summary){
+    if(goal)summary.innerHTML=`${read.length} of ${goal} read in ${yr} (${Math.round(read.length/goal*100)}%)<br><span style="color:var(--text3)">${esc(computePace(read.length,goal))}</span>`;
+    else summary.innerHTML=`${read.length} read in ${yr}. <a href="#" onclick="event.preventDefault();nav('settings')" style="color:var(--accent)">Set a goal</a> to track progress.`;
+  }
+}
+function renderDashReading(){
+  const grid=document.getElementById('dash-reading-grid');
+  if(!grid)return;
+  const reading=books.filter(b=>b.status==='reading');
+  if(!reading.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing in progress right now.</p></div>`;return;}
+  grid.innerHTML=reading.map(b=>{
+    const progressHtml=b.progress?`<div class="pct-bar" style="margin-top:4px"><div class="pct-fill" style="width:${b.progress}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px">${b.progress}% done</div>`:'';
+    return`<div class="bcard" onclick="openModal('${b.id}')">
+      ${coverHtml(b)}
+      <div class="bcard-body">
+        ${b.series?`<div class="bcard-series">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</div>`:''}
+        <div class="bcard-title">${esc(b.title)}</div>
+        <div class="bcard-author">${esc(b.author)}</div>
+        ${progressHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderDashBCUpcoming(){
+  const section=document.getElementById('dash-bc-section');
+  const grid=document.getElementById('dash-bc-grid');
+  if(!section||!grid)return;
+  const today=new Date().toISOString().slice(0,10);
+  const upcoming=getAllBCMeetings().filter(m=>m.date&&m.date>=today).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  if(!upcoming.length){section.style.display='none';return;}
+  section.style.display='';
+  grid.innerHTML=upcoming.map(m=>`<div class="bc-meeting">
+    <div class="bc-meeting-header">
+      <div class="bc-meeting-title">${esc(m.name)}</div>
+      <div class="bc-meeting-date">${esc(fmtDateDMY(m.date))}</div>
+    </div>
+    <div style="font-size:13px"><strong>${esc(m.bookTitle)}</strong></div>
+    <div style="font-size:11px;color:var(--text2)">by ${esc(m.bookAuthor)}</div>
+  </div>`).join('');
+}
 function renderReports(){destroyCharts();const t=currentReportTab;if(t==='summary')renderReportSummary();else if(t==='author')renderReportAuthor();else if(t==='series')renderReportSeries();else if(t==='genre')renderReportGenre();else if(t==='format')renderReportFormat();}
 
 function computeMonthStreaks(read){
@@ -1994,9 +2103,10 @@ function renderReportSummary(){
     <div class="rcrd"><h3>Library Breakdown</h3><div class="chart-wrap"><canvas id="ch-shelf"></canvas></div></div>
   </div>`;
   setTimeout(()=>{
-    if(years.length>1){const ctx=document.getElementById('ch-year');if(ctx)chartInst.yr=new Chart(ctx,{type:'bar',data:{labels:years,datasets:[{label:'Books',data:years.map(y=>byYear[y]),backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
-    if(rated.length){const ctx=document.getElementById('ch-ratings');if(ctx)chartInst.rat=new Chart(ctx,{type:'bar',data:{labels:['★','★★','★★★','★★★★','★★★★★'],datasets:[{data:rDist,backgroundColor:['#d9c3a8','#cdb08c','#c1a077','#b8956a','#9c7a52'],borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
-    const sc=document.getElementById('ch-shelf');if(sc)chartInst.shelf=new Chart(sc,{type:'doughnut',data:{labels:['Read','Reading','TBR','DNF'],datasets:[{data:[read.length,rb.filter(b=>b.status==='reading').length,rb.filter(b=>['tbr','owned','want','wishlist'].includes(b.status)).length,rb.filter(b=>b.status==='dnf').length],backgroundColor:['#4a6b5e','#b8956a','#a08b72','#8d8577'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});
+    if(currentPanel()!=='reports')return;
+    if(years.length>1){const ctx=document.getElementById('ch-year');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.yr=new Chart(ctx,{type:'bar',data:{labels:years,datasets:[{label:'Books',data:years.map(y=>byYear[y]),backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
+    if(rated.length){const ctx=document.getElementById('ch-ratings');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.rat=new Chart(ctx,{type:'bar',data:{labels:['★','★★','★★★','★★★★','★★★★★'],datasets:[{data:rDist,backgroundColor:['#d9c3a8','#cdb08c','#c1a077','#b8956a','#9c7a52'],borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
+    const sc=document.getElementById('ch-shelf');if(sc){const ex=Chart.getChart(sc);if(ex)ex.destroy();chartInst.shelf=new Chart(sc,{type:'doughnut',data:{labels:['Read','Reading','TBR','DNF'],datasets:[{data:[read.length,rb.filter(b=>b.status==='reading').length,rb.filter(b=>['tbr','owned','want','wishlist'].includes(b.status)).length,rb.filter(b=>b.status==='dnf').length],backgroundColor:['#4a6b5e','#b8956a','#a08b72','#8d8577'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
   },50);
 }
 
@@ -2032,7 +2142,7 @@ function renderReportSeries(){
   <p style="font-size:11px;color:var(--text3);margin-top:8px">* Series are checked automatically in the background on the Series tab; totals update once that finishes. Click series name → go to Series tab.</p></div>`;
 }
 
-function renderReportGenre(){const rb=getReportBooks();const map={};rb.forEach(b=>{(b.genre||[]).forEach(g=>{if(!map[g])map[g]={name:g,read:0,owned:0,want:0,dnf:0};if(b.status==='read')map[g].read++;else if(b.status==='reading')map[g].owned++;else if(b.status==='dnf')map[g].dnf++;else map[g].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-genre');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.tag}</div><p>No genre data. Add genres when editing books.</p></div>`;return;}el.innerHTML=`<div class="reports-grid"><div class="rcrd" style="grid-column:1/-1"><h3>Genre breakdown</h3><div class="chart-wrap" style="height:${Math.max(180,rows.length*28)}px"><canvas id="ch-genre"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Genre</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.dnf||0}</td><td class="num">${r.read+r.owned+r.want+r.dnf}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const ctx=document.getElementById('ch-genre');if(ctx)chartInst.genre=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Read',data:rows.map(r=>r.read),backgroundColor:'#4a6b5e'},{label:'Owned',data:rows.map(r=>r.owned),backgroundColor:'#b8956a'},{label:'Want',data:rows.map(r=>r.want),backgroundColor:'#a69a85'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true,ticks:{precision:0}},y:{stacked:true}}}});},50);}
+function renderReportGenre(){const rb=getReportBooks();const map={};rb.forEach(b=>{(b.genre||[]).forEach(g=>{if(!map[g])map[g]={name:g,read:0,owned:0,want:0,dnf:0};if(b.status==='read')map[g].read++;else if(b.status==='reading')map[g].owned++;else if(b.status==='dnf')map[g].dnf++;else map[g].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-genre');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.tag}</div><p>No genre data. Add genres when editing books.</p></div>`;return;}el.innerHTML=`<div class="reports-grid"><div class="rcrd" style="grid-column:1/-1"><h3>Genre breakdown</h3><div class="chart-wrap" style="height:${Math.max(180,rows.length*28)}px"><canvas id="ch-genre"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Genre</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.dnf||0}</td><td class="num">${r.read+r.owned+r.want+r.dnf}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{if(currentPanel()!=='reports')return;const ctx=document.getElementById('ch-genre');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.genre=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Read',data:rows.map(r=>r.read),backgroundColor:'#4a6b5e'},{label:'Owned',data:rows.map(r=>r.owned),backgroundColor:'#b8956a'},{label:'Want',data:rows.map(r=>r.want),backgroundColor:'#a69a85'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true,ticks:{precision:0}},y:{stacked:true}}}});}},50);}
 
 function renderReportFormat(){const rb=getReportBooks();const map={};rb.forEach(b=>{const allFmts=[...(b.formats||[]).map(f=>({f,type:'owned'})),...(b.borrowedFormats||[]).map(f=>({f,type:'borrowed'}))];(allFmts.length?allFmts:[{f:'Unknown',type:'owned'}]).forEach(({f,type})=>{if(!map[f])map[f]={name:f,read:0,owned:0,want:0,borrowed:0};if(b.status==='read')map[f].read++;else if(b.status==='reading')map[f].owned++;else map[f].want++;if(type==='borrowed')map[f].borrowed++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read);const FMT_C={Ebook:'#7c5cbf',Audiobook:'#2d7a4f',Hardcopy:'#c07a1a',Unknown:'#aaa'};const el=document.getElementById('rpanel-format');el.innerHTML=`<div class="reports-grid"><div class="rcrd"><h3>Format — books read</h3><div class="chart-wrap"><canvas id="ch-fmt-read"></canvas></div></div><div class="rcrd"><h3>Format — all books</h3><div class="chart-wrap"><canvas id="ch-fmt-all"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Format</th><th>Read</th><th>Owned Unread</th><th>Want</th><th>Borrowed</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${FMT_ICO[r.name]||''} ${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.borrowed}</td><td class="num">${r.read+r.owned+r.want}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const mk=(id,data)=>{const ctx=document.getElementById(id);if(!ctx)return;return new Chart(ctx,{type:'doughnut',data:{labels:data.map(r=>r.name),datasets:[{data:data.map(r=>r.n),backgroundColor:data.map(r=>FMT_C[r.name]||'#aaa'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});};chartInst.fr=mk('ch-fmt-read',rows.map(r=>({name:r.name,n:r.read})));chartInst.fa=mk('ch-fmt-all',rows.map(r=>({name:r.name,n:r.read+r.owned+r.want})));},50);}
 
@@ -2717,8 +2827,7 @@ function seedBookClub(){
   seedUpcoming();
   updateGoalWidget();
   updateGenreFilters();
-  renderLib();
-  document.getElementById('goal-year-label')&&(document.getElementById('goal-year-label').textContent=new Date().getFullYear());
+  renderDashboard();
   toggleReadFormat('f-read-fmt-row','read');
   toggleReadFormat('m-read-fmt-row','read');
   subscribeRealtime();
