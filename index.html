@@ -222,6 +222,12 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .bc-meeting-title{font-family:var(--font-serif);font-size:16px;font-weight:600}
 .bc-meeting-date{font-size:12px;color:var(--text3)}
 .bc-book-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px}
+.proposed-row{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-3) var(--sp-4)}
+.proposed-month{min-width:120px;font-weight:600;font-size:13px}
+.proposed-date{font-size:11px;color:var(--text3)}
+.proposed-body{flex:1;min-width:0}
+.proposed-title{font-weight:500;font-size:13px}
+.proposed-meta{font-size:11px;color:var(--text2)}
 /* Form */
 .form-wrap{max-width:680px;margin:0 auto}
 .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);box-shadow:var(--shadow)}
@@ -625,6 +631,12 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
   <div id="upcoming-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
   <div id="upcoming-grid" class="bc-grid"></div>
+
+  <div style="margin:28px 0 14px">
+    <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Proposed Calendar</div>
+    <div style="font-size:12px;color:var(--text2)">A suggested running order for upcoming book club picks, one per meeting on the last Wednesday of the month — purely a starting point, adjust as you like</div>
+  </div>
+  <div id="proposed-calendar-list" style="display:flex;flex-direction:column;gap:8px"></div>
 
   <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
     <div>
@@ -1178,7 +1190,7 @@ function getActiveClub(){const data=getBCData();return data.clubs.find(c=>c.id==
 function getBCMeetings(){return getActiveClub().meetings||[];}
 function saveBCMeetings(meetings){const data=getBCData();const club=data.clubs.find(c=>c.id===data.activeClubId)||data.clubs[0];club.meetings=meetings;saveBCData(data);}
 function getAllBCMeetings(){return getBCData().clubs.flatMap(c=>c.meetings||[]);}
-function switchClub(id){const data=getBCData();data.activeClubId=id;saveBCData(data);renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();}
+function switchClub(id){const data=getBCData();data.activeClubId=id;saveBCData(data);renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
 function createClub(){
   const name=prompt('Name of the new book club:');
   if(!name||!name.trim())return;
@@ -1187,7 +1199,7 @@ function createClub(){
   data.clubs.push({id,name:name.trim(),meetings:[]});
   data.activeClubId=id;
   saveBCData(data);
-  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();
+  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();
 }
 function renameClub(){
   const data=getBCData();
@@ -1206,7 +1218,7 @@ function deleteClub(){
   data.clubs=data.clubs.filter(c=>c.id!==data.activeClubId);
   data.activeClubId=data.clubs[0].id;
   saveBCData(data);
-  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();
+  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();
 }
 function renderBCClubSwitcher(){
   const data=getBCData();
@@ -1391,7 +1403,7 @@ function renderPanel(p){
   if(p==='authors')renderAuthors();
   if(p==='reports')renderReports();
   if(p==='recs')renderRecsPanel();
-  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();}
+  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
   if(p==='settings')renderSettings();
   if(p==='add')checkDuplicates();
 }
@@ -2549,6 +2561,7 @@ const UP_SEED=[
   {id:'up2',series:'A Court of Thorns and Roses',book:'A Court of Forgotten Melody',author:'Sarah J. Maas',releaseDate:'2027-01-12',note:'ACOTAR Book 7'},
   {id:'up3',series:'Metal Slinger',book:'Light Wielder',author:'Rachel Schneider',releaseDate:'2026-06-11',note:'Conclusion to Metal Slinger — already released'},
   {id:'up4',series:'Crowns of Nyaxia',book:'The Lion & the Deathless Dark',author:'Carissa Broadbent',releaseDate:'2026-08-04',note:'Book 5, first in the Bloodborn Duet — already released. Series is planned for 6 books; no date yet for Book 6.'},
+  {id:'up5',series:'Fae & Alchemy',book:'Untitled (Fae & Alchemy #3)',author:'Callie Hart',releaseDate:'2027-09-07',note:'Sequel to Quicksilver and Brimstone — no title yet, and the date has already slipped twice (originally Fall 2025), so treat it as tentative.'},
 ];
 function seedUpcoming(){
   const existing=getUpcoming();
@@ -2586,6 +2599,60 @@ function renderUpcoming(containerId){
       ${u.note?`<div style="font-size:11px;color:var(--text3);margin-top:6px">${esc(u.note)}</div>`:''}
     </div>`;
   }).join('');
+}
+function lastWednesdayOf(year,monthIndex0){
+  const lastDay=new Date(year,monthIndex0+1,0);
+  const dow=lastDay.getDay();
+  const diff=(dow-3+7)%7;
+  lastDay.setDate(lastDay.getDate()-diff);
+  return lastDay;
+}
+function proposeBookClubCalendar(){
+  const clubSeries=bcClubSeriesSet();
+  const candidates=getUpcoming().filter(u=>clubSeries.has(u.series)).slice().sort((a,b)=>(a.releaseDate||'').localeCompare(b.releaseDate||''));
+  if(!candidates.length)return[];
+  const meetings=getBCMeetings();
+  const latestDate=meetings.reduce((max,m)=>(m.date&&m.date>max)?m.date:max,'');
+  const cursor=latestDate?new Date(latestDate+'T00:00:00'):new Date();
+  cursor.setMonth(cursor.getMonth()+1,1);
+  const proposals=[];
+  let ci=0,guard=0;
+  while(ci<candidates.length&&guard<48){
+    const slot=lastWednesdayOf(cursor.getFullYear(),cursor.getMonth());
+    const leadCutoff=new Date(slot);leadCutoff.setDate(leadCutoff.getDate()-10);
+    const cand=candidates[ci];
+    const releaseDate=cand.releaseDate?new Date(cand.releaseDate+'T00:00:00'):null;
+    if(releaseDate&&releaseDate<=leadCutoff){
+      proposals.push({...cand,proposedDate:slot.toISOString().slice(0,10),monthLabel:slot.toLocaleDateString('en-GB',{month:'long',year:'numeric'})});
+      ci++;
+    }
+    cursor.setMonth(cursor.getMonth()+1,1);
+    guard++;
+  }
+  return proposals;
+}
+function renderProposedCalendar(){
+  const el=document.getElementById('proposed-calendar-list');
+  if(!el)return;
+  const proposals=proposeBookClubCalendar();
+  if(!proposals.length){el.innerHTML=`<div class="empty"><p style="font-size:12px;color:var(--text3)">No book-club-pick upcoming releases to schedule yet. Mark releases as book club picks in Upcoming Releases, or check for sequels above.</p></div>`;return;}
+  el.innerHTML=proposals.map(p=>`<div class="proposed-row">
+    <div class="proposed-month">${esc(p.monthLabel)}<div class="proposed-date">${esc(fmtDateDMY(p.proposedDate))} (last Wed)</div></div>
+    <div class="proposed-body">
+      <div class="proposed-title">${esc(p.book)}</div>
+      <div class="proposed-meta">by ${esc(p.author)} · <span style="color:var(--series)">${esc(p.series)}</span>${p.note?' · '+esc(p.note):''}</div>
+    </div>
+    <button class="btn btn-series btn-sm" onclick="useProposedMeeting('${esc(p.book).replace(/'/g,"\\'")}','${esc(p.author).replace(/'/g,"\\'")}','${esc(p.series).replace(/'/g,"\\'")}','${p.proposedDate}','${esc(p.monthLabel).replace(/'/g,"\\'")}')">Schedule this</button>
+  </div>`).join('');
+}
+function useProposedMeeting(bookTitle,bookAuthor,series,proposedDate,monthLabel){
+  openBCForm();
+  const highest=getBCMeetings().reduce((max,m)=>{const n=parseInt((m.name||'').match(/Book (\d+)/)?.[1]);return n>max?n:max;},0);
+  document.getElementById('bc-name').value=`Book ${highest+1} - ${monthLabel}`;
+  document.getElementById('bc-date').value=proposedDate;
+  document.getElementById('bc-book-title').value=bookTitle;
+  document.getElementById('bc-book-author').value=bookAuthor;
+  document.getElementById('bc-series').value=series;
 }
 function openUpForm(){['up-series','up-book','up-author','up-date','up-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('up-modal').classList.add('open');}
 function closeUpModal(){document.getElementById('up-modal').classList.remove('open');}
@@ -2997,7 +3064,7 @@ const BC_SEED=[
   {id:'nsc3',name:'Book 4 - October 2024',date:'2024-10-02',bookTitle:'Fourth Wing',bookAuthor:'Rebecca Yarros',notes:'',series:'The Empyrean',seriesNumber:'1'},
   {id:'nsc4',name:'Book 5 - October 2024',date:'2024-10-30',bookTitle:'The Prison Healer',bookAuthor:'Lynette Noni',notes:'',series:'The Prison Healer',seriesNumber:'1'},
   {id:'nsc5',name:'Book 6 - December 2024',date:'2024-12-11',bookTitle:'A Court This Cruel and Lovely',bookAuthor:'Stacia Stark',notes:'',series:'A Vicious Court',seriesNumber:'1'},
-  {id:'nsc6',name:'Book 7 - January 2025',date:'2025-01-22',bookTitle:'Quicksilver',bookAuthor:'Callie Hart',notes:'',series:'Quicksilver',seriesNumber:'1'},
+  {id:'nsc6',name:'Book 7 - January 2025',date:'2025-01-22',bookTitle:'Quicksilver',bookAuthor:'Callie Hart',notes:'',series:'Fae & Alchemy',seriesNumber:'1'},
   {id:'nsc7',name:'Book 8 - February 2025',date:'2025-02-19',bookTitle:'Onyx Storm',bookAuthor:'Rebecca Yarros',notes:'',series:'The Empyrean',seriesNumber:'3'},
   {id:'nsc8',name:'Book 9 - March 2025',date:'2025-03-26',bookTitle:'Phantasma',bookAuthor:'Kaylie Smith',notes:'',series:'Phantasma',seriesNumber:'1'},
   {id:'nsc9',name:'Book 10 - April 2025',date:'2025-04-30',bookTitle:'Serpent & Dove',bookAuthor:'Shelby Mahurin',notes:'',series:'Serpent & Dove',seriesNumber:'1'},
@@ -3007,7 +3074,7 @@ const BC_SEED=[
   {id:'nsc13',name:'Book 14 - August 2025',date:'2025-08-27',bookTitle:'The Crimson Moth',bookAuthor:'Kristen Ciccarelli',notes:'',series:'The Crimson Moth',seriesNumber:'1'},
   {id:'nsc14',name:'Book 15 - September 2025',date:'2025-09-24',bookTitle:'The Ever King',bookAuthor:'L.J. Andrews',notes:'',series:'The Ever King',seriesNumber:'1'},
   {id:'nsc15',name:'Book 16 - October 2025',date:'2025-10-29',bookTitle:'Shield of Sparrows',bookAuthor:'Devney Perry',notes:'',series:'',seriesNumber:''},
-  {id:'nsc16',name:'Book 17 - November 2025',date:'2025-11-26',bookTitle:'Brimstone',bookAuthor:'Callie Hart',notes:'',series:'',seriesNumber:''},
+  {id:'nsc16',name:'Book 17 - November 2025',date:'2025-11-26',bookTitle:'Brimstone',bookAuthor:'Callie Hart',notes:'',series:'Fae & Alchemy',seriesNumber:'2'},
   {id:'nsc17',name:'Book 18 - January 2026',date:'2026-01-28',bookTitle:'A Court of Thorns and Roses (ACOTAR)',bookAuthor:'Sarah J. Maas',notes:'Series read',series:'A Court of Thorns and Roses',seriesNumber:'1'},
   {id:'nsc18',name:'Book 19 - February 2026',date:'2026-02-25',bookTitle:'Alchemised',bookAuthor:'Sen Lin Yu',notes:'',series:'',seriesNumber:''},
   {id:'nsc19',name:'Book 20 - March 2026',date:'2026-03-25',bookTitle:'The Stars Are Dying',bookAuthor:'C.C. Peñaranda',notes:'',series:'Nytefall',seriesNumber:'1'},
