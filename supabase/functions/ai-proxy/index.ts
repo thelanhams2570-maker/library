@@ -39,7 +39,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 4096,
+        max_tokens: 8192,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -53,6 +53,12 @@ serve(async (req) => {
     const blocks = data.content || [];
     const textBlock = blocks.find((b: any) => b.type === "text");
     const text = textBlock?.text ?? "";
+
+    if (!text && data.stop_reason === "max_tokens") {
+      throw new Error(
+        "The AI's response was cut off before it could answer (ran out of its token budget, often because it spent it all thinking). Try a shorter request."
+      );
+    }
 
     return new Response(JSON.stringify({ text }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
