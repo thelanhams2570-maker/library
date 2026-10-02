@@ -42,6 +42,10 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-hei
 .app{display:flex;flex-direction:row;height:100vh}
 .sidebar{width:222px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
 .sb-brand{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);flex-shrink:0}
+.sb-hamburger{display:none;margin-left:auto;width:32px;height:32px;flex-shrink:0;border:1px solid var(--border);border-radius:var(--r);background:var(--surface2);color:var(--text2);align-items:center;justify-content:center;cursor:pointer}
+.sb-drawer{display:flex;flex-direction:column;flex:1;min-height:0}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
+.sb-backdrop.open{display:block}
 .sb-lockup{height:26px;width:auto;display:block}
 .sb-nav{display:flex;flex-direction:column;gap:2px;padding:var(--sp-2);flex:1}
 .sb-goal{padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--border);font-size:12px;color:var(--text2);flex-shrink:0}
@@ -298,15 +302,19 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .progress-bar{height:100%;background:var(--accent);border-radius:var(--r-full);transition:width .3s}
 @media(max-width:820px){
   .app{flex-direction:column;height:100vh}
-  .sidebar{width:100%;flex-direction:row;align-items:center;border-right:none;border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;flex-shrink:0}
-  .sb-brand{padding:8px 10px}
-  .sb-lockup{height:20px}
-  .sb-nav{flex-direction:row;flex:none;padding:6px;gap:2px}
-  .nb{flex-direction:column;gap:2px;padding:7px 10px;font-size:9px}
-  .sb-sub{display:flex!important;flex-direction:row;padding-left:0;gap:2px}
-  .nb-sub{flex-direction:column;gap:2px;padding:7px 8px;font-size:9px}
-  .nb-sub svg{width:18px;height:18px}
-  .sb-goal{display:none}
+  .sidebar{width:100%;flex-direction:row;align-items:center;border-right:none;border-bottom:1px solid var(--border);overflow:visible;flex-shrink:0}
+  .sb-brand{padding:8px 10px;width:100%}
+  .sb-lockup{height:22px}
+  .sb-hamburger{display:flex}
+  .sb-drawer{position:fixed;top:0;left:0;bottom:0;width:260px;max-width:80vw;background:var(--surface);transform:translateX(-100%);transition:transform .2s ease;z-index:200;border-right:1px solid var(--border);overflow-y:auto;box-shadow:var(--shadow)}
+  .sb-drawer.mobile-open{transform:translateX(0)}
+  .sb-nav{flex-direction:column;flex:1;padding:var(--sp-2);gap:2px}
+  .nb{flex-direction:row;justify-content:flex-start;gap:10px;padding:10px 12px;font-size:13px}
+  .nb svg{width:18px;height:18px}
+  .sb-sub{display:flex!important;flex-direction:column;padding-left:18px;gap:2px}
+  .nb-sub{flex-direction:row;gap:10px;padding:7px 10px;font-size:12px}
+  .nb-sub svg{width:16px;height:16px}
+  .sb-goal{display:block}
 }
 @media(max-width:500px){.books-grid,.series-grid,.author-list,.recs-grid,.bc-grid{grid-template-columns:1fr}.frow{grid-template-columns:1fr}.content{padding:10px}}
 </style>
@@ -325,28 +333,32 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 </div>
 <div class="app">
-<nav class="sidebar">
+<nav class="sidebar" id="sidebar">
   <div class="sb-brand">
     <img class="sb-lockup" id="brand-lockup" src="anecdote-lockup-light.svg" alt="Anecdote">
+    <button class="sb-hamburger" id="sb-hamburger" onclick="toggleMobileMenu()" aria-label="Menu"><svg class="ico" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
   </div>
-  <div class="sb-nav" id="sb-nav">
-    <button class="nb active" data-p="dashboard" onclick="nav('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>Dashboard</span></button>
-    <button class="nb" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
-    <div class="sb-sub" id="sb-sub-library">
-      <button class="nb nb-sub" data-p="series" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Series</span></button>
-      <button class="nb nb-sub" data-p="authors" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Authors</span></button>
+  <div class="sb-drawer" id="sb-drawer">
+    <div class="sb-nav" id="sb-nav">
+      <button class="nb active" data-p="dashboard" onclick="nav('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>Dashboard</span></button>
+      <button class="nb" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
+      <div class="sb-sub" id="sb-sub-library">
+        <button class="nb nb-sub" data-p="series" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Series</span></button>
+        <button class="nb nb-sub" data-p="authors" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Authors</span></button>
+      </div>
+      <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Reports</span></button>
+      <button class="nb" data-p="recs" onclick="nav('recs')"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg><span>Recs</span></button>
+      <button class="nb" data-p="bookclub" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4V5z"/></svg><span>Book Club</span></button>
+      <button class="nb" data-p="settings" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="17" cy="6" r="2"/><circle cx="9" cy="18" r="2"/></svg><span>Settings</span></button>
     </div>
-    <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Reports</span></button>
-    <button class="nb" data-p="recs" onclick="nav('recs')"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg><span>Recs</span></button>
-    <button class="nb" data-p="bookclub" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4V5z"/></svg><span>Book Club</span></button>
-    <button class="nb" data-p="settings" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="17" cy="6" r="2"/><circle cx="9" cy="18" r="2"/></svg><span>Settings</span></button>
-  </div>
-  <div class="sb-goal" id="goal-widget" style="display:none">
-    <div class="sb-goal-row"><span id="goal-label"></span><span id="goal-pct" style="font-weight:600;color:var(--accent2)"></span></div>
-    <div class="goal-bar-wrap"><div class="goal-bar" id="goal-bar"></div></div>
-    <div id="goal-pace" style="font-size:11px;color:var(--text3);margin-top:5px;line-height:1.4"></div>
+    <div class="sb-goal" id="goal-widget" style="display:none">
+      <div class="sb-goal-row"><span id="goal-label"></span><span id="goal-pct" style="font-weight:600;color:var(--accent2)"></span></div>
+      <div class="goal-bar-wrap"><div class="goal-bar" id="goal-bar"></div></div>
+      <div id="goal-pace" style="font-size:11px;color:var(--text3);margin-top:5px;line-height:1.4"></div>
+    </div>
   </div>
 </nav>
+<div class="sb-backdrop" id="sb-backdrop" onclick="closeMobileMenu()"></div>
 <div class="main">
 <div class="content">
 
@@ -621,6 +633,15 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
   <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
     <div>
+      <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Suggestion Backlog</div>
+      <div style="font-size:12px;color:var(--text2)">Books that were suggested but weren't drawn — logged for reference, never recycled into future draws</div>
+    </div>
+    <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openBacklogForm()">+ Add Suggestion</button>
+  </div>
+  <div id="backlog-grid" class="bc-grid"></div>
+
+  <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
+    <div>
       <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Upcoming Releases</div>
       <div style="font-size:12px;color:var(--text2)">New books in series you or book club have already read</div>
     </div>
@@ -661,6 +682,21 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeUpModal()">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="saveUpcomingEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Suggestion Backlog Form Modal -->
+<div class="modal-ov" id="backlog-modal">
+  <div class="modal">
+    <h2>Add Suggestion</h2>
+    <div class="fg"><label>Book Title</label><input type="text" id="backlog-title" placeholder="Book title"></div>
+    <div class="fg"><label>Author</label><input type="text" id="backlog-author" placeholder="Author"></div>
+    <div class="fg"><label>Suggested by</label><input type="text" id="backlog-suggested-by" placeholder="Who put it forward"></div>
+    <div class="fg"><label>Notes</label><textarea id="backlog-notes" rows="2" placeholder="Why it didn't get drawn, or anything worth remembering…"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeBacklogModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveBacklogEntry()">Save</button>
     </div>
   </div>
 </div>
@@ -890,6 +926,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <p>Uses Open Library to fill in missing cover art for any book with an ISBN on file.</p>
     </div>
     <div class="archivist-tool">
+      <button class="btn btn-outline" onclick="backfillLibrarySeries()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg> Backfill series info (AI)</button>
+      <p>Asks AI for the series name and book number for any book with no series set yet — 20 at a time, run again for more.</p>
+    </div>
+    <div class="archivist-tool">
       <button class="btn btn-outline" onclick="backfillGenres()"><svg class="ico" viewBox="0 0 24 24"><path d="M20.5 12.5L12 21l-9-9V4a2 2 0 012-2h8z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Backfill genres (AI)</button>
       <p>Asks AI to suggest 2–3 genre tags for any book that doesn't have one yet.</p>
     </div>
@@ -1020,7 +1060,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- Book Club Form Modal -->
 <div class="modal-ov" id="bc-modal">
   <div class="modal">
-    <h2>Add Book Club Meeting</h2>
+    <h2 id="bc-modal-h">Add Book Club Meeting</h2>
     <div class="fg"><label>Meeting Name / Month</label><input type="text" id="bc-name" placeholder="e.g. June 2026"></div>
     <div class="fg"><label>Date</label><input type="date" id="bc-date"></div>
     <div class="fg"><label>Book Title</label><input type="text" id="bc-book-title" placeholder="Book discussed"></div>
@@ -1190,7 +1230,9 @@ function getActiveClub(){const data=getBCData();return data.clubs.find(c=>c.id==
 function getBCMeetings(){return getActiveClub().meetings||[];}
 function saveBCMeetings(meetings){const data=getBCData();const club=data.clubs.find(c=>c.id===data.activeClubId)||data.clubs[0];club.meetings=meetings;saveBCData(data);}
 function getAllBCMeetings(){return getBCData().clubs.flatMap(c=>c.meetings||[]);}
-function switchClub(id){const data=getBCData();data.activeClubId=id;saveBCData(data);renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
+function getBacklog(){return getActiveClub().backlog||[];}
+function saveBacklog(list){const data=getBCData();const club=data.clubs.find(c=>c.id===data.activeClubId)||data.clubs[0];club.backlog=list;saveBCData(data);}
+function switchClub(id){const data=getBCData();data.activeClubId=id;saveBCData(data);renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
 function createClub(){
   const name=prompt('Name of the new book club:');
   if(!name||!name.trim())return;
@@ -1199,7 +1241,7 @@ function createClub(){
   data.clubs.push({id,name:name.trim(),meetings:[]});
   data.activeClubId=id;
   saveBCData(data);
-  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();
+  renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();
 }
 function renameClub(){
   const data=getBCData();
@@ -1218,7 +1260,7 @@ function deleteClub(){
   data.clubs=data.clubs.filter(c=>c.id!==data.activeClubId);
   data.activeClubId=data.clubs[0].id;
   saveBCData(data);
-  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();
+  renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();
 }
 function renderBCClubSwitcher(){
   const data=getBCData();
@@ -1403,7 +1445,7 @@ function renderPanel(p){
   if(p==='authors')renderAuthors();
   if(p==='reports')renderReports();
   if(p==='recs')renderRecsPanel();
-  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
+  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
   if(p==='settings')renderSettings();
   if(p==='add')checkDuplicates();
 }
@@ -1414,6 +1456,15 @@ function nav(p){
   document.getElementById('sb-sub-library').classList.toggle('open',p==='library'||p==='series'||p==='authors');
   document.getElementById('panel-'+p).classList.add('active');
   renderPanel(p);
+  closeMobileMenu();
+}
+function toggleMobileMenu(){
+  const open=document.getElementById('sb-drawer').classList.toggle('mobile-open');
+  document.getElementById('sb-backdrop').classList.toggle('open',open);
+}
+function closeMobileMenu(){
+  document.getElementById('sb-drawer').classList.remove('mobile-open');
+  document.getElementById('sb-backdrop').classList.remove('open');
 }
 function navToSeries(name){nav('series');const el=document.getElementById('series-search');if(el){el.value=name;renderSeries();}}
 function navToAuthor(name){nav('authors');openAuthorDetail(name);}
@@ -2536,6 +2587,7 @@ function renderBCMeetings(){
         <div class="bc-meeting-title">${esc(m.name)}</div>
         <div style="display:flex;align-items:center;gap:6px">
           <div class="bc-meeting-date">${esc(fmtDateDMY(m.date))}</div>
+          <button class="btn btn-outline btn-sm" onclick="editBCMeeting('${m.id}')" title="Edit meeting"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
           <button class="btn btn-danger btn-sm" onclick="deleteBCMeeting('${m.id}')">×</button>
         </div>
       </div>
@@ -2665,6 +2717,38 @@ function saveUpcomingEntry(){
   saveUpcoming(list);closeUpModal();renderUpcoming();
 }
 function deleteUpcoming(id){if(!confirm('Remove this release?'))return;saveUpcoming(getUpcoming().filter(u=>u.id!==id));renderUpcoming();}
+function openBacklogForm(){['backlog-title','backlog-author','backlog-suggested-by','backlog-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('backlog-modal').classList.add('open');}
+function closeBacklogModal(){document.getElementById('backlog-modal').classList.remove('open');}
+function saveBacklogEntry(){
+  const title=document.getElementById('backlog-title').value.trim();
+  if(!title){alert('Book title required.');return;}
+  const list=getBacklog();
+  list.push({id:genId(),title,author:document.getElementById('backlog-author').value.trim(),suggestedBy:document.getElementById('backlog-suggested-by').value.trim(),notes:document.getElementById('backlog-notes').value.trim(),dateAdded:new Date().toISOString().slice(0,10)});
+  saveBacklog(list);closeBacklogModal();renderBacklog();
+}
+function deleteBacklogEntry(id){if(!confirm('Remove this suggestion?'))return;saveBacklog(getBacklog().filter(b=>b.id!==id));renderBacklog();}
+function useBacklogForNextMeeting(title,author){
+  openBCForm();
+  const highest=getBCMeetings().reduce((max,m)=>{const n=parseInt((m.name||'').match(/Book (\d+)/)?.[1]);return n>max?n:max;},0);
+  document.getElementById('bc-name').value=highest?`Book ${highest+1}`:'';
+  document.getElementById('bc-book-title').value=title;
+  document.getElementById('bc-book-author').value=author;
+}
+function renderBacklog(){
+  const grid=document.getElementById('backlog-grid');
+  if(!grid)return;
+  const list=getBacklog().slice().sort((a,b)=>(b.dateAdded||'').localeCompare(a.dateAdded||''));
+  if(!list.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No suggestions logged yet. Add books here as they come up in the draw but don't get picked.</p></div>`;return;}
+  grid.innerHTML=list.map(b=>`<div class="bc-meeting">
+    <div class="bc-meeting-header">
+      <div class="bc-meeting-title">${esc(b.title)}</div>
+      <button class="btn btn-danger btn-sm" onclick="deleteBacklogEntry('${b.id}')">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${b.author?'by '+esc(b.author):''}${b.suggestedBy?` · suggested by ${esc(b.suggestedBy)}`:''}</div>
+    ${b.notes?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">${esc(b.notes)}</div>`:''}
+    <button class="btn btn-series btn-sm" onclick="useBacklogForNextMeeting('${esc(b.title).replace(/'/g,"\\'")}','${esc(b.author||'').replace(/'/g,"\\'")}')">Use for next meeting</button>
+  </div>`).join('');
+}
 async function checkForSequels(){
   const st=document.getElementById('upcoming-status');
   const series=[...bcSeriesList()].filter(Boolean);
@@ -2723,9 +2807,50 @@ async function backfillBCSeries(){
   }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 
-function openBCForm(){currentBCEdit=null;['bc-name','bc-date','bc-book-title','bc-book-author','bc-series','bc-series-num','bc-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('bc-modal').classList.add('open');}
-function closeBCModal(){document.getElementById('bc-modal').classList.remove('open');}
-function saveBCMeeting(){const name=document.getElementById('bc-name').value.trim();const bookTitle=document.getElementById('bc-book-title').value.trim();const bookAuthor=document.getElementById('bc-book-author').value.trim();if(!name||!bookTitle){alert('Name and book title required.');return;}const meetings=getBCMeetings();meetings.push({id:genId(),name,date:document.getElementById('bc-date').value,bookTitle,bookAuthor,series:document.getElementById('bc-series').value.trim(),seriesNumber:document.getElementById('bc-series-num').value.trim(),notes:document.getElementById('bc-notes').value.trim()});saveBCMeetings(meetings);closeBCModal();renderBCMeetings();renderUpcoming();renderSeriesRead();}
+function openBCForm(){
+  currentBCEdit=null;
+  document.getElementById('bc-modal-h').textContent='Add Book Club Meeting';
+  ['bc-name','bc-date','bc-book-title','bc-book-author','bc-series','bc-series-num','bc-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('bc-modal').classList.add('open');
+}
+function editBCMeeting(id){
+  const m=getBCMeetings().find(x=>x.id===id);
+  if(!m)return;
+  currentBCEdit=id;
+  document.getElementById('bc-modal-h').textContent='Edit Book Club Meeting';
+  document.getElementById('bc-name').value=m.name||'';
+  document.getElementById('bc-date').value=m.date||'';
+  document.getElementById('bc-book-title').value=m.bookTitle||'';
+  document.getElementById('bc-book-author').value=m.bookAuthor||'';
+  document.getElementById('bc-series').value=m.series||'';
+  document.getElementById('bc-series-num').value=m.seriesNumber||'';
+  document.getElementById('bc-notes').value=m.notes||'';
+  document.getElementById('bc-modal').classList.add('open');
+}
+function closeBCModal(){document.getElementById('bc-modal').classList.remove('open');currentBCEdit=null;}
+function saveBCMeeting(){
+  const name=document.getElementById('bc-name').value.trim();
+  const bookTitle=document.getElementById('bc-book-title').value.trim();
+  const bookAuthor=document.getElementById('bc-book-author').value.trim();
+  if(!name||!bookTitle){alert('Name and book title required.');return;}
+  const meetings=getBCMeetings();
+  const series=document.getElementById('bc-series').value.trim();
+  const seriesNumber=document.getElementById('bc-series-num').value.trim();
+  const notes=document.getElementById('bc-notes').value.trim();
+  const date=document.getElementById('bc-date').value;
+  if(currentBCEdit){
+    const m=meetings.find(x=>x.id===currentBCEdit);
+    if(m){
+      if(m.bookTitle!==bookTitle||m.bookAuthor!==bookAuthor)delete m.bookId;
+      m.name=name;m.date=date;m.bookTitle=bookTitle;m.bookAuthor=bookAuthor;m.series=series;m.seriesNumber=seriesNumber;m.notes=notes;
+    }
+  }else{
+    meetings.push({id:genId(),name,date,bookTitle,bookAuthor,series,seriesNumber,notes});
+  }
+  saveBCMeetings(meetings);
+  closeBCModal();
+  renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();
+}
 function deleteBCMeeting(id){if(!confirm('Delete this meeting?'))return;const meetings=getBCMeetings().filter(m=>m.id!==id);saveBCMeetings(meetings);renderBCMeetings();renderSeriesRead();}
 function addBCBookToLibrary(meetingId){
   const meetings=getBCMeetings();
@@ -2814,6 +2939,25 @@ async function backfillGenres(){
   catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 
+async function backfillLibrarySeries(){
+  const st=document.getElementById('backfill-status');
+  const toFill=books.filter(b=>!b.series&&b.title&&b.author);
+  if(!toFill.length){st.textContent='Every book already has series info (or is marked standalone)!';return;}
+  st.innerHTML=`<div class="loading"><div class="spinner"></div> Looking up series info for ${Math.min(toFill.length,20)} of ${toFill.length} books…</div>`;
+  const batch=toFill.slice(0,20);
+  try{
+    const prompt=`For each book, tell me the series name and book number it belongs to, if any (if it's a standalone, use empty strings for both). Return ONLY valid JSON, no other text: [{"title":"...","series":"...","seriesNumber":"1"},...]. Books: ${batch.map(b=>`"${b.title}" by ${b.author}`).join('; ')}`;
+    const raw=await askClaude(prompt);
+    const text=aiStr(raw);
+    const jsonMatch=text.match(/\[[\s\S]*\]/);
+    if(!jsonMatch)throw new Error('AI did not return valid JSON. Raw response: '+(text?text.slice(0,200):'(empty)'));
+    const results=JSON.parse(jsonMatch[0]);
+    let updated=0;
+    results.forEach(r=>{const b=batch.find(bk=>normTitle(bk.title)===normTitle(r.title));if(b&&r.series){b.series=r.series;b.seriesNumber=r.seriesNumber||'';updated++;}});
+    save();renderLib();
+    st.textContent=`Series info added for ${updated} books — double-check accuracy, AI estimates can be wrong.${toFill.length>20?` (${toFill.length-20} more — run again for the rest)`:''}`;
+  }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
+}
 async function backfillPages(){
   const st=document.getElementById('backfill-status');
   const toFill=books.filter(b=>!b.pages&&b.title&&b.author);
@@ -2999,6 +3143,7 @@ function closeModal(){document.getElementById('modal').classList.remove('open');
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bc-modal'))closeBCModal();});
 document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===document.getElementById('up-modal'))closeUpModal();});
+document.getElementById('backlog-modal').addEventListener('click',e=>{if(e.target===document.getElementById('backlog-modal'))closeBacklogModal();});
 function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateRead=document.getElementById('m-date-read').value||'';b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.rating=parseInt(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
