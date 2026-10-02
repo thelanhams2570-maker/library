@@ -2919,6 +2919,17 @@ async function backfillCovers(){
   save();renderLib();st.textContent=`Found cover art for ${found} of ${toFill.length} books.`;
 }
 
+// AI often echoes back a shortened title (drops subtitles/series blurbs), so pure
+// title-string matching silently drops books. Match by position first since the
+// AI preserves list order; fall back to fuzzy title matching only if counts differ.
+function matchAiBatch(batch,results){
+  if(results.length===batch.length)return batch.map((b,i)=>[b,results[i]]);
+  return results.map(r=>{
+    const nr=normTitle(r.title||'');
+    const b=batch.find(bk=>{const nt=normTitle(bk.title);return nt===nr||nt.startsWith(nr)||nr.startsWith(nt);});
+    return[b,r];
+  }).filter(([b])=>b);
+}
 async function backfillGenres(){
   const st=document.getElementById('backfill-status');
   const toFill=books.filter(b=>(!b.genre||!b.genre.length)&&b.title&&b.author);
@@ -2926,14 +2937,14 @@ async function backfillGenres(){
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Fetching genres for ${toFill.length} books (may take a moment)…</div>`;
   const batch=toFill.slice(0,20);// limit to 20 at once
   try{
-    const prompt=`For each book, return 2-3 genre tags. Return ONLY valid JSON: [{"title":"...","genres":["Fantasy","Dark Fantasy"]},...]. Books: ${batch.map(b=>`"${b.title}" by ${b.author}`).join('; ')}`;
+    const prompt=`For each book, return 2-3 genre tags. Respond with the SAME NUMBER of entries, in the SAME ORDER as the books are listed below. Return ONLY valid JSON: [{"title":"...","genres":["Fantasy","Dark Fantasy"]},...]. Books: ${batch.map(b=>`"${b.title}" by ${b.author}`).join('; ')}`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
     if(!jsonMatch)throw new Error('No data returned');
     const results=JSON.parse(jsonMatch[0]);
     let updated=0;
-    results.forEach(r=>{const b=batch.find(bk=>normTitle(bk.title)===normTitle(r.title));if(b&&r.genres&&r.genres.length){b.genre=r.genres;updated++;}});
+    matchAiBatch(batch,results).forEach(([b,r])=>{if(b&&r.genres&&r.genres.length){b.genre=r.genres;updated++;}});
     save();renderLib();
     st.textContent=`Genres added for ${updated} books.${toFill.length>20?` (${toFill.length-20} more — run again for the rest)`:''}`;}
   catch(e){st.textContent=`Error: ${esc(String(e))}`;}
@@ -2946,14 +2957,14 @@ async function backfillLibrarySeries(){
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Looking up series info for ${Math.min(toFill.length,20)} of ${toFill.length} books…</div>`;
   const batch=toFill.slice(0,20);
   try{
-    const prompt=`For each book, tell me the series name and book number it belongs to, if any (if it's a standalone, use empty strings for both). Return ONLY valid JSON, no other text: [{"title":"...","series":"...","seriesNumber":"1"},...]. Books: ${batch.map(b=>`"${b.title}" by ${b.author}`).join('; ')}`;
+    const prompt=`For each book, tell me the series name and book number it belongs to, if any (if it's a standalone, use empty strings for both). Respond with the SAME NUMBER of entries, in the SAME ORDER as the books are listed below. Return ONLY valid JSON, no other text: [{"title":"...","series":"...","seriesNumber":"1"},...]. Books: ${batch.map(b=>`"${b.title}" by ${b.author}`).join('; ')}`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
     if(!jsonMatch)throw new Error('AI did not return valid JSON. Raw response: '+(text?text.slice(0,200):'(empty)'));
     const results=JSON.parse(jsonMatch[0]);
     let updated=0;
-    results.forEach(r=>{const b=batch.find(bk=>normTitle(bk.title)===normTitle(r.title));if(b&&r.series){b.series=r.series;b.seriesNumber=r.seriesNumber||'';updated++;}});
+    matchAiBatch(batch,results).forEach(([b,r])=>{if(b&&r.series){b.series=r.series;b.seriesNumber=r.seriesNumber||'';updated++;}});
     save();renderLib();
     st.textContent=`Series info added for ${updated} books — double-check accuracy, AI estimates can be wrong.${toFill.length>20?` (${toFill.length-20} more — run again for the rest)`:''}`;
   }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
