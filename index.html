@@ -1273,6 +1273,10 @@ function renderBCClubSwitcher(){
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const KEY_MAP={books:SK,goal:GK,series_cache:SCK,bookclub:BCK,upcoming:UPK};
 let pushTimers={};
+// Owner's own account -- BC_SEED/UP_SEED are the owner's real personal book club
+// history/upcoming list, not generic sample data, so they must never auto-seed
+// into a new beta tester's empty account.
+const OWNER_USER_ID='06881ab7-6391-4748-bcb8-fa1a8377b980';
 
 async function requireAuth(){
   const{data:{session}}=await sb.auth.getSession();
@@ -3197,9 +3201,6 @@ function processAudible(file){const reader=new FileReader();reader.onload=e=>{tr
 
 function processKindle(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());const iASIN=hdr.indexOf('asin'),iT=hdr.indexOf('title'),iA=hdr.indexOf('authors'),iI13=hdr.indexOf('isbn-13'),iI10=hdr.indexOf('isbn-10');if(iT<0)throw new Error('Could not find title column.');let added=0,updated=0;for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);const title=(row[iT]||'').replace(/^"|"$/g,'').trim();const author=(iA>=0?row[iA]||'':'').replace(/^"|"$/g,'').trim()||'Unknown';if(!title)continue;const asin=(iASIN>=0?row[iASIN]||'':'').replace(/^"|"$/g,'').trim();const isbn=((iI13>=0?row[iI13]:'')+(iI10>=0?row[iI10]:'')).replace(/[="']/g,'').trim();const r=upsertBook(title,author,'owned','Ebook',{isbn:asin||isbn});if(r==='added')added++;else if(r==='updated')updated++;}save();renderLib();document.getElementById('kn-result').innerHTML=`<div class="iresult ok">${added} Kindle books added as Ebook, ${updated} updated. Read status comes from GoodReads import.</div>`;}catch(err){document.getElementById('kn-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
-// Dedup
-function findDuplicates(){const groups=[],used=new Set();for(let i=0;i<books.length;i++){if(used.has(books[i].id))continue;const group=[books[i]];used.add(books[i].id);for(let j=i+1;j<books.length;j++){if(used.has(books[j].id))continue;if(books[i].author.trim().toLowerCase()===books[j].author.trim().toLowerCase()&&titlesMatch(books[i].title,books[j].title)){group.push(books[j]);used.add(books[j].id);}}if(group.length>1)groups.push(group);}return groups;}
-
 function exportJSON(){const blob=new Blob([JSON.stringify(books,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='my-books-backup.json';a.click();URL.revokeObjectURL(u);}
 function exportCSV(){
   const cols=['title','author','status','formats','borrowedFormats','series','seriesNumber','dateRead','dateAdded','rating','grRating','isbn','pages','genre','lendable','lentTo','notes'];
@@ -3255,8 +3256,10 @@ function seedBookClub(){
   document.getElementById('account-email')&&(document.getElementById('account-email').textContent='Signed in as '+session.user.email);
   await cloudPullAll();
   load();
-  seedBookClub();
-  seedUpcoming();
+  if(session.user.id===OWNER_USER_ID){
+    seedBookClub();
+    seedUpcoming();
+  }
   updateGoalWidget();
   updateGenreFilters();
   renderDashboard();
