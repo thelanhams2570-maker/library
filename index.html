@@ -290,6 +290,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .btn-warn{background:var(--bg-alt);border:1px solid var(--border);color:var(--text)}.btn-warn:hover{background:var(--surface2);border-color:var(--accent2)}
 .btn-series{background:var(--accent-bg);border:1px solid var(--accent2);color:var(--accent);font-size:11px;padding:4px 10px}
 .btn-sm{padding:var(--sp-1) var(--sp-2);font-size:11px}
+.avatar{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:600;flex-shrink:0}
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:14px}
 .modal-ov.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
@@ -322,13 +323,23 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <body>
 <div class="modal-ov" id="auth-gate" style="z-index:500">
   <div class="modal" style="max-width:340px">
-    <h2>Sign in</h2>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Sign in with the account you created in Supabase.</p>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button type="button" class="btn btn-outline btn-sm" id="auth-tab-signin" onclick="showAuthTab('signin')" style="flex:1">Sign in</button>
+      <button type="button" class="btn btn-outline btn-sm" id="auth-tab-signup" onclick="showAuthTab('signup')" style="flex:1">Create account</button>
+    </div>
     <form id="auth-form">
       <div class="fg"><label>Email</label><input type="email" id="auth-email" required autocomplete="username"></div>
       <div class="fg"><label>Password</label><input type="password" id="auth-password" required autocomplete="current-password"></div>
       <div id="auth-error" style="color:var(--danger);font-size:12px;margin-bottom:8px"></div>
       <button type="submit" class="btn btn-primary" style="width:100%">Sign in</button>
+    </form>
+    <form id="signup-form" style="display:none">
+      <div class="fg"><label>First name</label><input type="text" id="signup-first-name" required autocomplete="given-name"></div>
+      <div class="fg"><label>Last name</label><input type="text" id="signup-last-name" required autocomplete="family-name"></div>
+      <div class="fg"><label>Email</label><input type="email" id="signup-email" required autocomplete="username"></div>
+      <div class="fg"><label>Password</label><input type="password" id="signup-password" required autocomplete="new-password" placeholder="At least 6 characters"></div>
+      <div id="signup-error" style="color:var(--danger);font-size:12px;margin-bottom:8px"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Create account</button>
     </form>
   </div>
 </div>
@@ -621,15 +632,27 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Book Club</div>
       <div style="font-size:12px;color:var(--text2)">Track books read with your book club</div>
     </div>
-    <button class="btn btn-primary" style="margin-left:auto" onclick="openBCForm()">+ Add Meeting</button>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+
+  <div id="shared-club-join-row" style="margin-bottom:12px"></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <select class="fsel" id="shared-club-sel" onchange="switchSharedClub(this.value)" style="min-width:160px"></select>
+    <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openSharedBCForm()">+ Add Shared Meeting</button>
+  </div>
+  <div id="shared-club-roster" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
+  <div id="shared-bc-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
+  <div id="shared-bc-grid" class="bc-grid"></div>
+
+  <div id="local-club-section" style="display:none">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0">
     <select class="fsel" id="bc-club-sel" onchange="switchClub(this.value)" style="min-width:160px"></select>
     <button class="btn btn-outline btn-sm" onclick="createClub()">+ New club</button>
     <button class="btn btn-outline btn-sm" onclick="renameClub()">Rename</button>
     <button class="btn btn-outline btn-sm" onclick="deleteClub()">Delete club</button>
+    <button class="btn btn-primary btn-sm" onclick="openBCForm()">+ Add Meeting</button>
   </div>
   <div id="bc-meetings-grid" class="bc-grid"></div>
+  </div>
 
   <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
     <div>
@@ -910,8 +933,14 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
   <div class="settings-card">
     <h2>Account</h2>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:12px" id="account-email">Signed in.</p>
-    <div class="fg"><label>New email</label><input type="email" id="acc-new-email" placeholder="you@example.com"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div id="acc-avatar-preview"></div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6" id="account-email">Signed in.</p>
+    </div>
+    <div class="fg"><label>First name</label><input type="text" id="acc-first-name"></div>
+    <div class="fg"><label>Last name</label><input type="text" id="acc-last-name"></div>
+    <button class="btn btn-outline btn-sm" onclick="updateProfileName()">Save name</button>
+    <div class="fg" style="margin-top:14px"><label>New email</label><input type="email" id="acc-new-email" placeholder="you@example.com"></div>
     <button class="btn btn-outline btn-sm" onclick="updateAccountEmail()">Update email</button>
     <div class="fg" style="margin-top:14px"><label>New password</label><input type="password" id="acc-new-password" placeholder="At least 6 characters" autocomplete="new-password"></div>
     <button class="btn btn-outline btn-sm" onclick="updateAccountPassword()">Update password</button>
@@ -1073,6 +1102,26 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeBCModal()">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="saveBCMeeting()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="shared-bc-modal">
+  <div class="modal">
+    <h2>Add Shared Club Meeting</h2>
+    <div class="fg"><label>Meeting Name / Month</label><input type="text" id="shared-bc-name" placeholder="e.g. June 2026"></div>
+    <div class="fg"><label>Date</label><input type="date" id="shared-bc-date"></div>
+    <div class="fg"><label>Book Title</label><input type="text" id="shared-bc-book-title" placeholder="Book discussed"></div>
+    <div class="fg"><label>Author</label><input type="text" id="shared-bc-book-author" placeholder="Author"></div>
+    <div class="frow">
+      <div class="fg"><label>Series</label><input type="text" id="shared-bc-series" placeholder="e.g. Crowns of Nyaxia"></div>
+      <div class="fg"><label>Book #</label><input type="text" id="shared-bc-series-num" placeholder="1"></div>
+    </div>
+    <div class="fg"><label>Discussion notes</label><textarea id="shared-bc-notes" rows="2" placeholder="Shared notes everyone in the club sees…"></textarea></div>
+    <div id="shared-bc-modal-error" style="color:var(--danger);font-size:12px;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeSharedBCModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSharedBCMeeting()">Save</button>
     </div>
   </div>
 </div>
@@ -1278,12 +1327,21 @@ let pushTimers={};
 // into a new beta tester's empty account.
 const OWNER_USER_ID='06881ab7-6391-4748-bcb8-fa1a8377b980';
 
+function showAuthTab(tab){
+  const signin=tab==='signin';
+  document.getElementById('auth-form').style.display=signin?'':'none';
+  document.getElementById('signup-form').style.display=signin?'none':'';
+  document.getElementById('auth-tab-signin').className='btn btn-sm '+(signin?'btn-primary':'btn-outline');
+  document.getElementById('auth-tab-signup').className='btn btn-sm '+(signin?'btn-outline':'btn-primary');
+}
+
 async function requireAuth(){
   const{data:{session}}=await sb.auth.getSession();
   if(session)return session;
   return new Promise(resolve=>{
     const gate=document.getElementById('auth-gate');
     gate.classList.add('open');
+    showAuthTab('signin');
     document.getElementById('auth-form').addEventListener('submit',async function handler(e){
       e.preventDefault();
       const email=document.getElementById('auth-email').value.trim();
@@ -1297,10 +1355,58 @@ async function requireAuth(){
       gate.classList.remove('open');
       resolve(data.session);
     });
+    document.getElementById('signup-form').addEventListener('submit',async function handler(e){
+      e.preventDefault();
+      const first=document.getElementById('signup-first-name').value.trim();
+      const last=document.getElementById('signup-last-name').value.trim();
+      const email=document.getElementById('signup-email').value.trim();
+      const password=document.getElementById('signup-password').value;
+      const btn=e.target.querySelector('button[type=submit]');
+      const errEl=document.getElementById('signup-error');
+      errEl.textContent='';btn.disabled=true;btn.textContent='Creating…';
+      const{data,error}=await sb.auth.signUp({email,password});
+      btn.disabled=false;btn.textContent='Create account';
+      if(error){errEl.textContent=error.message;return;}
+      if(!data.session){errEl.textContent='Account created — check your email to confirm, then sign in.';return;}
+      await sb.from('profiles').update({first_name:first,last_name:last}).eq('id',data.user.id);
+      gate.classList.remove('open');
+      resolve(data.session);
+    });
   });
 }
 
 function signOut(){sb.auth.signOut().then(()=>location.reload());}
+
+// ═══════════ PROFILE / AVATAR ═══════════
+let myProfile=null;
+function initials(first,last){return((first||'')[0]||'').toUpperCase()+((last||'')[0]||'').toUpperCase()||'?';}
+function avatarColor(name){let h=0;for(const c of String(name||''))h=(h*31+c.charCodeAt(0))>>>0;return`hsl(${h%360} 55% 45%)`;}
+function renderAvatarHTML(first,last,size=32){
+  const name=`${first||''} ${last||''}`.trim();
+  return`<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.4)}px;background:${avatarColor(name)}">${esc(initials(first,last))}</div>`;
+}
+async function loadProfile(session){
+  const{data}=await sb.from('profiles').select('first_name,last_name,avatar_url').eq('id',session.user.id).single();
+  myProfile=data||{};
+  const fEl=document.getElementById('acc-first-name'),lEl=document.getElementById('acc-last-name'),pEl=document.getElementById('acc-avatar-preview');
+  if(fEl)fEl.value=myProfile.first_name||'';
+  if(lEl)lEl.value=myProfile.last_name||'';
+  if(pEl)pEl.innerHTML=renderAvatarHTML(myProfile.first_name,myProfile.last_name);
+}
+async function updateProfileName(){
+  const first=document.getElementById('acc-first-name').value.trim();
+  const last=document.getElementById('acc-last-name').value.trim();
+  const st=document.getElementById('account-status');
+  st.textContent='Saving…';
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const{error}=await sb.from('profiles').update({first_name:first,last_name:last}).eq('id',session.user.id);
+    if(error)throw error;
+    myProfile={...myProfile,first_name:first,last_name:last};
+    document.getElementById('acc-avatar-preview').innerHTML=renderAvatarHTML(first,last);
+    st.textContent='Name updated.';
+  }catch(e){st.textContent='Failed: '+(e.message||String(e));}
+}
 
 async function updateAccountEmail(){
   const email=document.getElementById('acc-new-email').value.trim();
@@ -1449,7 +1555,7 @@ function renderPanel(p){
   if(p==='authors')renderAuthors();
   if(p==='reports')renderReports();
   if(p==='recs')renderRecsPanel();
-  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
+  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();loadSharedClubs();}
   if(p==='settings')renderSettings();
   if(p==='add')checkDuplicates();
 }
@@ -2610,6 +2716,146 @@ function renderBCMeetings(){
   if(linkedChanged)saveBCMeetings(meetings);
 }
 
+// ═══════════ SHARED BOOK CLUB (cross-account, Supabase tables) ═══════════
+let sharedClubId=null;
+
+async function loadSharedClubs(){
+  const{data:{session}}=await sb.auth.getSession();
+  const[{data:myMemberships},{data:allClubs}]=await Promise.all([
+    sb.from('club_members').select('club_id,book_clubs(id,name)').eq('user_id',session.user.id),
+    sb.from('book_clubs').select('id,name').order('name')
+  ]);
+  const joinedIds=new Set((myMemberships||[]).map(m=>m.club_id));
+  const joined=(myMemberships||[]).map(m=>m.book_clubs).filter(Boolean);
+  const unjoined=(allClubs||[]).filter(c=>!joinedIds.has(c.id));
+
+  const joinRow=document.getElementById('shared-club-join-row');
+  joinRow.innerHTML=unjoined.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-radius:var(--r);margin-bottom:6px"><span style="flex:1;font-size:13px">${esc(c.name)}</span><button class="btn btn-series btn-sm" onclick="joinSharedClub('${c.id}')">Join</button></div>`).join('');
+
+  const sel=document.getElementById('shared-club-sel');
+  if(!joined.length){
+    sel.innerHTML='<option value="">No shared clubs joined yet</option>';
+    document.getElementById('shared-club-roster').innerHTML='';
+    document.getElementById('shared-bc-grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>Join a shared club above to see its meetings.</p></div>`;
+    sharedClubId=null;
+    return;
+  }
+  sel.innerHTML=joined.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  if(!sharedClubId||!joined.some(c=>c.id===sharedClubId))sharedClubId=joined[0].id;
+  sel.value=sharedClubId;
+  await renderSharedClub();
+}
+
+async function joinSharedClub(clubId){
+  const{data:{session}}=await sb.auth.getSession();
+  const{error}=await sb.from('club_members').insert({club_id:clubId,user_id:session.user.id});
+  if(error){alert('Failed to join: '+error.message);return;}
+  sharedClubId=clubId;
+  await loadSharedClubs();
+}
+
+function switchSharedClub(clubId){sharedClubId=clubId;renderSharedClub();}
+
+async function renderSharedClub(){
+  if(!sharedClubId)return;
+  const grid=document.getElementById('shared-bc-grid');
+  const status=document.getElementById('shared-bc-status');
+  status.textContent='Loading…';
+  const{data:{session}}=await sb.auth.getSession();
+  const myId=session.user.id;
+
+  const[{data:members,error:mErr},{data:clubBooks,error:bErr}]=await Promise.all([
+    sb.from('club_members').select('user_id,role,profiles(first_name,last_name)').eq('club_id',sharedClubId),
+    sb.from('club_books').select('id,meeting_name,meeting_date,book_title,book_author,series,series_number,discussion_notes,club_book_engagement(user_id,status,rating,notes,date_read,profiles(first_name,last_name))').eq('club_id',sharedClubId).order('meeting_date',{ascending:false})
+  ]);
+  if(mErr||bErr){status.textContent='Failed to load: '+((mErr||bErr).message);return;}
+  status.textContent='';
+
+  document.getElementById('shared-club-roster').innerHTML=(members||[]).map(m=>{
+    const p=m.profiles||{};
+    const label=(p.first_name||p.last_name)?`${p.first_name||''} ${p.last_name||''}`.trim():'(no name set)';
+    return`<div style="display:flex;align-items:center;gap:6px" title="${esc(label)}">${renderAvatarHTML(p.first_name,p.last_name,26)}<span style="font-size:12px;color:var(--text2)">${esc(p.first_name||label)}</span></div>`;
+  }).join('');
+
+  if(!clubBooks||!clubBooks.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>No shared meetings yet.<br>Add the first one to get started!</p></div>`;
+    return;
+  }
+
+  grid.innerHTML=clubBooks.map(cb=>{
+    const engagement=cb.club_book_engagement||[];
+    const mine=engagement.find(e=>e.user_id===myId)||{status:'tbr',rating:null};
+    const readers=engagement.filter(e=>e.status==='read');
+    const rated=readers.filter(e=>e.rating>0);
+    const avg=rated.length?(rated.reduce((s,e)=>s+e.rating,0)/rated.length).toFixed(1):null;
+    const readerAvatars=readers.map(e=>renderAvatarHTML((e.profiles||{}).first_name,(e.profiles||{}).last_name,22)).join('');
+    const stars=[1,2,3,4,5].map(v=>`<button class="starb${(mine.rating||0)>=v?' on':''}" onclick="setMyEngagement('${cb.id}',{rating:${v}})">★</button>`).join('');
+    return`<div class="bc-meeting">
+      <div class="bc-meeting-header">
+        <div class="bc-meeting-title">${esc(cb.meeting_name)}</div>
+        <div class="bc-meeting-date">${esc(fmtDateDMY(cb.meeting_date))}</div>
+      </div>
+      <div class="bc-book-row">
+        <span style="flex:1">
+          <div style="font-weight:500;font-size:13px">${esc(cb.book_title)}</div>
+          <div style="font-size:11px;color:var(--text2)">by ${esc(cb.book_author)}${cb.series?` · <span style="color:var(--series)">${esc(cb.series)}${cb.series_number?' #'+esc(cb.series_number):''}</span>`:''}</div>
+        </span>
+      </div>
+      ${cb.discussion_notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);line-height:1.5">${esc(cb.discussion_notes)}</div>`:''}
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+          <span style="font-size:11px;color:var(--text3)">Read by</span>
+          ${readerAvatars||'<span style="font-size:11px;color:var(--text3)">nobody yet</span>'}
+          ${avg?`<span style="font-size:11px;color:var(--text2);margin-left:auto">★ ${avg} avg (${rated.length})</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <select class="fsel" style="font-size:11px;padding:3px 6px" onchange="setMyEngagement('${cb.id}',{status:this.value})">
+            ${['tbr','reading','read','dnf'].map(s=>`<option value="${s}"${mine.status===s?' selected':''}>${esc(STATUS_LABELS[s]||s)}</option>`).join('')}
+          </select>
+          <div class="star-row">${stars}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function setMyEngagement(clubBookId,patch){
+  const{data:{session}}=await sb.auth.getSession();
+  const{error}=await sb.from('club_book_engagement').upsert({club_book_id:clubBookId,user_id:session.user.id,...patch},{onConflict:'club_book_id,user_id'});
+  if(error){alert('Failed to save: '+error.message);return;}
+  renderSharedClub();
+}
+
+function openSharedBCForm(){
+  if(!sharedClubId){alert('Join or create a shared club first.');return;}
+  ['shared-bc-name','shared-bc-date','shared-bc-book-title','shared-bc-book-author','shared-bc-series','shared-bc-series-num','shared-bc-notes'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('shared-bc-modal-error').textContent='';
+  document.getElementById('shared-bc-modal').classList.add('open');
+}
+function closeSharedBCModal(){document.getElementById('shared-bc-modal').classList.remove('open');}
+async function saveSharedBCMeeting(){
+  const name=document.getElementById('shared-bc-name').value.trim();
+  const bookTitle=document.getElementById('shared-bc-book-title').value.trim();
+  const bookAuthor=document.getElementById('shared-bc-book-author').value.trim();
+  const errEl=document.getElementById('shared-bc-modal-error');
+  if(!name||!bookTitle){errEl.textContent='Name and book title required.';return;}
+  const{data:{session}}=await sb.auth.getSession();
+  const{error}=await sb.from('club_books').insert({
+    club_id:sharedClubId,
+    meeting_name:name,
+    meeting_date:document.getElementById('shared-bc-date').value||null,
+    book_title:bookTitle,
+    book_author:bookAuthor,
+    series:document.getElementById('shared-bc-series').value.trim(),
+    series_number:document.getElementById('shared-bc-series-num').value.trim(),
+    discussion_notes:document.getElementById('shared-bc-notes').value.trim(),
+    created_by:session.user.id
+  });
+  if(error){errEl.textContent='Failed: '+error.message;return;}
+  closeSharedBCModal();
+  renderSharedClub();
+}
+
 function getUpcoming(){try{return JSON.parse(localStorage.getItem(UPK)||'[]');}catch(e){return[];}}
 function saveUpcoming(list){localStorage.setItem(UPK,JSON.stringify(list));cloudPush('upcoming',list);}
 const UP_SEED=[
@@ -3159,6 +3405,7 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target===docu
 document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bc-modal'))closeBCModal();});
 document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===document.getElementById('up-modal'))closeUpModal();});
 document.getElementById('backlog-modal').addEventListener('click',e=>{if(e.target===document.getElementById('backlog-modal'))closeBacklogModal();});
+document.getElementById('shared-bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('shared-bc-modal'))closeSharedBCModal();});
 function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateRead=document.getElementById('m-date-read').value||'';b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.rating=parseInt(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
@@ -3254,6 +3501,7 @@ function seedBookClub(){
   updateThemeToggleIcon();
   const session=await requireAuth();
   document.getElementById('account-email')&&(document.getElementById('account-email').textContent='Signed in as '+session.user.email);
+  loadProfile(session);
   await cloudPullAll();
   load();
   if(session.user.id===OWNER_USER_ID){
