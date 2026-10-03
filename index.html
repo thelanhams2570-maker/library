@@ -255,6 +255,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .starb.on{color:var(--star)}
 .starb .star-fg{position:absolute;left:0;top:0;overflow:hidden;color:var(--star);white-space:nowrap;width:0%}
 .star-display{position:relative;display:inline-block;color:var(--rule);font-size:14px;line-height:1}
+.rfilter-num{padding:var(--sp-2) var(--sp-3);border:1px solid var(--border);border-radius:var(--r);font-size:12px;background-color:var(--surface);color:var(--text)}
 .star-display .star-fg{position:absolute;left:0;top:0;overflow:hidden;color:var(--star);white-space:nowrap;width:0%}
 .tag-input-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);min-height:36px;cursor:text;align-items:center}
 .tag{background:var(--accent-bg);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:var(--r);display:flex;align-items:center;gap:4px}
@@ -573,11 +574,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <option value="medium">Medium (250–450pg)</option>
       <option value="long">Long (450pg+)</option>
     </select>
-    <input type="number" id="rf-rating" min="0" max="5" placeholder="Min ★" style="width:70px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px" onchange="renderReports()">
+    <input type="number" class="rfilter-num" id="rf-rating" min="0" max="5" step="0.5" placeholder="Min my ★" style="width:84px" onchange="renderReports()">
+    <input type="number" class="rfilter-num" id="rf-gr-rating" min="0" max="5" step="0.1" placeholder="Min GoodReads ★" style="width:108px" onchange="renderReports()">
     <div style="display:flex;gap:5px;align-items:center">
-      <input type="number" id="rf-year-from" placeholder="Year from" style="width:88px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px" onchange="renderReports()">
+      <span style="font-size:12px;color:var(--text2)">Finished reading:</span>
+      <input type="number" class="rfilter-num" id="rf-year-from" placeholder="Year from" style="width:88px" onchange="renderReports()">
       <span style="font-size:11px;color:var(--text3)">–</span>
-      <input type="number" id="rf-year-to" placeholder="Year to" style="width:88px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px" onchange="renderReports()">
+      <input type="number" class="rfilter-num" id="rf-year-to" placeholder="Year to" style="width:88px" onchange="renderReports()">
     </div>
     <button class="btn btn-outline btn-sm" onclick="clearReportFilters()">Clear</button>
   </div>
@@ -2387,8 +2390,28 @@ async function lookupAuthorAI(){if(!currentAuthor)return;const res=document.getE
 
 // ═══════════ REPORTS ═══════════
 function setReportTab(t,btn){currentReportTab=t;document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.rpanel').forEach(p=>p.classList.remove('active'));document.getElementById('rpanel-'+t).classList.add('active');renderReports();}
-function clearReportFilters(){['rf-status','rf-format','rf-genre','rf-length'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['rf-rating','rf-year-from','rf-year-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderReports();}
-function getReportBooks(){const status=document.getElementById('rf-status')?.value||'';const fmt=document.getElementById('rf-format')?.value||'';const genre=document.getElementById('rf-genre')?.value||'';const lengthFilter=document.getElementById('rf-length')?.value||'';const minRating=parseFloat(document.getElementById('rf-rating')?.value)||0;const yearFrom=parseInt(document.getElementById('rf-year-from')?.value)||0;const yearTo=parseInt(document.getElementById('rf-year-to')?.value)||9999;return books.filter(b=>{if(status&&b.status!==status)return false;if(fmt){const allFmts=[...(b.formats||[]),...(b.borrowedFormats||[])];if(!allFmts.includes(fmt))return false;}if(genre&&!(b.genre||[]).includes(genre))return false;if(lengthFilter){const p=b.pages||0;if(!p)return false;if(lengthFilter==='short'&&p>=250)return false;if(lengthFilter==='medium'&&(p<250||p>450))return false;if(lengthFilter==='long'&&p<450)return false;}if(minRating&&(b.rating||0)<minRating)return false;const yr=parseInt((b.dateRead||b.dateAdded||'').slice(0,4))||0;if(yr&&(yr<yearFrom||yr>yearTo))return false;return true;});}
+function clearReportFilters(){['rf-status','rf-format','rf-genre','rf-length'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['rf-rating','rf-gr-rating','rf-year-from','rf-year-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderReports();}
+function getReportBooks(){
+  const status=document.getElementById('rf-status')?.value||'';
+  const fmt=document.getElementById('rf-format')?.value||'';
+  const genre=document.getElementById('rf-genre')?.value||'';
+  const lengthFilter=document.getElementById('rf-length')?.value||'';
+  const minRating=parseFloat(document.getElementById('rf-rating')?.value)||0;
+  const minGrRating=parseFloat(document.getElementById('rf-gr-rating')?.value)||0;
+  const yearFrom=parseInt(document.getElementById('rf-year-from')?.value)||0;
+  const yearTo=parseInt(document.getElementById('rf-year-to')?.value)||9999;
+  const dateFilterActive=yearFrom>0||yearTo<9999;
+  return books.filter(b=>{
+    if(status&&b.status!==status)return false;
+    if(fmt){const allFmts=[...(b.formats||[]),...(b.borrowedFormats||[])];if(!allFmts.includes(fmt))return false;}
+    if(genre&&!(b.genre||[]).includes(genre))return false;
+    if(lengthFilter){const p=b.pages||0;if(!p)return false;if(lengthFilter==='short'&&p>=250)return false;if(lengthFilter==='medium'&&(p<250||p>450))return false;if(lengthFilter==='long'&&p<450)return false;}
+    if(minRating&&(b.rating||0)<minRating)return false;
+    if(minGrRating&&(b.grRating||0)<minGrRating)return false;
+    if(dateFilterActive){const yr=parseInt((b.dateRead||'').slice(0,4))||0;if(!yr||yr<yearFrom||yr>yearTo)return false;}
+    return true;
+  });
+}
 function destroyCharts(){Object.values(chartInst).forEach(c=>{try{c.destroy();}catch(e){}});chartInst={};}
 function dashboardRecsSearch(){
   const q=document.getElementById('dash-recs-q').value.trim();
@@ -2526,12 +2549,35 @@ function renderReportSummary(){
   const years=Object.keys(byYear).sort();
   const rated=read.filter(b=>b.rating>0);const avg=rated.length?(rated.reduce((s,b)=>s+b.rating,0)/rated.length).toFixed(2):'N/A';
   const rDist=[0,0,0,0,0];rated.forEach(b=>{const r=Math.round(b.rating);if(r>=1&&r<=5)rDist[r-1]++;});
-  const curGoal=getGoal(yr);const goalHtml=curGoal?`<div class="stat-row"><span>Goal ${yr} (${curGoal})</span><span class="stat-val">${thisYear.length}/${curGoal} · ${Math.round(thisYear.length/curGoal*100)}%</span></div>`:'';
+  const owned=rb.filter(b=>(b.formats||[]).length>0).length;
+  const curGoal=getGoal(yr);
   const streaks=computeMonthStreaks(read);
+  const byMonth=Array(12).fill(0);
+  thisYear.forEach(b=>{const m=parseInt((b.dateRead||'').slice(5,7),10);if(m>=1&&m<=12)byMonth[m-1]++;});
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const startedThisYear=rb.filter(b=>(b.dateStarted||'').startsWith(String(yr)));
+  const startedByStatus={};startedThisYear.forEach(b=>{startedByStatus[b.status]=(startedByStatus[b.status]||0)+1;});
+  const statusKeys=Object.keys(startedByStatus);
+  const fmtCounts={};read.forEach(b=>{(b.formats&&b.formats.length?b.formats:['Unknown']).forEach(f=>{fmtCounts[f]=(fmtCounts[f]||0)+1;});});
+  const FMT_C={Ebook:'#7c5cbf',Audiobook:'#2d7a4f',Hardcopy:'#c07a1a',Unknown:'#aaa'};
+  const genreCounts={};read.forEach(b=>{(b.genre||[]).forEach(g=>{genreCounts[g]=(genreCounts[g]||0)+1;});});
+  const genreEntries=Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const genrePalette=['#4a6b5e','#b8956a','#7c5cbf','#2d7a4f','#c07a1a','#a08b72','#8d8577','#5c8273','#d9c3a8','#9c7a52'];
   const el=document.getElementById('rpanel-summary');
-  el.innerHTML=`<div class="reports-grid">
+  el.innerHTML=`
+  <div class="rcrd" style="grid-column:1/-1;margin-bottom:14px">
+    <h3>This Year's Reading Goal</h3>
+    <div class="chart-wrap" style="height:220px"><canvas id="ch-goal"></canvas></div>
+    <div style="font-size:13px;color:var(--text2);margin-top:10px">${curGoal?`${thisYear.length} of ${curGoal} read in ${yr} (${Math.round(thisYear.length/curGoal*100)}%)`:`${thisYear.length} read in ${yr}. <a href="#" onclick="event.preventDefault();nav('settings')" style="color:var(--accent)">Set a goal</a> to track progress.`}</div>
+  </div>
+  <div class="rcrd" style="grid-column:1/-1;margin-bottom:14px">
+    <h3>Books Read Per Year</h3>
+    <div class="chart-wrap" style="height:240px">${years.length>1?'<canvas id="ch-year"></canvas>':'<p style="font-size:12px;color:var(--text3)">Need at least two years of finished books to chart this.</p>'}</div>
+  </div>
+  <div class="reports-grid">
     <div class="rcrd"><h3>Summary</h3>
       <div class="stat-row"><span>Total books</span><span class="stat-val">${rb.length}</span></div>
+      <div class="stat-row"><span>Total owned</span><span class="stat-val">${owned}</span></div>
       <div class="stat-row"><span>Read</span><span class="stat-val">${read.length}</span></div>
       <div class="stat-row"><span>Currently reading</span><span class="stat-val">${rb.filter(b=>b.status==='reading').length}</span></div>
       <div class="stat-row"><span>TBR (owned)</span><span class="stat-val">${rb.filter(b=>['tbr','owned'].includes(b.status)&&(b.formats||[]).length>0).length}</span></div>
@@ -2539,20 +2585,25 @@ function renderReportSummary(){
       <div class="stat-row"><span>Wishlist</span><span class="stat-val">${rb.filter(b=>b.status==='wishlist').length}</span></div>
       <div class="stat-row"><span>DNF</span><span class="stat-val">${rb.filter(b=>b.status==='dnf').length}</span></div>
       <div class="stat-row"><span>Read this year</span><span class="stat-val">${thisYear.length}</span></div>
-      ${goalHtml}
       <div class="stat-row"><span>Avg rating</span><span class="stat-val">${avg}</span></div>
       <div class="stat-row"><span>Current streak</span><span class="stat-val">${streaks.current} month${streaks.current!==1?'s':''}</span></div>
       <div class="stat-row"><span>Longest streak</span><span class="stat-val">${streaks.longest} month${streaks.longest!==1?'s':''}</span></div>
     </div>
-    ${years.length>1?`<div class="rcrd"><h3>Books Read Per Year</h3><div class="chart-wrap"><canvas id="ch-year"></canvas></div></div>`:''}
-    ${rated.length?`<div class="rcrd"><h3>Rating Distribution</h3><div class="chart-wrap"><canvas id="ch-ratings"></canvas></div></div>`:''}
     <div class="rcrd"><h3>Library Breakdown</h3><div class="chart-wrap"><canvas id="ch-shelf"></canvas></div></div>
+    ${rated.length?`<div class="rcrd"><h3>Rating Distribution</h3><div class="chart-wrap"><canvas id="ch-ratings"></canvas></div></div>`:''}
+    ${statusKeys.length?`<div class="rcrd"><h3>Books Started This Year, by Status</h3><div class="chart-wrap"><canvas id="ch-started"></canvas></div></div>`:''}
+    ${Object.keys(fmtCounts).length?`<div class="rcrd"><h3>Read by Format</h3><div class="chart-wrap"><canvas id="ch-read-format"></canvas></div></div>`:''}
+    ${genreEntries.length?`<div class="rcrd"><h3>Read by Genre</h3><div class="chart-wrap"><canvas id="ch-read-genre"></canvas></div></div>`:''}
   </div>`;
   setTimeout(()=>{
     if(currentPanel()!=='reports')return;
+    const gc=document.getElementById('ch-goal');if(gc){const ex=Chart.getChart(gc);if(ex)ex.destroy();chartInst.goal=new Chart(gc,{type:'bar',data:{labels:months,datasets:[{label:'Books read',data:byMonth,backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
     if(years.length>1){const ctx=document.getElementById('ch-year');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.yr=new Chart(ctx,{type:'bar',data:{labels:years,datasets:[{label:'Books',data:years.map(y=>byYear[y]),backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
     if(rated.length){const ctx=document.getElementById('ch-ratings');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.rat=new Chart(ctx,{type:'bar',data:{labels:['★','★★','★★★','★★★★','★★★★★'],datasets:[{data:rDist,backgroundColor:['#d9c3a8','#cdb08c','#c1a077','#b8956a','#9c7a52'],borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
     const sc=document.getElementById('ch-shelf');if(sc){const ex=Chart.getChart(sc);if(ex)ex.destroy();chartInst.shelf=new Chart(sc,{type:'doughnut',data:{labels:['Read','Reading','TBR','DNF'],datasets:[{data:[read.length,rb.filter(b=>b.status==='reading').length,rb.filter(b=>['tbr','owned','want','wishlist'].includes(b.status)).length,rb.filter(b=>b.status==='dnf').length],backgroundColor:['#4a6b5e','#b8956a','#a08b72','#8d8577'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
+    const st=document.getElementById('ch-started');if(st){const ex=Chart.getChart(st);if(ex)ex.destroy();chartInst.started=new Chart(st,{type:'bar',data:{labels:statusKeys.map(s=>STATUS_LABELS[s]||s),datasets:[{data:statusKeys.map(s=>startedByStatus[s]),backgroundColor:'#b8956a',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
+    const rf=document.getElementById('ch-read-format');if(rf){const ex=Chart.getChart(rf);if(ex)ex.destroy();const entries=Object.entries(fmtCounts);chartInst.readFmt=new Chart(rf,{type:'pie',data:{labels:entries.map(([f])=>f),datasets:[{data:entries.map(([,n])=>n),backgroundColor:entries.map(([f])=>FMT_C[f]||'#aaa'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
+    const rg=document.getElementById('ch-read-genre');if(rg){const ex=Chart.getChart(rg);if(ex)ex.destroy();chartInst.readGenre=new Chart(rg,{type:'pie',data:{labels:genreEntries.map(([g])=>g),datasets:[{data:genreEntries.map(([,n])=>n),backgroundColor:genreEntries.map((_,i)=>genrePalette[i%genrePalette.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
   },50);
 }
 
