@@ -648,7 +648,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
   <div id="shared-club-roster" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
   <div id="shared-bc-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
-  <div id="shared-bc-grid" class="bc-grid"></div>
+  <div class="bc-grid" id="shared-bc-next" style="margin-bottom:18px"></div>
+  <div id="shared-bc-upcoming-h" style="font-size:13px;font-weight:600;color:var(--text2);margin:0 0 8px">Upcoming</div>
+  <div id="shared-bc-upcoming-grid" class="bc-grid" style="margin-bottom:18px"></div>
+  <div id="shared-bc-previous-h" style="font-size:13px;font-weight:600;color:var(--text2);margin:0 0 8px">Previous meetings</div>
+  <div id="shared-bc-previous-grid" class="bc-grid"></div>
 
   <div id="local-club-section" style="display:none">
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0">
@@ -722,8 +726,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <h2>Add Suggestion</h2>
     <div class="fg"><label>Book Title</label><input type="text" id="backlog-title" placeholder="Book title"></div>
     <div class="fg"><label>Author</label><input type="text" id="backlog-author" placeholder="Author"></div>
-    <div class="fg"><label>Suggested by</label><input type="text" id="backlog-suggested-by" placeholder="Who put it forward"></div>
-    <div class="fg"><label>Notes</label><textarea id="backlog-notes" rows="2" placeholder="Why it didn't get drawn, or anything worth remembering…"></textarea></div>
+    <button type="button" class="btn btn-outline btn-sm" onclick="searchOLForSuggestion()">Search Open Library to auto-fill</button>
+    <div id="backlog-ol-status" style="font-size:12px;color:var(--text2);margin-top:6px"></div>
+    <div id="backlog-ol-results" style="margin-top:6px;display:flex;flex-direction:column;gap:6px"></div>
+    <div class="fg" style="margin-top:12px"><label>Notes</label><textarea id="backlog-notes" rows="2" placeholder="Why it didn't get drawn, or anything worth remembering…"></textarea></div>
+    <div id="backlog-modal-error" style="color:var(--danger);font-size:12px;margin-bottom:8px"></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeBacklogModal()">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="saveBacklogEntry()">Save</button>
@@ -1133,7 +1140,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div class="modal">
     <h2>Add Shared Club Meeting</h2>
     <div class="fg"><label>Meeting Name / Month</label><input type="text" id="shared-bc-name" placeholder="e.g. June 2026"></div>
-    <div class="fg"><label>Date</label><input type="date" id="shared-bc-date"></div>
+    <div class="frow">
+      <div class="fg"><label>Date</label><input type="date" id="shared-bc-date"></div>
+      <div class="fg"><label>Start Time</label><input type="time" id="shared-bc-time"></div>
+    </div>
+    <div class="fg"><label>Location</label><input type="text" id="shared-bc-location" placeholder="e.g. Sarah's place, or a cafe name"></div>
     <div class="fg"><label>Book Title</label><input type="text" id="shared-bc-book-title" placeholder="Book discussed"></div>
     <div class="fg"><label>Author</label><input type="text" id="shared-bc-book-author" placeholder="Author"></div>
     <div class="frow">
@@ -1310,9 +1321,7 @@ function getActiveClub(){const data=getBCData();return data.clubs.find(c=>c.id==
 function getBCMeetings(){return getActiveClub().meetings||[];}
 function saveBCMeetings(meetings){const data=getBCData();const club=data.clubs.find(c=>c.id===data.activeClubId)||data.clubs[0];club.meetings=meetings;saveBCData(data);}
 function getAllBCMeetings(){return getBCData().clubs.flatMap(c=>c.meetings||[]);}
-function getBacklog(){return getActiveClub().backlog||[];}
-function saveBacklog(list){const data=getBCData();const club=data.clubs.find(c=>c.id===data.activeClubId)||data.clubs[0];club.backlog=list;saveBCData(data);}
-function switchClub(id){const data=getBCData();data.activeClubId=id;saveBCData(data);renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
+function switchClub(id){const data=getBCData();data.activeClubId=id;saveBCData(data);renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();}
 function createClub(){
   const name=prompt('Name of the new book club:');
   if(!name||!name.trim())return;
@@ -1321,7 +1330,7 @@ function createClub(){
   data.clubs.push({id,name:name.trim(),meetings:[]});
   data.activeClubId=id;
   saveBCData(data);
-  renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();
+  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();
 }
 function renameClub(){
   const data=getBCData();
@@ -1340,7 +1349,7 @@ function deleteClub(){
   data.clubs=data.clubs.filter(c=>c.id!==data.activeClubId);
   data.activeClubId=data.clubs[0].id;
   saveBCData(data);
-  renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();
+  renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();
 }
 function renderBCClubSwitcher(){
   const data=getBCData();
@@ -1586,7 +1595,7 @@ function renderPanel(p){
   if(p==='authors')renderAuthors();
   if(p==='reports')renderReports();
   if(p==='recs')renderRecsPanel();
-  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderBacklog();renderUpcoming();renderSeriesRead();renderProposedCalendar();loadSharedClubs();}
+  if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();loadSharedClubs();}
   if(p==='settings')renderSettings();
   if(p==='add')checkDuplicates();
 }
@@ -2769,8 +2778,13 @@ async function loadSharedClubs(){
   if(!joined.length){
     sel.innerHTML='<option value="">No shared clubs joined yet</option>';
     document.getElementById('shared-club-roster').innerHTML='';
-    document.getElementById('shared-bc-grid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>Join a shared club above to see its meetings.</p></div>`;
+    document.getElementById('shared-bc-next').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>Join a shared club above to see its meetings.</p></div>`;
+    document.getElementById('shared-bc-upcoming-h').style.display='none';
+    document.getElementById('shared-bc-upcoming-grid').innerHTML='';
+    document.getElementById('shared-bc-previous-h').style.display='none';
+    document.getElementById('shared-bc-previous-grid').innerHTML='';
     sharedClubId=null;
+    loadSuggestions();
     return;
   }
   sel.innerHTML=joined.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
@@ -2791,7 +2805,6 @@ function switchSharedClub(clubId){sharedClubId=clubId;renderSharedClub();}
 
 async function renderSharedClub(){
   if(!sharedClubId)return;
-  const grid=document.getElementById('shared-bc-grid');
   const status=document.getElementById('shared-bc-status');
   status.textContent='Loading…';
   const{data:{session}}=await sb.auth.getSession();
@@ -2799,10 +2812,11 @@ async function renderSharedClub(){
 
   const[{data:members,error:mErr},{data:clubBooks,error:bErr}]=await Promise.all([
     sb.from('club_members').select('user_id,role,profiles(first_name,last_name)').eq('club_id',sharedClubId),
-    sb.from('club_books').select('id,meeting_name,meeting_date,book_title,book_author,series,series_number,discussion_notes,club_book_engagement(user_id,status,rating,notes,date_read,profiles(first_name,last_name))').eq('club_id',sharedClubId).order('meeting_date',{ascending:false})
+    sb.from('club_books').select('id,meeting_name,meeting_date,start_time,location,book_title,book_author,series,series_number,discussion_notes,club_book_engagement(user_id,status,rating,notes,date_read,profiles(first_name,last_name)),club_meeting_rsvp(user_id,status,profiles(first_name,last_name))').eq('club_id',sharedClubId).order('meeting_date',{ascending:false})
   ]);
   if(mErr||bErr){status.textContent='Failed to load: '+((mErr||bErr).message);return;}
   status.textContent='';
+  loadSuggestions();
 
   document.getElementById('shared-club-roster').innerHTML=(members||[]).map(m=>{
     const p=m.profiles||{};
@@ -2810,46 +2824,78 @@ async function renderSharedClub(){
     return`<div style="display:flex;align-items:center;gap:6px" title="${esc(label)}">${renderAvatarHTML(p.first_name,p.last_name,26)}<span style="font-size:12px;color:var(--text2)">${esc(p.first_name||label)}</span></div>`;
   }).join('');
 
+  const next=document.getElementById('shared-bc-next');
+  const upcoming=document.getElementById('shared-bc-upcoming-grid');
+  const previous=document.getElementById('shared-bc-previous-grid');
   if(!clubBooks||!clubBooks.length){
-    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>No shared meetings yet.<br>Add the first one to get started!</p></div>`;
+    next.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>No shared meetings yet.<br>Add the first one to get started!</p></div>`;
+    upcoming.innerHTML='';previous.innerHTML='';
+    document.getElementById('shared-bc-upcoming-h').style.display='none';
+    document.getElementById('shared-bc-previous-h').style.display='none';
     return;
   }
 
-  grid.innerHTML=clubBooks.map(cb=>{
-    const engagement=cb.club_book_engagement||[];
-    const mine=engagement.find(e=>e.user_id===myId)||{status:'tbr',rating:null};
-    const readers=engagement.filter(e=>e.status==='read');
-    const rated=readers.filter(e=>e.rating>0);
-    const avg=rated.length?(rated.reduce((s,e)=>s+e.rating,0)/rated.length).toFixed(1):null;
-    const readerAvatars=readers.map(e=>renderAvatarHTML((e.profiles||{}).first_name,(e.profiles||{}).last_name,22)).join('');
-    const stars=[1,2,3,4,5].map(v=>`<button class="starb${(mine.rating||0)>=v?' on':''}" onclick="setMyEngagement('${cb.id}',{rating:${v}})">★</button>`).join('');
-    return`<div class="bc-meeting">
-      <div class="bc-meeting-header">
-        <div class="bc-meeting-title">${esc(cb.meeting_name)}</div>
-        <div class="bc-meeting-date">${esc(fmtDateDMY(cb.meeting_date))}</div>
-      </div>
-      <div class="bc-book-row">
-        <span style="flex:1">
-          <div style="font-weight:500;font-size:13px">${esc(cb.book_title)}</div>
-          <div style="font-size:11px;color:var(--text2)">by ${esc(cb.book_author)}${cb.series?` · <span style="color:var(--series)">${esc(cb.series)}${cb.series_number?' #'+esc(cb.series_number):''}</span>`:''}</div>
-        </span>
-      </div>
-      ${cb.discussion_notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);line-height:1.5">${esc(cb.discussion_notes)}</div>`:''}
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
-          <span style="font-size:11px;color:var(--text3)">Read by</span>
-          ${readerAvatars||'<span style="font-size:11px;color:var(--text3)">nobody yet</span>'}
-          ${avg?`<span style="font-size:11px;color:var(--text2);margin-left:auto">★ ${avg} avg (${rated.length})</span>`:''}
+  const today=new Date().toISOString().slice(0,10);
+  const future=clubBooks.filter(cb=>cb.meeting_date&&cb.meeting_date>=today).sort((a,b)=>(a.meeting_date||'').localeCompare(b.meeting_date||''));
+  const past=clubBooks.filter(cb=>!cb.meeting_date||cb.meeting_date<today);
+  const nextMeeting=future[0];
+  const restUpcoming=future.slice(1);
+
+  next.innerHTML=nextMeeting?renderMeetingCard(nextMeeting,myId,true):`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No upcoming meeting scheduled.</p></div>`;
+  document.getElementById('shared-bc-upcoming-h').style.display=restUpcoming.length?'':'none';
+  upcoming.innerHTML=restUpcoming.map(cb=>renderMeetingCard(cb,myId,false)).join('');
+  document.getElementById('shared-bc-previous-h').style.display=past.length?'':'none';
+  previous.innerHTML=past.map(cb=>renderMeetingCard(cb,myId,false)).join('');
+}
+
+function renderMeetingCard(cb,myId,featured){
+  const engagement=cb.club_book_engagement||[];
+  const mine=engagement.find(e=>e.user_id===myId)||{status:'tbr',rating:null};
+  const readers=engagement.filter(e=>e.status==='read');
+  const rated=readers.filter(e=>e.rating>0);
+  const avg=rated.length?(rated.reduce((s,e)=>s+e.rating,0)/rated.length).toFixed(1):null;
+  const readerAvatars=readers.map(e=>renderAvatarHTML((e.profiles||{}).first_name,(e.profiles||{}).last_name,22)).join('');
+  const stars=[1,2,3,4,5].map(v=>`<button class="starb${(mine.rating||0)>=v?' on':''}" onclick="setMyEngagement('${cb.id}',{rating:${v}})">★</button>`).join('');
+  const rsvps=cb.club_meeting_rsvp||[];
+  const myRsvp=rsvps.find(r=>r.user_id===myId);
+  const going=rsvps.filter(r=>r.status==='going');
+  const goingAvatars=going.map(r=>renderAvatarHTML((r.profiles||{}).first_name,(r.profiles||{}).last_name,20)).join('');
+  const whenParts=[fmtDateDMY(cb.meeting_date),cb.start_time?cb.start_time.slice(0,5):'',cb.location?esc(cb.location):''].filter(Boolean);
+  return`<div class="bc-meeting"${featured?' style="grid-column:1/-1"':''}>
+    <div class="bc-meeting-header">
+      <div class="bc-meeting-title">${esc(cb.meeting_name)}</div>
+      <div class="bc-meeting-date">${esc(whenParts.join(' · '))}</div>
+    </div>
+    <div class="bc-book-row">
+      <span style="flex:1">
+        <div style="font-weight:500;font-size:13px">${esc(cb.book_title)}</div>
+        <div style="font-size:11px;color:var(--text2)">by ${esc(cb.book_author)}${cb.series?` · <span style="color:var(--series)">${esc(cb.series)}${cb.series_number?' #'+esc(cb.series_number):''}</span>`:''}</div>
+      </span>
+    </div>
+    ${cb.discussion_notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);line-height:1.5">${esc(cb.discussion_notes)}</div>`:''}
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--rule)">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3)">Going</span>
+        ${goingAvatars||'<span style="font-size:11px;color:var(--text3)">nobody yet</span>'}
+        <div style="margin-left:auto;display:flex;gap:4px">
+          <button class="btn btn-sm ${myRsvp&&myRsvp.status==='going'?'btn-primary':'btn-outline'}" onclick="setMyRsvp('${cb.id}','going')">Going</button>
+          <button class="btn btn-sm ${myRsvp&&myRsvp.status==='maybe'?'btn-primary':'btn-outline'}" onclick="setMyRsvp('${cb.id}','maybe')">Maybe</button>
+          <button class="btn btn-sm ${myRsvp&&myRsvp.status==='not_going'?'btn-primary':'btn-outline'}" onclick="setMyRsvp('${cb.id}','not_going')">Can't go</button>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <select class="fsel" style="font-size:11px;padding:3px 6px" onchange="setMyEngagement('${cb.id}',{status:this.value})">
-            ${['tbr','reading','read','dnf'].map(s=>`<option value="${s}"${mine.status===s?' selected':''}>${esc(STATUS_LABELS[s]||s)}</option>`).join('')}
-          </select>
-          <div class="star-row">${stars}</div>
-        </div>
       </div>
-    </div>`;
-  }).join('');
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3)">Read by</span>
+        ${readerAvatars||'<span style="font-size:11px;color:var(--text3)">nobody yet</span>'}
+        ${avg?`<span style="font-size:11px;color:var(--text2);margin-left:auto">★ ${avg} avg (${rated.length})</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <select class="fsel" style="font-size:11px;padding:3px 6px" onchange="setMyEngagement('${cb.id}',{status:this.value})">
+          ${['tbr','reading','read','dnf'].map(s=>`<option value="${s}"${mine.status===s?' selected':''}>${esc(STATUS_LABELS[s]||s)}</option>`).join('')}
+        </select>
+        <div class="star-row">${stars}</div>
+      </div>
+    </div>
+  </div>`;
 }
 
 async function setMyEngagement(clubBookId,patch){
@@ -2859,9 +2905,16 @@ async function setMyEngagement(clubBookId,patch){
   renderSharedClub();
 }
 
+async function setMyRsvp(clubBookId,status){
+  const{data:{session}}=await sb.auth.getSession();
+  const{error}=await sb.from('club_meeting_rsvp').upsert({club_book_id:clubBookId,user_id:session.user.id,status},{onConflict:'club_book_id,user_id'});
+  if(error){alert('Failed to save RSVP: '+error.message);return;}
+  renderSharedClub();
+}
+
 function openSharedBCForm(){
   if(!sharedClubId){alert('Join or create a shared club first.');return;}
-  ['shared-bc-name','shared-bc-date','shared-bc-book-title','shared-bc-book-author','shared-bc-series','shared-bc-series-num','shared-bc-notes'].forEach(id=>{document.getElementById(id).value='';});
+  ['shared-bc-name','shared-bc-date','shared-bc-time','shared-bc-location','shared-bc-book-title','shared-bc-book-author','shared-bc-series','shared-bc-series-num','shared-bc-notes'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('shared-bc-modal-error').textContent='';
   document.getElementById('shared-bc-modal').classList.add('open');
 }
@@ -2873,18 +2926,24 @@ async function saveSharedBCMeeting(){
   const errEl=document.getElementById('shared-bc-modal-error');
   if(!name||!bookTitle){errEl.textContent='Name and book title required.';return;}
   const{data:{session}}=await sb.auth.getSession();
-  const{error}=await sb.from('club_books').insert({
+  const{data:inserted,error}=await sb.from('club_books').insert({
     club_id:sharedClubId,
     meeting_name:name,
     meeting_date:document.getElementById('shared-bc-date').value||null,
+    start_time:document.getElementById('shared-bc-time').value||null,
+    location:document.getElementById('shared-bc-location').value.trim(),
     book_title:bookTitle,
     book_author:bookAuthor,
     series:document.getElementById('shared-bc-series').value.trim(),
     series_number:document.getElementById('shared-bc-series-num').value.trim(),
     discussion_notes:document.getElementById('shared-bc-notes').value.trim(),
     created_by:session.user.id
-  });
+  }).select('id').single();
   if(error){errEl.textContent='Failed: '+error.message;return;}
+  if(pendingScheduledSuggestionId&&inserted){
+    await sb.from('club_suggestions').update({scheduled_club_book_id:inserted.id}).eq('id',pendingScheduledSuggestionId);
+    pendingScheduledSuggestionId=null;
+  }
   closeSharedBCModal();
   renderSharedClub();
 }
@@ -3000,37 +3059,96 @@ function saveUpcomingEntry(){
   saveUpcoming(list);closeUpModal();renderUpcoming();
 }
 function deleteUpcoming(id){if(!confirm('Remove this release?'))return;saveUpcoming(getUpcoming().filter(u=>u.id!==id));renderUpcoming();}
-function openBacklogForm(){['backlog-title','backlog-author','backlog-suggested-by','backlog-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('backlog-modal').classList.add('open');}
+let pendingScheduledSuggestionId=null;
+function openBacklogForm(){
+  if(!sharedClubId){alert('Join or create a shared club first (see the top of the Book Club tab).');return;}
+  ['backlog-title','backlog-author','backlog-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('backlog-ol-status').textContent='';
+  document.getElementById('backlog-ol-results').innerHTML='';
+  document.getElementById('backlog-modal-error').textContent='';
+  document.getElementById('backlog-modal').classList.add('open');
+}
 function closeBacklogModal(){document.getElementById('backlog-modal').classList.remove('open');}
-function saveBacklogEntry(){
+async function searchOLForSuggestion(){
+  const q=`${document.getElementById('backlog-title').value.trim()} ${document.getElementById('backlog-author').value.trim()}`.trim();
+  const st=document.getElementById('backlog-ol-status');
+  const resultsEl=document.getElementById('backlog-ol-results');
+  if(!q){st.textContent='Type a title (and optionally author) first.';return;}
+  st.innerHTML=`<div class="loading"><div class="spinner"></div> Searching Open Library…</div>`;
+  resultsEl.innerHTML='';
+  try{
+    const res=await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&fields=title,author_name&limit=6`);
+    const data=await res.json();
+    const docs=data.docs||[];
+    olSuggestionSearchResults=docs;
+    if(!docs.length){st.textContent="No matches — that's fine, you can still save it as typed.";return;}
+    st.textContent='Pick a match, or just save what you typed:';
+    resultsEl.innerHTML=docs.map((r,i)=>{
+      const author=(r.author_name||[]).slice(0,2).join(', ')||'Unknown author';
+      return`<button type="button" class="btn btn-outline btn-sm" style="justify-content:flex-start;text-align:left;width:100%" onclick="useSuggestionSearchResult(${i})">${esc(r.title)} <span style="color:var(--text3)">— ${esc(author)}</span></button>`;
+    }).join('');
+  }catch(e){st.textContent="Search failed — you can still save it as typed.";}
+}
+let olSuggestionSearchResults=[];
+function useSuggestionSearchResult(i){
+  const r=olSuggestionSearchResults[i];
+  if(!r)return;
+  document.getElementById('backlog-title').value=r.title||'';
+  if(r.author_name&&r.author_name.length)document.getElementById('backlog-author').value=normalizeAuthorName(r.author_name.join(', '));
+  document.getElementById('backlog-ol-results').innerHTML='';
+  document.getElementById('backlog-ol-status').textContent='';
+}
+async function saveBacklogEntry(){
   const title=document.getElementById('backlog-title').value.trim();
-  if(!title){alert('Book title required.');return;}
-  const list=getBacklog();
-  list.push({id:genId(),title,author:document.getElementById('backlog-author').value.trim(),suggestedBy:document.getElementById('backlog-suggested-by').value.trim(),notes:document.getElementById('backlog-notes').value.trim(),dateAdded:new Date().toISOString().slice(0,10)});
-  saveBacklog(list);closeBacklogModal();renderBacklog();
+  const errEl=document.getElementById('backlog-modal-error');
+  if(!title){errEl.textContent='Book title required.';return;}
+  const author=document.getElementById('backlog-author').value.trim();
+  const notes=document.getElementById('backlog-notes').value.trim();
+  const{data:{session}}=await sb.auth.getSession();
+  const{data:existing}=await sb.from('club_suggestions').select('id,title,times_suggested').eq('club_id',sharedClubId).is('scheduled_club_book_id',null);
+  const match=(existing||[]).find(s=>titlesMatch(s.title,title));
+  let error;
+  if(match){
+    ({error}=await sb.from('club_suggestions').update({times_suggested:match.times_suggested+1,updated_at:new Date().toISOString()}).eq('id',match.id));
+  }else{
+    ({error}=await sb.from('club_suggestions').insert({club_id:sharedClubId,title,author,notes,suggested_by:session.user.id}));
+  }
+  if(error){errEl.textContent='Failed: '+error.message;return;}
+  closeBacklogModal();
+  loadSuggestions();
 }
-function deleteBacklogEntry(id){if(!confirm('Remove this suggestion?'))return;saveBacklog(getBacklog().filter(b=>b.id!==id));renderBacklog();}
-function useBacklogForNextMeeting(title,author){
-  openBCForm();
-  const highest=getBCMeetings().reduce((max,m)=>{const n=parseInt((m.name||'').match(/Book (\d+)/)?.[1]);return n>max?n:max;},0);
-  document.getElementById('bc-name').value=highest?`Book ${highest+1}`:'';
-  document.getElementById('bc-book-title').value=title;
-  document.getElementById('bc-book-author').value=author;
+function deleteSuggestion(id){
+  if(!confirm('Remove this suggestion?'))return;
+  sb.from('club_suggestions').delete().eq('id',id).then(({error})=>{if(error){alert('Failed: '+error.message);return;}loadSuggestions();});
 }
-function renderBacklog(){
+async function useSuggestionForNextMeeting(id){
+  const{data}=await sb.from('club_suggestions').select('title,author').eq('id',id).single();
+  if(!data)return;
+  openSharedBCForm();
+  document.getElementById('shared-bc-book-title').value=data.title;
+  document.getElementById('shared-bc-book-author').value=data.author||'';
+  pendingScheduledSuggestionId=id;
+}
+async function loadSuggestions(){
   const grid=document.getElementById('backlog-grid');
   if(!grid)return;
-  const list=getBacklog().slice().sort((a,b)=>(b.dateAdded||'').localeCompare(a.dateAdded||''));
-  if(!list.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No suggestions logged yet. Add books here as they come up in the draw but don't get picked.</p></div>`;return;}
-  grid.innerHTML=list.map(b=>`<div class="bc-meeting">
-    <div class="bc-meeting-header">
-      <div class="bc-meeting-title">${esc(b.title)}</div>
-      <button class="btn btn-danger btn-sm" onclick="deleteBacklogEntry('${b.id}')">×</button>
-    </div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${b.author?'by '+esc(b.author):''}${b.suggestedBy?` · suggested by ${esc(b.suggestedBy)}`:''}</div>
-    ${b.notes?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">${esc(b.notes)}</div>`:''}
-    <button class="btn btn-series btn-sm" onclick="useBacklogForNextMeeting('${esc(b.title).replace(/'/g,"\\'")}','${esc(b.author||'').replace(/'/g,"\\'")}')">Use for next meeting</button>
-  </div>`).join('');
+  if(!sharedClubId){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Join a shared club above to see and log suggestions.</p></div>`;return;}
+  const{data,error}=await sb.from('club_suggestions').select('id,title,author,notes,times_suggested,suggested_by,profiles(first_name,last_name)').eq('club_id',sharedClubId).is('scheduled_club_book_id',null).order('times_suggested',{ascending:false});
+  if(error){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--danger)">Failed to load: ${esc(error.message)}</p></div>`;return;}
+  if(!data||!data.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No suggestions logged yet. Add books here as they come up in the draw but don't get picked.</p></div>`;return;}
+  grid.innerHTML=data.map(s=>{
+    const p=s.profiles||{};
+    const suggester=p.first_name||p.last_name?`${p.first_name||''} ${p.last_name||''}`.trim():'';
+    return`<div class="bc-meeting">
+      <div class="bc-meeting-header">
+        <div class="bc-meeting-title">${esc(s.title)}${s.times_suggested>1?` <span style="font-size:11px;font-weight:400;color:var(--text3)">· suggested ${s.times_suggested}×</span>`:''}</div>
+        <button class="btn btn-danger btn-sm" onclick="deleteSuggestion('${s.id}')">×</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${s.author?'by '+esc(s.author):''}${suggester?` · suggested by ${esc(suggester)}`:''}</div>
+      ${s.notes?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">${esc(s.notes)}</div>`:''}
+      <button class="btn btn-series btn-sm" onclick="useSuggestionForNextMeeting('${s.id}')">Use for next meeting</button>
+    </div>`;
+  }).join('');
 }
 async function checkForSequels(){
   const st=document.getElementById('upcoming-status');
