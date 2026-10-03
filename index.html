@@ -114,8 +114,8 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .col-resize-handle{position:absolute;right:0;top:0;bottom:0;width:7px;cursor:col-resize;z-index:2}
 .col-resize-handle:hover,.col-resize-handle.active{background:var(--accent2)}
 .td-rating{white-space:nowrap}
-.td-star{cursor:pointer;color:var(--rule);font-size:14px}
-.td-star.on{color:var(--star)}
+.td-star{position:relative;display:inline-block;cursor:pointer;color:var(--rule);font-size:14px;line-height:1}
+.td-star .star-fg{position:absolute;left:0;top:0;overflow:hidden;color:var(--star);white-space:nowrap;width:0%}
 .td-lend{display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:400}
 .td-lend input{accent-color:var(--accent)}
 .kanban-board{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:6px}
@@ -248,8 +248,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .fmt-check.checked{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);font-weight:500}
 .fmt-check.borrowed.checked{background:var(--bg-alt);border-color:var(--border);color:var(--text)}
 .star-row{display:flex;gap:3px}
-.starb{background:none;border:none;font-size:22px;cursor:pointer;color:var(--rule);transition:color .1s;padding:0}
+.starb{position:relative;display:inline-block;background:none;border:none;font-size:22px;cursor:pointer;color:var(--rule);padding:0;line-height:1}
 .starb.on{color:var(--star)}
+.starb .star-fg{position:absolute;left:0;top:0;overflow:hidden;color:var(--star);white-space:nowrap;width:0%}
+.star-display{position:relative;display:inline-block;color:var(--rule);font-size:14px;line-height:1}
+.star-display .star-fg{position:absolute;left:0;top:0;overflow:hidden;color:var(--star);white-space:nowrap;width:0%}
 .tag-input-wrap{display:flex;flex-wrap:wrap;gap:5px;padding:6px 10px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--surface);min-height:36px;cursor:text;align-items:center}
 .tag{background:var(--accent-bg);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:var(--r);display:flex;align-items:center;gap:4px}
 .tag-rm{background:none;border:none;cursor:pointer;color:var(--accent);font-size:14px;line-height:1;padding:0}
@@ -360,6 +363,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Reports</span></button>
       <button class="nb" data-p="recs" onclick="nav('recs')"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg><span>Recs</span></button>
       <button class="nb" data-p="bookclub" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4V5z"/></svg><span>Book Club</span></button>
+      <button class="nb" data-p="tools" onclick="nav('tools')"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg><span>Tools</span></button>
       <button class="nb" data-p="settings" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="17" cy="6" r="2"/><circle cx="9" cy="18" r="2"/></svg><span>Settings</span></button>
     </div>
     <div class="sb-goal" id="goal-widget" style="display:none">
@@ -830,12 +834,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <div class="fg">
           <label>My Rating</label>
           <div class="star-row" id="star-row">
-            <button class="starb" data-v="1" onclick="setRating(1,false)">★</button>
-            <button class="starb" data-v="2" onclick="setRating(2,false)">★</button>
-            <button class="starb" data-v="3" onclick="setRating(3,false)">★</button>
-            <button class="starb" data-v="4" onclick="setRating(4,false)">★</button>
-            <button class="starb" data-v="5" onclick="setRating(5,false)">★</button>
+            <button class="starb" data-v="1" onclick="handleStarClick(event,1,false)">★<span class="star-fg">★</span></button>
+            <button class="starb" data-v="2" onclick="handleStarClick(event,2,false)">★<span class="star-fg">★</span></button>
+            <button class="starb" data-v="3" onclick="handleStarClick(event,3,false)">★<span class="star-fg">★</span></button>
+            <button class="starb" data-v="4" onclick="handleStarClick(event,4,false)">★<span class="star-fg">★</span></button>
+            <button class="starb" data-v="5" onclick="handleStarClick(event,5,false)">★<span class="star-fg">★</span></button>
           </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Click the left half of a star for a half rating</div>
           <input type="hidden" id="f-rating" value="0">
         </div>
         <div class="fg"><label>GoodReads Rating</label><input type="number" id="f-gr-rating" placeholder="e.g. 4.12" min="0" max="5" step="0.01"></div>
@@ -892,16 +897,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <input type="file" id="kn-inp" accept=".csv" style="display:none" onchange="processKindle(event.target.files[0])">
     <div id="kn-result"></div>
   </div>
-  <div class="import-card">
-    <h2>Manage Data</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-outline" onclick="exportJSON()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg> Export backup (JSON)</button>
-      <button class="btn btn-outline" onclick="exportCSV()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg> Export CSV (Excel)</button>
-      <button class="btn btn-outline" onclick="document.getElementById('restore-inp').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21V9"/><polyline points="7 13 12 8 17 13"/><line x1="4" y1="4" x2="20" y2="4"/></svg> Restore from backup</button>
-      <button class="btn btn-danger" onclick="if(confirm('Delete all data?')){books=[];save();renderLib()}"><svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/></svg> Clear all</button>
-    </div>
-    <input type="file" id="restore-inp" accept=".json" style="display:none" onchange="restoreJSON(event)">
-  </div>
   </div>
 </div>
 
@@ -909,7 +904,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <div id="panel-settings" class="panel">
   <div style="grid-column:1/-1;margin-bottom:var(--sp-2)">
     <h1 style="font-family:var(--font-serif);font-size:26px;font-weight:600;margin-bottom:8px">About Anecdote</h1>
-    <p style="font-size:15px;color:var(--text2);line-height:1.6;max-width:640px">Data syncs automatically to your private Supabase database and updates in real time across your devices. Export a JSON backup regularly via the Add tab's Import section as an extra safety net.</p>
+    <p style="font-size:15px;color:var(--text2);line-height:1.6;max-width:640px">Data syncs automatically to your private Supabase database and updates in real time across your devices. Export a JSON backup regularly from the Tools tab as an extra safety net.</p>
   </div>
   <div class="settings-card">
     <h2>Appearance</h2>
@@ -922,16 +917,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     </div>
   </div>
   <div class="settings-card">
-    <h2>Reading Goal</h2>
-    <div class="goal-setting">
-      <label>Books to read in</label>
-      <select class="fsel" id="goal-year-sel" onchange="renderSettings()" style="margin-right:8px"></select>
-      <input type="number" class="goal-input" id="goal-inp" min="0" max="500" placeholder="52" onchange="saveGoal()">
-    </div>
-    <div id="goal-progress-detail" style="font-size:13px;color:var(--text2);margin-top:8px"></div>
-    <div id="goal-history" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
-  </div>
-  <div class="settings-card">
     <h2>Account</h2>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
       <div id="acc-avatar-preview"></div>
@@ -940,12 +925,30 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="fg"><label>First name</label><input type="text" id="acc-first-name"></div>
     <div class="fg"><label>Last name</label><input type="text" id="acc-last-name"></div>
     <button class="btn btn-outline btn-sm" onclick="updateProfileName()">Save name</button>
-    <div class="fg" style="margin-top:14px"><label>New email</label><input type="email" id="acc-new-email" placeholder="you@example.com"></div>
-    <button class="btn btn-outline btn-sm" onclick="updateAccountEmail()">Update email</button>
+    <div class="fg" style="margin-top:14px"><label>Email address</label><input type="email" id="acc-new-email" placeholder="you@example.com"></div>
+    <button class="btn btn-outline btn-sm" onclick="updateAccountEmail()">Change email address</button>
     <div class="fg" style="margin-top:14px"><label>New password</label><input type="password" id="acc-new-password" placeholder="At least 6 characters" autocomplete="new-password"></div>
     <button class="btn btn-outline btn-sm" onclick="updateAccountPassword()">Update password</button>
     <div id="account-status" style="font-size:12px;color:var(--text2);margin-top:10px"></div>
-    <button class="btn btn-outline" style="margin-top:14px" onclick="signOut()">Sign out</button>
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--rule)">
+      <h2 style="margin-bottom:10px">Reading Goal</h2>
+      <div class="goal-setting">
+        <label>Books to read in</label>
+        <select class="fsel" id="goal-year-sel" onchange="renderSettings()" style="margin-right:8px"></select>
+        <input type="number" class="goal-input" id="goal-inp" min="0" max="500" placeholder="52" onchange="saveGoal()">
+      </div>
+      <div id="goal-progress-detail" style="font-size:13px;color:var(--text2);margin-top:8px"></div>
+      <div id="goal-history" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
+    </div>
+    <button class="btn btn-outline" style="margin-top:18px" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<!-- TOOLS -->
+<div id="panel-tools" class="panel">
+  <div style="grid-column:1/-1;margin-bottom:var(--sp-2)">
+    <h1 style="font-family:var(--font-serif);font-size:26px;font-weight:600;margin-bottom:8px">Tools</h1>
+    <p style="font-size:15px;color:var(--text2);line-height:1.6;max-width:640px">Housekeeping actions you run on demand — data hygiene, backups, and bulk cleanup. None of these are preferences, so they live apart from Settings.</p>
   </div>
   <div class="settings-card" style="grid-column:1/-1">
     <h2>The Archivist</h2>
@@ -986,6 +989,16 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div id="normalize-authors-status" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
     <div id="merge-names-status" style="font-size:12px;color:var(--text2);margin-top:6px"></div>
     <div id="merge-names-results" style="margin-top:8px"></div>
+  </div>
+  <div class="settings-card" style="grid-column:1/-1">
+    <h2>Manage Data</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="exportJSON()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg> Export backup (JSON)</button>
+      <button class="btn btn-outline" onclick="exportCSV()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg> Export CSV (Excel)</button>
+      <button class="btn btn-outline" onclick="document.getElementById('restore-inp').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21V9"/><polyline points="7 13 12 8 17 13"/><line x1="4" y1="4" x2="20" y2="4"/></svg> Restore from backup</button>
+      <button class="btn btn-danger" onclick="if(confirm('Delete all data?')){books=[];save();renderLib()}"><svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/></svg> Clear all</button>
+    </div>
+    <input type="file" id="restore-inp" accept=".json" style="display:none" onchange="restoreJSON(event)">
   </div>
 </div>
 
@@ -1050,12 +1063,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div class="fg">
         <label>My Rating</label>
         <div class="star-row" id="mstar-row">
-          <button class="starb" data-v="1" onclick="setRating(1,true)">★</button>
-          <button class="starb" data-v="2" onclick="setRating(2,true)">★</button>
-          <button class="starb" data-v="3" onclick="setRating(3,true)">★</button>
-          <button class="starb" data-v="4" onclick="setRating(4,true)">★</button>
-          <button class="starb" data-v="5" onclick="setRating(5,true)">★</button>
+          <button class="starb" data-v="1" onclick="handleStarClick(event,1,true)">★<span class="star-fg">★</span></button>
+          <button class="starb" data-v="2" onclick="handleStarClick(event,2,true)">★<span class="star-fg">★</span></button>
+          <button class="starb" data-v="3" onclick="handleStarClick(event,3,true)">★<span class="star-fg">★</span></button>
+          <button class="starb" data-v="4" onclick="handleStarClick(event,4,true)">★<span class="star-fg">★</span></button>
+          <button class="starb" data-v="5" onclick="handleStarClick(event,5,true)">★<span class="star-fg">★</span></button>
         </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">Click the left half of a star for a half rating</div>
         <input type="hidden" id="m-rating" value="0">
       </div>
     </div>
@@ -1264,6 +1278,13 @@ function saveGoal(){
 }
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function starDisplayHTML(rating){
+  rating=rating||0;
+  return[1,2,3,4,5].map(n=>{
+    const fill=rating>=n?100:rating>=n-0.5?50:0;
+    return`<span class="star-display">★<span class="star-fg" style="width:${fill}%">★</span></span>`;
+  }).join('');
+}
 function fmtDateDMY(iso){if(!iso)return'';const m=String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return iso;return`${m[3]}/${m[2]}/${m[1]}`;}
 function getSeriesCache(){try{return JSON.parse(localStorage.getItem(SCK)||'{}');}catch(e){return{};}}
 function saveSeriesCache(c){localStorage.setItem(SCK,JSON.stringify(c));cloudPush('series_cache',c);}
@@ -1816,7 +1837,7 @@ function renderLibGrid(filtered){
   const grid=document.getElementById('lib-grid');
   if(!filtered.length){grid.innerHTML=`<div class="empty"><div class="ei">${ICON.inbox}</div><p>No books match your filters.<br>Import from GoodReads, Audible, or Kindle.</p></div>`;return;}
   grid.innerHTML=filtered.map(b=>{
-    const stars=b.rating?'★'.repeat(b.rating)+'☆'.repeat(5-b.rating):'';
+    const stars=b.rating?starDisplayHTML(b.rating):'';
     const date=b.dateRead?`Read: ${b.dateRead}`:b.dateAdded?`Added: ${b.dateAdded.slice(0,7)}`:'';
     const genres=(b.genre||[]).slice(0,2).map(g=>`<span class="badge b-genre">${esc(g)}</span>`).join('');
     const rfmt=b.readFormat?`<span style="font-size:10px;color:var(--text3)">Read on ${FMT_ICO[b.readFormat]||''} ${esc(b.readFormat)}</span>`:'';
@@ -1922,7 +1943,7 @@ function renderTableCell(b,c){
     case'status':return`<td onclick="${go}"><span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span></td>`;
     case'format':return`<td onclick="${go}">${(b.formats||[]).map(f=>FMT_ICO[f]||f).join(' ')}</td>`;
     case'pages':return`<td onclick="${go}">${b.pages?(b.pagesEstimated?'~':'')+b.pages:''}</td>`;
-    case'rating':return`<td class="td-rating">${[1,2,3,4,5].map(n=>`<span class="td-star ${n<=(b.rating||0)?'on':''}" onclick="setTableRating('${b.id}',${n})">★</span>`).join('')}</td>`;
+    case'rating':return`<td class="td-rating">${[1,2,3,4,5].map(n=>{const fill=(b.rating||0)>=n?100:(b.rating||0)>=n-0.5?50:0;return`<span class="td-star" onclick="setTableRating('${b.id}',${n})" title="Set rating to ${n}">★<span class="star-fg" style="width:${fill}%">★</span></span>`;}).join('')}</td>`;
     case'dateRead':return`<td onclick="${go}">${esc(b.dateRead||'')}</td>`;
     case'dateAdded':return`<td onclick="${go}">${esc((b.dateAdded||'').slice(0,10))}</td>`;
     case'grRating':return`<td onclick="${go}">${b.grRating||''}</td>`;
@@ -2009,7 +2030,7 @@ function kanbanGroupKeys(b,mode){
   if(mode==='yearRead')return[(b.dateRead||'').slice(0,4)||'none'];
   if(mode==='format')return(b.formats&&b.formats.length)?b.formats:['none'];
   if(mode==='genre')return(b.genre&&b.genre.length)?b.genre:['none'];
-  if(mode==='rating')return[String(b.rating||0)];
+  if(mode==='rating')return[String(Math.round(b.rating||0))];
   return[b.status];
 }
 function renderLibKanban(filtered){
@@ -2436,7 +2457,7 @@ function renderReportSummary(){
   const byYear={};read.forEach(b=>{const y=(b.dateRead||'').slice(0,4);if(y&&y!=='0000')byYear[y]=(byYear[y]||0)+1;});
   const years=Object.keys(byYear).sort();
   const rated=read.filter(b=>b.rating>0);const avg=rated.length?(rated.reduce((s,b)=>s+b.rating,0)/rated.length).toFixed(2):'N/A';
-  const rDist=[0,0,0,0,0];rated.forEach(b=>{if(b.rating>=1&&b.rating<=5)rDist[b.rating-1]++;});
+  const rDist=[0,0,0,0,0];rated.forEach(b=>{const r=Math.round(b.rating);if(r>=1&&r<=5)rDist[r-1]++;});
   const curGoal=getGoal(yr);const goalHtml=curGoal?`<div class="stat-row"><span>Goal ${yr} (${curGoal})</span><span class="stat-val">${thisYear.length}/${curGoal} · ${Math.round(thisYear.length/curGoal*100)}%</span></div>`:'';
   const streaks=computeMonthStreaks(read);
   const el=document.getElementById('rpanel-summary');
@@ -3380,9 +3401,22 @@ async function lookupISBNAndFillForm(rawCode){
 }
 
 // ═══════════ FORM ═══════════
-function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-read','f-date-added','f-gr-rating','f-isbn','f-pages','f-notes','f-cover','f-lent-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';document.getElementById('f-rating').value='0';document.querySelectorAll('#star-row .starb').forEach(b=>b.classList.remove('on'));document.getElementById('form-h').textContent='Add a Book';setCheckedFormats('f-fmt-checks',[]);setCheckedFormats('f-borrow-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');toggleRowIf('f-progress-row',false);document.getElementById('f-progress').value=0;document.getElementById('f-progress-val').textContent='0';const flCb=document.getElementById('f-lendable');flCb.checked=false;flCb.closest('.fmt-check').classList.remove('checked');const st=document.getElementById('scan-fill-status');if(st)st.textContent='';}
-function setRating(n,modal){if(modal){document.getElementById('m-rating').value=n;document.querySelectorAll('#mstar-row .starb').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)<=n));}else{document.getElementById('f-rating').value=n;document.querySelectorAll('#star-row .starb').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)<=n));}}
-function saveBook(){const title=document.getElementById('f-title').value.trim(),author=normalizeAuthorName(document.getElementById('f-author').value.trim());if(!title||!author){alert('Title and author are required.');return;}const finpGenre=document.getElementById('genre-inp').value.trim();if(finpGenre)addTag(finpGenre,false);const editId=document.getElementById('f-id').value;const b={id:editId||genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateRead:document.getElementById('f-date-read').value||'',dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),rating:parseInt(document.getElementById('f-rating').value)||0,grRating:parseFloat(document.getElementById('f-gr-rating').value)||0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,progress:parseInt(document.getElementById('f-progress').value)||0,lendable:document.getElementById('f-lendable').checked,lentTo:document.getElementById('f-lent-to').value.trim(),notes:document.getElementById('f-notes').value.trim(),genre:[...formGenres],coverUrl:document.getElementById('f-cover').value||'',readFormat:document.getElementById('f-read-format').value};if(editId){const i=books.findIndex(x=>x.id===editId);if(i>=0)books[i]=b;}else books.push(b);save();clearForm();nav('library');}
+function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-read','f-date-added','f-gr-rating','f-isbn','f-pages','f-notes','f-cover','f-lent-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';setRating(0,false);document.getElementById('form-h').textContent='Add a Book';setCheckedFormats('f-fmt-checks',[]);setCheckedFormats('f-borrow-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');toggleRowIf('f-progress-row',false);document.getElementById('f-progress').value=0;document.getElementById('f-progress-val').textContent='0';const flCb=document.getElementById('f-lendable');flCb.checked=false;flCb.closest('.fmt-check').classList.remove('checked');const st=document.getElementById('scan-fill-status');if(st)st.textContent='';}
+function setRating(value,modal){
+  value=Math.round((value||0)*2)/2;
+  document.getElementById(modal?'m-rating':'f-rating').value=value;
+  document.querySelectorAll((modal?'#mstar-row':'#star-row')+' .starb').forEach(b=>{
+    const n=parseInt(b.dataset.v);
+    const fill=value>=n?100:value>=n-0.5?50:0;
+    b.querySelector('.star-fg').style.width=fill+'%';
+  });
+}
+function handleStarClick(e,n,modal){
+  const rect=e.currentTarget.getBoundingClientRect();
+  const frac=(e.clientX-rect.left)/rect.width;
+  setRating(frac<0.5?n-0.5:n,modal);
+}
+function saveBook(){const title=document.getElementById('f-title').value.trim(),author=normalizeAuthorName(document.getElementById('f-author').value.trim());if(!title||!author){alert('Title and author are required.');return;}const finpGenre=document.getElementById('genre-inp').value.trim();if(finpGenre)addTag(finpGenre,false);const editId=document.getElementById('f-id').value;const b={id:editId||genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateRead:document.getElementById('f-date-read').value||'',dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),rating:parseFloat(document.getElementById('f-rating').value)||0,grRating:parseFloat(document.getElementById('f-gr-rating').value)||0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,progress:parseInt(document.getElementById('f-progress').value)||0,lendable:document.getElementById('f-lendable').checked,lentTo:document.getElementById('f-lent-to').value.trim(),notes:document.getElementById('f-notes').value.trim(),genre:[...formGenres],coverUrl:document.getElementById('f-cover').value||'',readFormat:document.getElementById('f-read-format').value};if(editId){const i=books.findIndex(x=>x.id===editId);if(i>=0)books[i]=b;}else books.push(b);save();clearForm();nav('library');}
 
 // ═══════════ MODAL ═══════════
 function openModal(id){const b=books.find(x=>x.id===id);if(!b)return;currentId=id;document.getElementById('modal-h').textContent=b.title;document.getElementById('m-title').value=b.title;document.getElementById('m-author').value=b.author;document.getElementById('m-status').value=b.status;document.getElementById('m-series').value=b.series||'';document.getElementById('m-series-num').value=b.seriesNumber||'';document.getElementById('m-date-read').value=b.dateRead||'';document.getElementById('m-gr-rating').value=b.grRating||'';document.getElementById('m-isbn').value=b.isbn||'';document.getElementById('m-pages').value=b.pages||'';document.getElementById('m-notes').value=b.notes||'';document.getElementById('m-read-format').value=b.readFormat||'';document.getElementById('m-progress').value=b.progress||0;document.getElementById('m-progress-val').textContent=b.progress||0;document.getElementById('m-lent-to').value=b.lentTo||'';const mlCb=document.getElementById('m-lendable');mlCb.checked=!!b.lendable;mlCb.closest('.fmt-check').classList.toggle('checked',!!b.lendable);setRating(b.rating||0,true);setCheckedFormats('m-fmt-checks',b.formats||[]);setCheckedFormats('m-borrow-checks',b.borrowedFormats||[]);modalGenres=[...(b.genre||[])];renderModalTags();toggleReadFormat('m-read-fmt-row',b.status);toggleRowIf('m-progress-row',b.status==='reading');document.getElementById('modal').classList.add('open');}
@@ -3406,7 +3440,7 @@ document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===d
 document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===document.getElementById('up-modal'))closeUpModal();});
 document.getElementById('backlog-modal').addEventListener('click',e=>{if(e.target===document.getElementById('backlog-modal'))closeBacklogModal();});
 document.getElementById('shared-bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('shared-bc-modal'))closeSharedBCModal();});
-function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateRead=document.getElementById('m-date-read').value||'';b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.rating=parseInt(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
+function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateRead=document.getElementById('m-date-read').value||'';b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.rating=parseFloat(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
 // ═══════════ IMPORTS ═══════════
