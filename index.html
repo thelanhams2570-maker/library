@@ -756,18 +756,39 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <h2>Manage club</h2>
     <div class="fg">
       <label>Meeting cadence</label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <span style="font-size:13px;color:var(--text2)">Monthly, last</span>
-        <select class="fsel" id="cadence-weekday-sel" onchange="saveCadence()" style="width:auto">
-          <option value="0">Sunday</option>
-          <option value="1">Monday</option>
-          <option value="2">Tuesday</option>
-          <option value="3">Wednesday</option>
-          <option value="4">Thursday</option>
-          <option value="5">Friday</option>
-          <option value="6">Saturday</option>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <span style="font-size:13px;color:var(--text2)">Repeat every</span>
+        <input type="number" class="fsel" id="cadence-interval" min="1" max="52" value="1" style="width:60px" onchange="saveCadence()">
+        <select class="fsel" id="cadence-freq" style="width:auto" onchange="updateCadenceUI();saveCadence()">
+          <option value="week">week(s)</option>
+          <option value="month">month(s)</option>
         </select>
-        <span style="font-size:13px;color:var(--text2)">of the month</span>
+      </div>
+      <div id="cadence-weekly-row" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:13px;color:var(--text2)">on</span>
+        <select class="fsel" id="cadence-weekly-weekday" style="width:auto" onchange="saveCadence()">
+          <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option>
+          <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+        </select>
+      </div>
+      <div id="cadence-monthly-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <select class="fsel" id="cadence-monthly-type" style="width:auto" onchange="updateCadenceUI();saveCadence()">
+          <option value="weekday-occurrence">On the</option>
+          <option value="day-of-month">On day</option>
+        </select>
+        <span id="cadence-occurrence-group" style="display:flex;gap:6px;align-items:center">
+          <select class="fsel" id="cadence-occurrence" style="width:auto" onchange="saveCadence()">
+            <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option><option value="-1">Last</option>
+          </select>
+          <select class="fsel" id="cadence-monthly-weekday" style="width:auto" onchange="saveCadence()">
+            <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option>
+            <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+          </select>
+        </span>
+        <span id="cadence-dayofmonth-group" style="display:none;align-items:center;gap:6px">
+          <input type="number" class="fsel" id="cadence-dayofmonth" min="1" max="31" value="1" style="width:60px" onchange="saveCadence()">
+          <span style="font-size:13px;color:var(--text2)">of the month</span>
+        </span>
       </div>
     </div>
     <div id="cadence-next-dates" style="font-size:12px;color:var(--text2);margin-bottom:14px"></div>
@@ -3752,22 +3773,74 @@ function lastWeekdayOf(year,monthIndex0,weekday){
   lastDay.setDate(lastDay.getDate()-diff);
   return lastDay;
 }
+function nthWeekdayOf(year,monthIndex0,weekday,occurrence){
+  if(occurrence===-1)return lastWeekdayOf(year,monthIndex0,weekday);
+  const first=new Date(year,monthIndex0,1);
+  const diff=(weekday-first.getDay()+7)%7;
+  const day=1+diff+(occurrence-1)*7;
+  const result=new Date(year,monthIndex0,day);
+  if(result.getMonth()!==monthIndex0)return null;
+  return result;
+}
 function localDateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function nextCadenceSlot(cadence,existingDates){
-  if(!cadence||cadence.type!=='monthly')return null;
-  const weekday=typeof cadence.weekday==='number'?cadence.weekday:3;
+  if(!cadence||!cadence.freq)return null;
+  const interval=Math.max(1,parseInt(cadence.interval,10)||1);
   const todayStr=localDateStr(new Date());
   const latestExisting=existingDates.length?existingDates.reduce((max,d)=>d>max?d:max):null;
-  const base=latestExisting&&latestExisting>todayStr?new Date(latestExisting+'T00:00:00'):new Date();
+  const hasExisting=!!latestExisting;
+  const anchorStr=hasExisting?latestExisting:todayStr;
+
+  if(cadence.freq==='week'){
+    const weekday=typeof cadence.weekday==='number'?cadence.weekday:1;
+    const anchor=new Date(anchorStr+'T00:00:00');
+    anchor.setDate(anchor.getDate()+(weekday-anchor.getDay()+7)%7);
+    for(let guard=0;guard<520;guard++){
+      const slotStr=localDateStr(anchor);
+      if(slotStr>=todayStr&&(!hasExisting||slotStr>anchorStr)&&!existingDates.includes(slotStr))return slotStr;
+      anchor.setDate(anchor.getDate()+interval*7);
+    }
+    return null;
+  }
+
+  const base=hasExisting&&latestExisting>todayStr?new Date(latestExisting+'T00:00:00'):new Date();
   const cursor=new Date(base.getFullYear(),base.getMonth(),1);
-  cursor.setMonth(cursor.getMonth()+1);
-  for(let guard=0;guard<36;guard++){
-    const slot=lastWeekdayOf(cursor.getFullYear(),cursor.getMonth(),weekday);
-    const slotStr=localDateStr(slot);
-    if(slotStr>=todayStr&&!existingDates.includes(slotStr))return slotStr;
-    cursor.setMonth(cursor.getMonth()+1);
+  cursor.setMonth(cursor.getMonth()+interval);
+  for(let guard=0;guard<48;guard++){
+    let slot=null;
+    if(cadence.monthlyType==='day-of-month'){
+      const dom=Math.min(31,Math.max(1,parseInt(cadence.dayOfMonth,10)||1));
+      const daysInMonth=new Date(cursor.getFullYear(),cursor.getMonth()+1,0).getDate();
+      slot=new Date(cursor.getFullYear(),cursor.getMonth(),Math.min(dom,daysInMonth));
+    }else{
+      const weekday=typeof cadence.weekday==='number'?cadence.weekday:3;
+      const occurrence=cadence.occurrence!=null?parseInt(cadence.occurrence,10):-1;
+      slot=nthWeekdayOf(cursor.getFullYear(),cursor.getMonth(),weekday,occurrence);
+    }
+    if(slot){
+      const slotStr=localDateStr(slot);
+      if(slotStr>=todayStr&&!existingDates.includes(slotStr))return slotStr;
+    }
+    cursor.setMonth(cursor.getMonth()+interval);
   }
   return null;
+}
+function cadenceSummary(cadence){
+  if(!cadence||!cadence.freq)return'';
+  const interval=Math.max(1,parseInt(cadence.interval,10)||1);
+  const weekdayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  if(cadence.freq==='week'){
+    const weekday=typeof cadence.weekday==='number'?cadence.weekday:1;
+    return interval===1?`Every week on ${weekdayNames[weekday]}`:`Every ${interval} weeks on ${weekdayNames[weekday]}`;
+  }
+  const monthLabel=interval===1?'month':`${interval} months`;
+  if(cadence.monthlyType==='day-of-month'){
+    return`Every ${monthLabel} on day ${cadence.dayOfMonth||1}`;
+  }
+  const occ=cadence.occurrence!=null?parseInt(cadence.occurrence,10):-1;
+  const occLabel=occ===-1?'last':occ===1?'1st':occ===2?'2nd':occ===3?'3rd':`${occ}th`;
+  const weekday=typeof cadence.weekday==='number'?cadence.weekday:3;
+  return`Every ${monthLabel} on the ${occLabel} ${weekdayNames[weekday]}`;
 }
 async function computeCadenceSuggestion(){
   cadenceSuggestionCache=null;
@@ -3779,6 +3852,14 @@ async function computeCadenceSuggestion(){
   const existingDates=(meetings||[]).map(m=>m.meeting_date).filter(Boolean);
   cadenceSuggestionCache=nextCadenceSlot(cadence,existingDates);
 }
+function updateCadenceUI(){
+  const freq=document.getElementById('cadence-freq').value;
+  document.getElementById('cadence-weekly-row').style.display=freq==='week'?'flex':'none';
+  document.getElementById('cadence-monthly-row').style.display=freq==='month'?'flex':'none';
+  const monthlyType=document.getElementById('cadence-monthly-type').value;
+  document.getElementById('cadence-occurrence-group').style.display=monthlyType==='weekday-occurrence'?'flex':'none';
+  document.getElementById('cadence-dayofmonth-group').style.display=monthlyType==='day-of-month'?'flex':'none';
+}
 async function renderClubAdminCard(members,clubBooks){
   const membersEl=document.getElementById('club-admin-members');
   if(membersEl){
@@ -3789,9 +3870,15 @@ async function renderClubAdminCard(members,clubBooks){
     }).join('');
   }
   const{data:club}=await sb.from('book_clubs').select('meeting_cadence').eq('id',sharedClubId).single();
-  const cadence=(club&&club.meeting_cadence)||{type:'monthly',rule:'last-weekday',weekday:3};
-  const sel=document.getElementById('cadence-weekday-sel');
-  if(sel)sel.value=String(cadence.weekday!=null?cadence.weekday:3);
+  const cadence=(club&&club.meeting_cadence)||{freq:'month',interval:1,monthlyType:'weekday-occurrence',occurrence:-1,weekday:3};
+  document.getElementById('cadence-interval').value=cadence.interval||1;
+  document.getElementById('cadence-freq').value=cadence.freq||'month';
+  document.getElementById('cadence-weekly-weekday').value=String(cadence.freq==='week'&&cadence.weekday!=null?cadence.weekday:1);
+  document.getElementById('cadence-monthly-type').value=cadence.monthlyType||'weekday-occurrence';
+  document.getElementById('cadence-occurrence').value=String(cadence.occurrence!=null?cadence.occurrence:-1);
+  document.getElementById('cadence-monthly-weekday').value=String(cadence.freq!=='week'&&cadence.weekday!=null?cadence.weekday:3);
+  document.getElementById('cadence-dayofmonth').value=cadence.dayOfMonth||1;
+  updateCadenceUI();
   const existing=(clubBooks||[]).map(cb=>cb.meeting_date).filter(Boolean);
   const taken=[...existing];
   const dates=[];
@@ -3801,12 +3888,26 @@ async function renderClubAdminCard(members,clubBooks){
     dates.push(slot);taken.push(slot);
   }
   const el=document.getElementById('cadence-next-dates');
-  if(el)el.textContent=dates.length?`Next recommended dates: ${dates.map(fmtDateDMY).join(', ')}`:'No recommended dates yet.';
+  const summary=cadenceSummary(cadence);
+  if(el)el.textContent=dates.length?`${summary} - next: ${dates.map(fmtDateDMY).join(', ')}`:(summary?`${summary} - no recommended dates yet.`:'No recommended dates yet.');
 }
 async function saveCadence(){
   if(!sharedClubId||!isClubAdmin)return;
-  const weekday=parseInt(document.getElementById('cadence-weekday-sel').value,10);
-  const{error}=await sb.from('book_clubs').update({meeting_cadence:{type:'monthly',rule:'last-weekday',weekday}}).eq('id',sharedClubId);
+  const freq=document.getElementById('cadence-freq').value;
+  const interval=Math.max(1,parseInt(document.getElementById('cadence-interval').value,10)||1);
+  const cadence={freq,interval};
+  if(freq==='week'){
+    cadence.weekday=parseInt(document.getElementById('cadence-weekly-weekday').value,10);
+  }else{
+    cadence.monthlyType=document.getElementById('cadence-monthly-type').value;
+    if(cadence.monthlyType==='day-of-month'){
+      cadence.dayOfMonth=Math.min(31,Math.max(1,parseInt(document.getElementById('cadence-dayofmonth').value,10)||1));
+    }else{
+      cadence.weekday=parseInt(document.getElementById('cadence-monthly-weekday').value,10);
+      cadence.occurrence=parseInt(document.getElementById('cadence-occurrence').value,10);
+    }
+  }
+  const{error}=await sb.from('book_clubs').update({meeting_cadence:cadence}).eq('id',sharedClubId);
   if(error){alert('Failed to save cadence: '+error.message);return;}
   renderSharedClub();
 }
