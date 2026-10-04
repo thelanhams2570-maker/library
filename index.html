@@ -469,7 +469,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <!-- 7. Compact stats strip -->
   <div class="reports-grid">
     <div class="rcrd">
-      <h3>This year's reading goal</h3>
+      <h3 id="dash-goal-title">This year's reading goal</h3>
       <div class="chart-wrap" style="height:140px"><canvas id="dash-goal-chart"></canvas></div>
       <div id="dash-goal-summary" style="font-size:13px;color:var(--text2);margin-top:10px"></div>
     </div>
@@ -478,7 +478,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div id="dash-streak-summary" style="padding:10px 0"></div>
     </div>
     <div class="rcrd" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">
-      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">See the full breakdown — by author, series, genre and format.</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">See the full breakdown - by author, series, genre and format.</p>
       <button class="btn btn-outline" onclick="nav('reports')">View Insights →</button>
     </div>
   </div>
@@ -769,7 +769,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
     <div>
       <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Suggestion Backlog</div>
-      <div style="font-size:12px;color:var(--text2)">Books that were suggested but weren't drawn — logged for reference, never recycled into future draws</div>
+      <div style="font-size:12px;color:var(--text2)">Books that were suggested but weren't drawn - logged for reference, never recycled into future draws</div>
     </div>
     <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openBacklogForm()">+ Add Suggestion</button>
   </div>
@@ -777,7 +777,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
   <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
     <div>
-      <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Upcoming Releases</div>
+      <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Recent and upcoming releases</div>
       <div style="font-size:12px;color:var(--text2)">New books in series you or book club have already read</div>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px">
@@ -790,7 +790,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
   <div style="margin:28px 0 14px">
     <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Proposed Calendar</div>
-    <div style="font-size:12px;color:var(--text2)">A suggested running order for upcoming book club picks, one per meeting on the last Wednesday of the month — purely a starting point, adjust as you like</div>
+    <div style="font-size:12px;color:var(--text2)">A suggested running order for upcoming book club picks, one per meeting on the last Wednesday of the month - purely a starting point, adjust as you like</div>
   </div>
   <div id="proposed-calendar-list" style="display:flex;flex-direction:column;gap:8px"></div>
 
@@ -946,7 +946,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <div class="fg"><label>Published</label><input type="text" id="f-published-date" placeholder="e.g. 2023"></div>
       </div>
       <div class="fg">
-        <label>Reading History <span style="font-weight:400;color:var(--text3);font-size:11px">— one row per format you've read this in</span></label>
+        <label>Reading History <span style="font-weight:400;color:var(--text3);font-size:11px">- one row per format you've read this in</span></label>
         <div id="f-read-records"></div>
         <button type="button" class="btn btn-outline btn-sm" onclick="addReadRecordRow(false)">+ Add read record</button>
       </div>
@@ -974,7 +974,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <div class="fg"><label>GoodReads Rating</label><div style="padding-top:7px"><a href="#" onclick="event.preventDefault();openGoodreadsSearch('f')" style="color:var(--accent);font-size:13px">View on Goodreads ↗</a></div></div>
       </div>
       <div class="frow">
-        <div class="fg"><label>ISBN / ASIN</label><input type="text" id="f-isbn" placeholder="Optional — used for cover art"></div>
+        <div class="fg"><label>ISBN / ASIN</label><input type="text" id="f-isbn" placeholder="Optional - used for cover art"></div>
         <div class="fg"><label>Pages</label><input type="number" id="f-pages" min="0" placeholder="e.g. 320"></div>
       </div>
       <div id="scan-fill-status" style="font-size:12px;color:var(--text2);margin:-6px 0 10px"></div>
@@ -1036,7 +1036,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
   <div class="settings-card">
     <h2>Privacy</h2>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6">Your personal library stays private to your account. Book club meetings, RSVPs and ratings are visible to the other members of clubs you join. When you use an AI feature (recommendations, lookups), the book titles/authors involved are sent to Claude (Anthropic) to generate a response — no other personal data is included. Feedback you submit is readable only by the app owner.</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6">Your personal library stays private to your account. Book club meetings, RSVPs and ratings are visible to the other members of clubs you join. When you use an AI feature (recommendations, lookups), the book titles/authors involved are sent to Claude (Anthropic) to generate a response - no other personal data is included. Feedback you submit is readable only by the app owner.</p>
   </div>
   <div class="settings-card">
     <h2>Appearance</h2>
@@ -1077,7 +1077,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
   <div style="grid-column:1/-1;margin:var(--sp-4) 0 var(--sp-2)">
     <h1 style="font-family:var(--font-serif);font-size:22px;font-weight:600;margin-bottom:8px">Data tools</h1>
-    <p style="font-size:14px;color:var(--text2);line-height:1.6;max-width:640px">Housekeeping actions you run on demand — data hygiene, backups, and bulk cleanup.</p>
+    <p style="font-size:14px;color:var(--text2);line-height:1.6;max-width:640px">Housekeeping actions you run on demand - data hygiene, backups, and bulk cleanup.</p>
   </div>
   <div class="settings-card" style="grid-column:1/-1">
     <h2>The Archivist</h2>
@@ -1088,7 +1088,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     </div>
     <div class="archivist-tool">
       <button class="btn btn-outline" onclick="backfillLibrarySeries()"><svg class="ico" viewBox="0 0 24 24"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg> Backfill series info (AI)</button>
-      <p>Asks AI for the series name and book number for any book with no series set yet — 20 at a time, run again for more.</p>
+      <p>Asks AI for the series name and book number for any book with no series set yet - 20 at a time, run again for more.</p>
     </div>
     <div class="archivist-tool">
       <button class="btn btn-outline" onclick="backfillGenres()"><svg class="ico" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg> Backfill genres (AI)</button>
@@ -1104,11 +1104,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     </div>
     <div class="archivist-tool">
       <button class="btn btn-outline" onclick="findSimilarNames('series')"><svg class="ico" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg> Find similar series names</button>
-      <p>Scans your series names for likely duplicates (e.g. "ACOTAR" vs "A Court of Thorns and Roses") — you approve each merge. Checks up to 60 at a time.</p>
+      <p>Scans your series names for likely duplicates (e.g. "ACOTAR" vs "A Court of Thorns and Roses") - you approve each merge. Checks up to 60 at a time.</p>
     </div>
     <div class="archivist-tool">
       <button class="btn btn-outline" onclick="findSimilarNames('author')"><svg class="ico" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg> Find similar author names</button>
-      <p>Same idea, for author names — catches spelling variants and name-order differences.</p>
+      <p>Same idea, for author names - catches spelling variants and name-order differences.</p>
     </div>
     <div class="archivist-tool">
       <button class="btn btn-outline" onclick="normalizeAllAuthors()"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg> Normalize author names</button>
@@ -1220,7 +1220,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div class="fg"><label>Published</label><input type="text" id="m-published-date" placeholder="e.g. 2023"></div>
     </div>
     <div class="fg">
-      <label>Reading History <span style="font-weight:400;color:var(--text3);font-size:11px">— one row per format you've read this in</span></label>
+      <label>Reading History <span style="font-weight:400;color:var(--text3);font-size:11px">- one row per format you've read this in</span></label>
       <div id="m-read-records"></div>
       <button type="button" class="btn btn-outline btn-sm" onclick="addReadRecordRow(true)">+ Add read record</button>
     </div>
@@ -1258,7 +1258,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     </div>
     <div class="fg"><label>Notes</label><textarea id="m-notes" rows="2"></textarea></div>
     <div class="fg"><label>Favorite quote</label><textarea id="m-favorite-quote" rows="2" placeholder="A line that stuck with you"></textarea></div>
-    <div class="fg"><label>Mood / vibe tags <span style="font-weight:400;color:var(--text3);font-size:11px">— comma separated</span></label><input type="text" id="m-mood-tags" placeholder="e.g. cozy, slow-burn, found-family"></div>
+    <div class="fg"><label>Mood / vibe tags <span style="font-weight:400;color:var(--text3);font-size:11px">- comma separated</span></label><input type="text" id="m-mood-tags" placeholder="e.g. cozy, slow-burn, found-family"></div>
     <div class="modal-actions">
       <button class="btn btn-danger btn-sm" onclick="deleteBook(currentId)">Delete</button>
       <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
@@ -1519,7 +1519,7 @@ function renameClub(){
 }
 function deleteClub(){
   const data=getBCData();
-  if(data.clubs.length<=1){alert("You need at least one book club — can't delete the last one.");return;}
+  if(data.clubs.length<=1){alert("You need at least one book club - can't delete the last one.");return;}
   const club=data.clubs.find(c=>c.id===data.activeClubId);
   if(!confirm(`Delete "${club.name}" and all ${club.meetings.length} of its meetings? This can't be undone.`))return;
   data.clubs=data.clubs.filter(c=>c.id!==data.activeClubId);
@@ -1583,7 +1583,7 @@ async function requireAuth(){
       const{data,error}=await sb.auth.signUp({email,password});
       btn.disabled=false;btn.textContent='Create account';
       if(error){errEl.textContent=error.message;return;}
-      if(!data.session){errEl.textContent='Account created — check your email to confirm, then sign in.';return;}
+      if(!data.session){errEl.textContent='Account created - check your email to confirm, then sign in.';return;}
       await sb.from('profiles').update({first_name:first,last_name:last}).eq('id',data.user.id);
       gate.classList.remove('open');
       resolve(data.session);
@@ -1712,18 +1712,18 @@ async function findSimilarNames(type){
   const names=allNames.slice(0,BATCH);
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Asking AI to compare ${names.length} ${type} names…</div>`;
   try{
-    const prompt=`Here is a list of ${type} names from a personal book library, as a JSON array: ${JSON.stringify(names)}. Identify pairs that most likely refer to the exact same ${type} but are written differently — abbreviations, alternate titles, "and"/"&", subtitle differences, spelling variants, or name order. Only include pairs you are genuinely confident are duplicates, not just similar-sounding different things. Return ONLY valid JSON, no other text: [{"a":"name one","b":"name two","reason":"short reason"}]. Return an empty array [] if none found.`;
+    const prompt=`Here is a list of ${type} names from a personal book library, as a JSON array: ${JSON.stringify(names)}. Identify pairs that most likely refer to the exact same ${type} but are written differently - abbreviations, alternate titles, "and"/"&", subtitle differences, spelling variants, or name order. Only include pairs you are genuinely confident are duplicates, not just similar-sounding different things. Return ONLY valid JSON, no other text: [{"a":"name one","b":"name two","reason":"short reason"}]. Return an empty array [] if none found.`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
     if(!jsonMatch)throw new Error('AI did not return valid JSON. Raw response: '+(text?text.slice(0,200):'(empty)'));
     let pairs;
     try{pairs=JSON.parse(jsonMatch[0]);}
-    catch(parseErr){throw new Error('AI response was cut off or malformed — try again, or there may be too many '+type+' names to compare in one go.');}
+    catch(parseErr){throw new Error('AI response was cut off or malformed - try again, or there may be too many '+type+' names to compare in one go.');}
     pairs=pairs.filter(p=>p.a&&p.b&&names.includes(p.a)&&names.includes(p.b)&&p.a!==p.b);
-    const moreNote=allNames.length>BATCH?` (checked first ${BATCH} of ${allNames.length} — run again to check more)`:'';
+    const moreNote=allNames.length>BATCH?` (checked first ${BATCH} of ${allNames.length} - run again to check more)`:'';
     if(!pairs.length){st.textContent=`No likely duplicate ${type} names found${moreNote}.`;return;}
-    st.textContent=`Found ${pairs.length} possible duplicate pair${pairs.length!==1?'s':''}${moreNote} — review below:`;
+    st.textContent=`Found ${pairs.length} possible duplicate pair${pairs.length!==1?'s':''}${moreNote} - review below:`;
     out.innerHTML=pairs.map((p,i)=>{
       const countA=books.filter(b=>b[field]===p.a).length;
       const countB=books.filter(b=>b[field]===p.b).length;
@@ -1757,7 +1757,7 @@ function normalizeAllAuthors(){
     const n=normalizeAuthorName(b.author);
     if(n!==b.author){b.author=n;changed++;}
   });
-  if(!changed){st.textContent='All author names are already "First Last" — nothing to change.';return;}
+  if(!changed){st.textContent='All author names are already "First Last" - nothing to change.';return;}
   save();
   if(currentPanel()==='library')renderLib();
   if(currentPanel()==='authors')renderAuthors();
@@ -1823,8 +1823,8 @@ function computePace(read,goal){
   const onTrack=finishDate<=dec31;
   const dateStr=finishDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:finishDate.getFullYear()!==yr?'numeric':undefined});
   return onTrack
-    ?`On track — at ${pace.toFixed(1)} books/week you'll hit ${goal} by ~${dateStr}.`
-    :`Behind pace — at ${pace.toFixed(1)} books/week you'd reach ${goal} around ${dateStr}.`;
+    ?`On track - at ${pace.toFixed(1)} books/week you'll hit ${goal} by ~${dateStr}.`
+    :`Behind pace - at ${pace.toFixed(1)} books/week you'd reach ${goal} around ${dateStr}.`;
 }
 function updateGoalWidget(){const yr=new Date().getFullYear();const goal=getGoal(yr);const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr))).length;if(!goal){document.getElementById('goal-widget').style.display='none';return;}const pct=Math.min(100,Math.round(read/goal*100));document.getElementById('goal-widget').style.display='block';document.getElementById('goal-label').textContent=`${read}/${goal}`;document.getElementById('goal-bar').style.width=pct+'%';document.getElementById('goal-pct').textContent=pct+'%';const paceEl=document.getElementById('goal-pace');if(paceEl)paceEl.textContent=computePace(read,goal);}
 
@@ -1884,7 +1884,7 @@ async function autoFillFromLookup(){
     }catch(e){/* best-effort */}
   }
   const dupMsg=st&&st.innerHTML.includes('Already in your library');
-  if(st&&!dupMsg)st.textContent=foundAny?'Auto-filled what we could find — double-check before saving.':'';
+  if(st&&!dupMsg)st.textContent=foundAny?'Auto-filled what we could find - double-check before saving.':'';
 }
 function bookInBookClub(b){return getAllBCMeetings().some(m=>m.bookId===b.id||(m.bookTitle&&titlesMatch(m.bookTitle,b.title)&&(m.bookAuthor||'').trim().toLowerCase()===(b.author||'').trim().toLowerCase()));}
 
@@ -2014,7 +2014,7 @@ function formatIconRow(b){
     const owned=(b.formats||[]).includes(f);
     const read=(b.readRecords||[]).some(r=>r.format===f);
     const cls=read?'fmt-read':owned?'fmt-owned':'';
-    const label=read?`${f} — read`:owned?`${f} — owned`:`${f} — not owned`;
+    const label=read?`${f} - read`:owned?`${f} - owned`:`${f} - not owned`;
     return`<span class="fmt-icon ${cls}" title="${esc(label)}">${FMT_ICO[f]||''}</span>`;
   }).join('')}</div>`;
 }
@@ -2388,7 +2388,7 @@ async function runSeriesAutoQueue(){
           if(currentPanel()==='series')renderSeries();
         }
       }
-    }catch(e){/* silent — local numbering gaps still show; manual Refresh button still works */}
+    }catch(e){/* silent - local numbering gaps still show; manual Refresh button still works */}
     await new Promise(r=>setTimeout(r,700));
   }
   seriesAutoBusy=false;
@@ -2623,7 +2623,7 @@ async function renderDashWelcome(){
   if(!el)return;
   const name=(myProfile&&myProfile.first_name)||'';
   if(!books.length){
-    el.innerHTML=`Welcome${name?', '+esc(name):''} — your library's empty so far. <a href="#" onclick="event.preventDefault();nav('add');setAddTab('import')" style="color:var(--accent)">Import from Goodreads/Audible/Kindle</a>, or <a href="#" onclick="event.preventDefault();nav('add')" style="color:var(--accent)">add your first book</a>.`;
+    el.innerHTML=`Welcome${name?', '+esc(name):''} - your library's empty so far. <a href="#" onclick="event.preventDefault();nav('add');setAddTab('import')" style="color:var(--accent)">Import from Goodreads/Audible/Kindle</a>, or <a href="#" onclick="event.preventDefault();nav('add')" style="color:var(--accent)">add your first book</a>.`;
     return;
   }
   const parts=[`Welcome back${name?', '+name:''}.`];
@@ -2672,7 +2672,7 @@ function renderDashUpNext(){
     ...continuations.map(c=>({title:c.title,author:c.author,tag:`${ICON.bookStack} Continue series`,sub:c.reason})),
     ...releases.map(u=>({title:u.book,author:u.author,tag:`${ICON.bookmark} Upcoming release`,sub:u.releaseDate?`Releases ${fmtDateDMY(u.releaseDate)}`:''}))
   ];
-  if(!items.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing queued up yet — rate some books or track an upcoming release.</p></div>`;return;}
+  if(!items.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing queued up yet - rate some books or track an upcoming release.</p></div>`;return;}
   grid.innerHTML=items.map(it=>`<div class="bc-meeting">
     <div style="font-size:11px;color:var(--series);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:4px">${it.tag}</div>
     <div style="font-weight:500;font-size:13px">${esc(it.title)}</div>
@@ -2688,7 +2688,7 @@ function dashGlobalSearch(q){
   const matches=books.filter(b=>b.title.toLowerCase().includes(ql)||b.author.toLowerCase().includes(ql)).slice(0,8);
   const qEsc=esc(q).replace(/'/g,"\\'");
   if(!matches.length){
-    pop.innerHTML=`<div class="dash-search-row" style="color:var(--accent)" onclick="dashGlobalSearchAdd('${qEsc}')">Not in your library — add "${esc(q)}"?</div>`;
+    pop.innerHTML=`<div class="dash-search-row" style="color:var(--accent)" onclick="dashGlobalSearchAdd('${qEsc}')">Not in your library - add "${esc(q)}"?</div>`;
   }else{
     pop.innerHTML=matches.map(b=>`<div class="dash-search-row" onclick="dashGlobalSearchOpen('${b.id}')"><strong>${esc(b.title)}</strong> <span style="color:var(--text3)">by ${esc(b.author)}</span></div>`).join('')
       +`<div class="dash-search-row" style="color:var(--accent)" onclick="dashGlobalSearchAdd('${qEsc}')">Not the one? Add "${esc(q)}" as new</div>`;
@@ -2737,6 +2737,8 @@ function dashRecsAsk(){
 }
 function renderDashGoalChart(){
   const yr=new Date().getFullYear();
+  const titleEl=document.getElementById('dash-goal-title');
+  if(titleEl)titleEl.textContent=`${yr} reading goal progress`;
   const goal=getGoal(yr);
   const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr)));
   const byMonth=Array(12).fill(0);
@@ -2748,7 +2750,7 @@ function renderDashGoalChart(){
   }
   const summary=document.getElementById('dash-goal-summary');
   if(summary){
-    if(goal)summary.innerHTML=`${read.length} of ${goal} read in ${yr} (${Math.round(read.length/goal*100)}%)<br><span style="color:var(--text3)">${esc(computePace(read.length,goal))}</span>`;
+    if(goal)summary.innerHTML=`${read.length} of ${goal} read in ${yr} (${Math.round(read.length/goal*100)}%)`;
     else summary.innerHTML=`${read.length} read in ${yr}. <a href="#" onclick="event.preventDefault();nav('settings')" style="color:var(--accent)">Set a goal</a> to track progress.`;
   }
 }
@@ -2758,7 +2760,7 @@ function renderDashReading(){
   const reading=books.filter(b=>b.status==='reading');
   const nudge=document.getElementById('dash-reading-nudge');
   if(nudge){
-    if(reading.length>5){nudge.style.display='';nudge.textContent=`+${reading.length-4} more — view all`;}
+    if(reading.length>5){nudge.style.display='';nudge.textContent=`+${reading.length-4} more - view all`;}
     else nudge.style.display='none';
   }
   if(!reading.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing in progress right now.</p></div>`;return;}
@@ -2905,7 +2907,7 @@ function renderReportSummary(){
   },50);
 }
 
-function renderReportAuthor(){const rb=getReportBooks();const map={};rb.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),totalRating:0,ratedN:0};if(b.status==='read'){map[a].read++;if(b.rating){map[a].totalRating+=b.rating;map[a].ratedN++;}}if(['owned','reading'].includes(b.status))map[a].owned++;if(['tbr','want','wishlist'].includes(b.status))map[a].want++;if(b.status==='dnf')map[a].dnf++;[...(b.formats||[]),...(b.borrowedFormats||[])].forEach(f=>map[a].formats.add(f));});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-author');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.person}</div><p>No data.</p></div>`;return;}el.innerHTML=`<div class="table-wrap"><table class="rtable"><thead><tr><th>Author</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Avg ★</th><th>Formats</th></tr></thead><tbody>${rows.map(a=>{const avg=a.ratedN?(a.totalRating/a.ratedN).toFixed(1):'—';const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');return`<tr><td style="cursor:pointer;color:var(--accent)" onclick="navToAuthor('${esc(a.name)}')">${esc(a.name)}</td><td class="num">${a.read}</td><td class="num">${a.owned}</td><td class="num">${a.want}</td><td class="num">${a.dnf||0}</td><td class="num">${avg}</td><td>${fmts}</td></tr>`;}).join('')}</tbody></table></div>`;}
+function renderReportAuthor(){const rb=getReportBooks();const map={};rb.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),totalRating:0,ratedN:0};if(b.status==='read'){map[a].read++;if(b.rating){map[a].totalRating+=b.rating;map[a].ratedN++;}}if(['owned','reading'].includes(b.status))map[a].owned++;if(['tbr','want','wishlist'].includes(b.status))map[a].want++;if(b.status==='dnf')map[a].dnf++;[...(b.formats||[]),...(b.borrowedFormats||[])].forEach(f=>map[a].formats.add(f));});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-author');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.person}</div><p>No data.</p></div>`;return;}el.innerHTML=`<div class="table-wrap"><table class="rtable"><thead><tr><th>Author</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Avg ★</th><th>Formats</th></tr></thead><tbody>${rows.map(a=>{const avg=a.ratedN?(a.totalRating/a.ratedN).toFixed(1):'-';const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');return`<tr><td style="cursor:pointer;color:var(--accent)" onclick="navToAuthor('${esc(a.name)}')">${esc(a.name)}</td><td class="num">${a.read}</td><td class="num">${a.owned}</td><td class="num">${a.want}</td><td class="num">${a.dnf||0}</td><td class="num">${avg}</td><td>${fmts}</td></tr>`;}).join('')}</tbody></table></div>`;}
 
 function renderReportSeries(){
   const rb=getReportBooks();const map={};
@@ -2929,8 +2931,8 @@ function renderReportSeries(){
         <td class="num ${s.missing>0?'':'series-complete'}" style="${s.missing>0?'color:var(--danger)':''}">${s.missing>0?s.missing:'✓'}</td>
         <td><div>${readPct}%</div><div class="pct-bar"><div class="pct-fill" style="width:${readPct}%"></div></div></td>
         <td><div>${ownedPct}%</div><div class="pct-bar"><div class="pct-fill" style="width:${ownedPct}%;background:var(--owned)"></div></div></td>
-        <td><div class="series-pct-row">${fmtPills||'—'}</div></td>
-        <td><div class="series-pct-row">${borrowPills||'—'}</div></td>
+        <td><div class="series-pct-row">${fmtPills||'-'}</div></td>
+        <td><div class="series-pct-row">${borrowPills||'-'}</div></td>
       </tr>`;
     }).join('')}</tbody>
   </table>
@@ -2939,7 +2941,7 @@ function renderReportSeries(){
 
 function renderReportGenre(){const rb=getReportBooks();const map={};rb.forEach(b=>{(b.genre||[]).forEach(g=>{if(!map[g])map[g]={name:g,read:0,owned:0,want:0,dnf:0};if(b.status==='read')map[g].read++;else if(b.status==='reading')map[g].owned++;else if(b.status==='dnf')map[g].dnf++;else map[g].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-genre');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.tag}</div><p>No genre data. Add genres when editing books.</p></div>`;return;}el.innerHTML=`<div class="reports-grid"><div class="rcrd" style="grid-column:1/-1"><h3>Genre breakdown</h3><div class="chart-wrap" style="height:${Math.max(180,rows.length*28)}px"><canvas id="ch-genre"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Genre</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.dnf||0}</td><td class="num">${r.read+r.owned+r.want+r.dnf}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{if(currentPanel()!=='reports')return;const ctx=document.getElementById('ch-genre');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.genre=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Read',data:rows.map(r=>r.read),backgroundColor:BRAND.forest},{label:'Owned',data:rows.map(r=>r.owned),backgroundColor:BRAND.terracottaText},{label:'Want',data:rows.map(r=>r.want),backgroundColor:BRAND.muted}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true,ticks:{precision:0}},y:{stacked:true}}}});}},50);}
 
-function renderReportFormat(){const rb=getReportBooks();const map={};rb.forEach(b=>{const allFmts=[...(b.formats||[]).map(f=>({f,type:'owned'})),...(b.borrowedFormats||[]).map(f=>({f,type:'borrowed'}))];(allFmts.length?allFmts:[{f:'Unknown',type:'owned'}]).forEach(({f,type})=>{if(!map[f])map[f]={name:f,read:0,owned:0,want:0,borrowed:0};if(b.status==='read')map[f].read++;else if(b.status==='reading')map[f].owned++;else map[f].want++;if(type==='borrowed')map[f].borrowed++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read);const el=document.getElementById('rpanel-format');el.innerHTML=`<div class="reports-grid"><div class="rcrd"><h3>Format — books read</h3><div class="chart-wrap"><canvas id="ch-fmt-read"></canvas></div></div><div class="rcrd"><h3>Format — all books</h3><div class="chart-wrap"><canvas id="ch-fmt-all"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Format</th><th>Read</th><th>Owned Unread</th><th>Want</th><th>Borrowed</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${FMT_ICO[r.name]||''} ${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.borrowed}</td><td class="num">${r.read+r.owned+r.want}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const mk=(id,data)=>{const ctx=document.getElementById(id);if(!ctx)return;return new Chart(ctx,{type:'doughnut',data:{labels:data.map(r=>r.name),datasets:[{data:data.map(r=>r.n),backgroundColor:data.map(r=>FMT_C[r.name]||BRAND.muted),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});};chartInst.fr=mk('ch-fmt-read',rows.map(r=>({name:r.name,n:r.read})));chartInst.fa=mk('ch-fmt-all',rows.map(r=>({name:r.name,n:r.read+r.owned+r.want})));},50);}
+function renderReportFormat(){const rb=getReportBooks();const map={};rb.forEach(b=>{const allFmts=[...(b.formats||[]).map(f=>({f,type:'owned'})),...(b.borrowedFormats||[]).map(f=>({f,type:'borrowed'}))];(allFmts.length?allFmts:[{f:'Unknown',type:'owned'}]).forEach(({f,type})=>{if(!map[f])map[f]={name:f,read:0,owned:0,want:0,borrowed:0};if(b.status==='read')map[f].read++;else if(b.status==='reading')map[f].owned++;else map[f].want++;if(type==='borrowed')map[f].borrowed++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read);const el=document.getElementById('rpanel-format');el.innerHTML=`<div class="reports-grid"><div class="rcrd"><h3>Format - books read</h3><div class="chart-wrap"><canvas id="ch-fmt-read"></canvas></div></div><div class="rcrd"><h3>Format - all books</h3><div class="chart-wrap"><canvas id="ch-fmt-all"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Format</th><th>Read</th><th>Owned Unread</th><th>Want</th><th>Borrowed</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${FMT_ICO[r.name]||''} ${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.borrowed}</td><td class="num">${r.read+r.owned+r.want}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const mk=(id,data)=>{const ctx=document.getElementById(id);if(!ctx)return;return new Chart(ctx,{type:'doughnut',data:{labels:data.map(r=>r.name),datasets:[{data:data.map(r=>r.n),backgroundColor:data.map(r=>FMT_C[r.name]||BRAND.muted),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});};chartInst.fr=mk('ch-fmt-read',rows.map(r=>({name:r.name,n:r.read})));chartInst.fa=mk('ch-fmt-all',rows.map(r=>({name:r.name,n:r.read+r.owned+r.want})));},50);}
 
 // ═══════════ COVER LOOKUP (shared) ═══════════
 async function lookupCoverUrl(title,author){
@@ -2981,7 +2983,7 @@ function buildContinuationRecs(){
     s.books.forEach(b=>(b.genre||[]).forEach(g=>genreSet.add(g)));
     recs.push({
       title:next.title,author:s.authors,genre:[...genreSet][0]||'',
-      reason:`Next in ${s.name} — you've read ${readN} of ${cached.books.length}`,
+      reason:`Next in ${s.name} - you've read ${readN} of ${cached.books.length}`,
       pages:null,format:bestFmt?bestFmt[0]:'',kind:'continuation',
       series:s.name,seriesNumber:next.num||''
     });
@@ -3004,7 +3006,7 @@ async function getRecs(){
   try{
     if(topBooks.length){
       const exclude=[...myTitles,...continuations.map(c=>normTitle(c.title))];
-      const prompt=`Based on these highly-rated books: ${topBooks.map(b=>`"${b.title}" by ${b.author} (${b.rating}★, genres: ${(b.genre||[]).join(', ')||'unknown'})`).join('; ')} — recommend 10 NEW books (not sequels to series already covered) the reader would love that they haven't read yet. For each, also estimate: an approximate print page count (integer); whichever single format — Ebook, Audiobook, or Hardcopy — best suits that specific book's style (e.g. narration-driven or full-cast books suit Audiobook; dense reference or heavily-illustrated books suit Ebook/Hardcopy); and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate, not a rating of how well it matches). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence why they'd love it based on their reading taste","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${exclude.slice(0,40).join(', ')}.`;
+      const prompt=`Based on these highly-rated books: ${topBooks.map(b=>`"${b.title}" by ${b.author} (${b.rating}★, genres: ${(b.genre||[]).join(', ')||'unknown'})`).join('; ')} - recommend 10 NEW books (not sequels to series already covered) the reader would love that they haven't read yet. For each, also estimate: an approximate print page count (integer); whichever single format - Ebook, Audiobook, or Hardcopy - best suits that specific book's style (e.g. narration-driven or full-cast books suit Audiobook; dense reference or heavily-illustrated books suit Ebook/Hardcopy); and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate, not a rating of how well it matches). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence why they'd love it based on their reading taste","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${exclude.slice(0,40).join(', ')}.`;
       const raw=await askClaude(prompt);
       const text=aiStr(raw);
       const jsonMatch=text.match(/\[[\s\S]*\]/);
@@ -3033,8 +3035,8 @@ async function getRecsNL(){
   try{
     const topBooks=books.filter(b=>b.status==='read'&&b.rating>=4).sort((a,b)=>(b.rating||0)-(a.rating||0)).slice(0,10);
     const myTitles=[...new Set(books.map(b=>normTitle(b.title)))];
-    const context=topBooks.length?`\n\nFor minor tone/pacing calibration ONLY — never let this override or broaden the genre of the request above — they have also separately rated these highly: ${topBooks.map(b=>`"${b.title}" by ${b.author}`).join('; ')}.`:'';
-    const prompt=`The reader typed this specific recommendation request: "${q}"\n\nTreat this request as the primary and complete instruction. Match the genre, subject matter, and style it describes or implies as closely as possible, even where that differs from the reader's general reading history. If a specific book or author is named, infer genre/tone/comparable titles from that specific book itself — do not substitute a different genre just because it appears more often in the reader's history below. If unfamiliar with a named book, make your best judgement from its title and any details given in the request, rather than defaulting to an unrelated genre.${context}\n\nRecommend up to 8 books matching the request as closely as possible. For each, estimate genre, an approximate print page count (integer), whichever single format — Ebook, Audiobook, or Hardcopy — best suits that specific book, and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence tying it to their request","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${myTitles.slice(0,40).join(', ')}.`;
+    const context=topBooks.length?`\n\nFor minor tone/pacing calibration ONLY - never let this override or broaden the genre of the request above - they have also separately rated these highly: ${topBooks.map(b=>`"${b.title}" by ${b.author}`).join('; ')}.`:'';
+    const prompt=`The reader typed this specific recommendation request: "${q}"\n\nTreat this request as the primary and complete instruction. Match the genre, subject matter, and style it describes or implies as closely as possible, even where that differs from the reader's general reading history. If a specific book or author is named, infer genre/tone/comparable titles from that specific book itself - do not substitute a different genre just because it appears more often in the reader's history below. If unfamiliar with a named book, make your best judgement from its title and any details given in the request, rather than defaulting to an unrelated genre.${context}\n\nRecommend up to 8 books matching the request as closely as possible. For each, estimate genre, an approximate print page count (integer), whichever single format - Ebook, Audiobook, or Hardcopy - best suits that specific book, and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence tying it to their request","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${myTitles.slice(0,40).join(', ')}.`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
@@ -3215,7 +3217,7 @@ function copyInviteLink(){
     const orig=btn.textContent;
     btn.textContent='Copied!';
     setTimeout(()=>{btn.textContent=orig;},1500);
-  }).catch(()=>alert('Could not copy — here is the link:\n'+url));
+  }).catch(()=>alert('Could not copy - here is the link:\n'+url));
 }
 async function handleJoinLinkIfPresent(){
   const params=new URLSearchParams(location.search);
@@ -3420,9 +3422,9 @@ function saveUpcoming(list){localStorage.setItem(UPK,JSON.stringify(list));cloud
 const UP_SEED=[
   {id:'up1',series:'A Court of Thorns and Roses',book:'A Court of Splintered Harmony',author:'Sarah J. Maas',releaseDate:'2026-10-27',note:'ACOTAR Book 6'},
   {id:'up2',series:'A Court of Thorns and Roses',book:'A Court of Forgotten Melody',author:'Sarah J. Maas',releaseDate:'2027-01-12',note:'ACOTAR Book 7'},
-  {id:'up3',series:'Metal Slinger',book:'Light Wielder',author:'Rachel Schneider',releaseDate:'2026-06-11',note:'Conclusion to Metal Slinger — already released'},
-  {id:'up4',series:'Crowns of Nyaxia',book:'The Lion & the Deathless Dark',author:'Carissa Broadbent',releaseDate:'2026-08-04',note:'Book 5, first in the Bloodborn Duet — already released. Series is planned for 6 books; no date yet for Book 6.'},
-  {id:'up5',series:'Fae & Alchemy',book:'Untitled (Fae & Alchemy #3)',author:'Callie Hart',releaseDate:'2027-09-07',note:'Sequel to Quicksilver and Brimstone — no title yet, and the date has already slipped twice (originally Fall 2025), so treat it as tentative.'},
+  {id:'up3',series:'Metal Slinger',book:'Light Wielder',author:'Rachel Schneider',releaseDate:'2026-06-11',note:'Conclusion to Metal Slinger - already released'},
+  {id:'up4',series:'Crowns of Nyaxia',book:'The Lion & the Deathless Dark',author:'Carissa Broadbent',releaseDate:'2026-08-04',note:'Book 5, first in the Bloodborn Duet - already released. Series is planned for 6 books; no date yet for Book 6.'},
+  {id:'up5',series:'Fae & Alchemy',book:'Untitled (Fae & Alchemy #3)',author:'Callie Hart',releaseDate:'2027-09-07',note:'Sequel to Quicksilver and Brimstone - no title yet, and the date has already slipped twice (originally Fall 2025), so treat it as tentative.'},
 ];
 function seedUpcoming(){
   const existing=getUpcoming();
@@ -3496,7 +3498,7 @@ function renderProposedCalendar(){
   const el=document.getElementById('proposed-calendar-list');
   if(!el)return;
   const proposals=proposeBookClubCalendar();
-  if(!proposals.length){el.innerHTML=`<div class="empty"><p style="font-size:12px;color:var(--text3)">No book-club-pick upcoming releases to schedule yet. Mark releases as book club picks in Upcoming Releases, or check for sequels above.</p></div>`;return;}
+  if(!proposals.length){el.innerHTML=`<div class="empty"><p style="font-size:12px;color:var(--text3)">No book-club-pick upcoming releases to schedule yet. Mark releases as book club picks in Recent and upcoming releases, or check for sequels above.</p></div>`;return;}
   el.innerHTML=proposals.map(p=>`<div class="proposed-row">
     <div class="proposed-month">${esc(p.monthLabel)}<div class="proposed-date">${esc(fmtDateDMY(p.proposedDate))} (last Wed)</div></div>
     <div class="proposed-body">
@@ -3548,13 +3550,13 @@ async function searchOLForSuggestion(){
     const data=await res.json();
     const docs=data.docs||[];
     olSuggestionSearchResults=docs;
-    if(!docs.length){st.textContent="No matches — that's fine, you can still save it as typed.";return;}
+    if(!docs.length){st.textContent="No matches - that's fine, you can still save it as typed.";return;}
     st.textContent='Pick a match, or just save what you typed:';
     resultsEl.innerHTML=docs.map((r,i)=>{
       const author=(r.author_name||[]).slice(0,2).join(', ')||'Unknown author';
-      return`<button type="button" class="btn btn-outline btn-sm" style="justify-content:flex-start;text-align:left;width:100%" onclick="useSuggestionSearchResult(${i})">${esc(r.title)} <span style="color:var(--text3)">— ${esc(author)}</span></button>`;
+      return`<button type="button" class="btn btn-outline btn-sm" style="justify-content:flex-start;text-align:left;width:100%" onclick="useSuggestionSearchResult(${i})">${esc(r.title)} <span style="color:var(--text3)">- ${esc(author)}</span></button>`;
     }).join('');
-  }catch(e){st.textContent="Search failed — you can still save it as typed.";}
+  }catch(e){st.textContent="Search failed - you can still save it as typed.";}
 }
 let olSuggestionSearchResults=[];
 function useSuggestionSearchResult(i){
@@ -3624,7 +3626,7 @@ async function checkForSequels(){
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Asking AI to check for upcoming releases in ${series.length} series…</div>`;
   try{
     const existing=getUpcoming().map(u=>u.book.toLowerCase());
-    const prompt=`For each of these book series, tell me if there is a confirmed or announced upcoming/new release (a book not yet widely considered "old news") that continues the series. Only include ones you are reasonably confident about — skip any you're unsure of. Return ONLY valid JSON array: [{"series":"...","book":"...","author":"...","releaseDate":"YYYY-MM-DD (or YYYY-MM or YYYY if exact day unknown)","note":"..."}]. If none, return []. Series: ${series.join('; ')}`;
+    const prompt=`For each of these book series, tell me if there is a confirmed or announced upcoming/new release (a book not yet widely considered "old news") that continues the series. Only include ones you are reasonably confident about - skip any you're unsure of. Return ONLY valid JSON array: [{"series":"...","book":"...","author":"...","releaseDate":"YYYY-MM-DD (or YYYY-MM or YYYY if exact day unknown)","note":"..."}]. If none, return []. Series: ${series.join('; ')}`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
@@ -3634,11 +3636,11 @@ async function checkForSequels(){
     let added=0;
     results.forEach(r=>{
       if(!r.book||existing.includes(String(r.book).toLowerCase()))return;
-      list.push({id:genId(),series:r.series||'',book:r.book,author:r.author||'',releaseDate:r.releaseDate||'',note:(r.note||'')+' (AI-found — please verify)'});
+      list.push({id:genId(),series:r.series||'',book:r.book,author:r.author||'',releaseDate:r.releaseDate||'',note:(r.note||'')+' (AI-found - please verify)'});
       added++;
     });
     saveUpcoming(list);renderUpcoming();
-    st.textContent=added?`Found ${added} new possible release(s) — please verify dates before relying on them.`:'No new releases found beyond what you already have.';
+    st.textContent=added?`Found ${added} new possible release(s) - please verify dates before relying on them.`:'No new releases found beyond what you already have.';
   }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 function renderSeriesRead(){
@@ -3651,7 +3653,7 @@ function renderSeriesRead(){
   if(!names.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No series tagged yet. Add a series when logging a meeting, or use "Backfill series info" below.</p></div>`;return;}
   grid.innerHTML=names.map(n=>{
     const entries=map[n].sort((a,b)=>(a.seriesNumber||'').localeCompare(b.seriesNumber||'',undefined,{numeric:true}));
-    return`<div class="bc-meeting"><div class="bc-meeting-title" style="margin-bottom:6px">${esc(n)}</div>${entries.map(e=>`<div style="font-size:11px;color:var(--text2)">#${esc(e.seriesNumber||'?')} — ${esc(e.bookTitle)}</div>`).join('')}</div>`;
+    return`<div class="bc-meeting"><div class="bc-meeting-title" style="margin-bottom:6px">${esc(n)}</div>${entries.map(e=>`<div style="font-size:11px;color:var(--text2)">#${esc(e.seriesNumber||'?')} - ${esc(e.bookTitle)}</div>`).join('')}</div>`;
   }).join('');
 }
 async function backfillBCSeries(){
@@ -3671,7 +3673,7 @@ async function backfillBCSeries(){
     results.forEach(r=>{const m=toFill.find(mm=>normTitle(mm.bookTitle)===normTitle(r.title));if(m&&r.series){m.series=r.series;m.seriesNumber=r.seriesNumber||'';updated++;}});
     saveBCMeetings(meetings);
     renderBCMeetings();renderUpcoming();renderSeriesRead();
-    st.textContent=`Series info added for ${updated} meetings — double-check accuracy, AI estimates can be wrong.`;
+    st.textContent=`Series info added for ${updated} meetings - double-check accuracy, AI estimates can be wrong.`;
   }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 
@@ -3814,7 +3816,7 @@ async function backfillGenres(){
     let updated=0;
     matchAiBatch(batch,results).forEach(([b,r])=>{if(b&&r.genres&&r.genres.length){b.genre=r.genres;updated++;}});
     save();renderLib();
-    st.textContent=`Genres added for ${updated} books.${toFill.length>20?` (${toFill.length-20} more — run again for the rest)`:''}`;}
+    st.textContent=`Genres added for ${updated} books.${toFill.length>20?` (${toFill.length-20} more - run again for the rest)`:''}`;}
   catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 
@@ -3834,7 +3836,7 @@ async function backfillLibrarySeries(){
     let updated=0;
     matchAiBatch(batch,results).forEach(([b,r])=>{if(b&&r.series){b.series=r.series;b.seriesNumber=r.seriesNumber||'';updated++;}});
     save();renderLib();
-    st.textContent=`Series info added for ${updated} books — double-check accuracy, AI estimates can be wrong.${toFill.length>20?` (${toFill.length-20} more — run again for the rest)`:''}`;
+    st.textContent=`Series info added for ${updated} books - double-check accuracy, AI estimates can be wrong.${toFill.length>20?` (${toFill.length-20} more - run again for the rest)`:''}`;
   }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 async function backfillPages(){
@@ -3871,7 +3873,7 @@ async function backfillPages(){
       let estimated=0;
       results.forEach(r=>{const b=batch.find(bk=>normTitle(bk.title)===normTitle(r.title));if(b&&r.pages){b.pages=parseInt(r.pages)||0;if(b.pages){b.pagesEstimated=true;estimated++;}}});
       save();renderLib();
-      st.textContent=`Found ${found} via Open Library, AI estimated ${estimated} more (shown with ~).${stillMissing.length>20?` ${stillMissing.length-20} still missing — run again for the rest.`:''}`;
+      st.textContent=`Found ${found} via Open Library, AI estimated ${estimated} more (shown with ~).${stillMissing.length>20?` ${stillMissing.length-20} still missing - run again for the rest.`:''}`;
     }catch(e){st.textContent+=` AI estimate failed: ${esc(String(e))}`;}
   }
 }
@@ -3940,7 +3942,7 @@ async function searchOpenLibrary(){
     const data=await res.json();
     olSearchResults=data.docs||[];
     if(!olSearchResults.length){st.textContent=`No results for "${q}". Try a different search, or add it manually.`;return;}
-    st.textContent=`${olSearchResults.length} result${olSearchResults.length!==1?'s':''} — pick one to pre-fill the form:`;
+    st.textContent=`${olSearchResults.length} result${olSearchResults.length!==1?'s':''} - pick one to pre-fill the form:`;
     resultsEl.innerHTML=olSearchResults.map((r,i)=>{
       const author=(r.author_name||[]).slice(0,2).join(', ')||'Unknown author';
       const cover=r.cover_i?`<img src="https://covers.openlibrary.org/b/id/${r.cover_i}-S.jpg" style="width:34px;height:48px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:`<div class="cover-placeholder" style="width:34px;height:48px;flex-shrink:0">${ICON.bookStack}</div>`;
@@ -3962,7 +3964,7 @@ function useSearchResult(i){
   clearForm();
   applyOLResultToForm('f',r);
   const st=document.getElementById('scan-fill-status');
-  if(st)st.textContent=`Filled in from Open Library — review the details below, pick a status, then Save.`;
+  if(st)st.textContent=`Filled in from Open Library - review the details below, pick a status, then Save.`;
   checkAddDuplicate();
 }
 async function lookupISBNAndFillForm(rawCode){
@@ -4245,7 +4247,7 @@ async function renderBookPage(b){
     ${b.favoriteQuote?`<div style="font-style:italic;font-size:14px;color:var(--text2);border-left:3px solid var(--accent);padding-left:12px;margin-bottom:10px">"${esc(b.favoriteQuote)}"</div>`:''}
     ${b.notes?`<p style="font-size:13px;color:var(--text2);line-height:1.6">${esc(b.notes)}</p>`:''}
     ${(b.moodTags||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${b.moodTags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
-    ${!b.rating&&!b.favoriteQuote&&!b.notes&&!(b.moodTags||[]).length?'<p style="font-size:13px;color:var(--text3)">Nothing recorded yet — add a rating, note or quote from Edit.</p>':''}
+    ${!b.rating&&!b.favoriteQuote&&!b.notes&&!(b.moodTags||[]).length?'<p style="font-size:13px;color:var(--text3)">Nothing recorded yet - add a rating, note or quote from Edit.</p>':''}
   `;
 
   document.getElementById('bp-copies').innerHTML=`<div style="margin-bottom:8px">${formatIconRow(b)}</div>${b.lentTo?`<div style="font-size:12px;color:var(--borrowed)">${ICON.lend} Currently lent to ${esc(b.lentTo)}</div>`:''}`;
@@ -4296,7 +4298,7 @@ async function submitFeedback(){
   const{error}=await sb.from('feedback').insert({user_id:session.user.id,message,page:currentPanel()});
   if(error){status.textContent='Failed to send: '+error.message;return;}
   closeFeedbackModal();
-  alert('Thanks — that\'s been sent!');
+  alert('Thanks - that\'s been sent!');
 }
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bc-modal'))closeBCModal();});
