@@ -2249,7 +2249,7 @@ function renderLibGrid(filtered){
       ${checkbox}
       ${coverHtml(b)}
       <div class="bcard-body">
-        <div class="bcard-title">${esc(b.title)}${b.series?`<span class="bcard-series-inline"> · ${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span>`:''}</div>
+        <div class="bcard-title">${esc(b.title)}${b.series?`<span class="bcard-series-inline"> · <span onclick="event.stopPropagation();navToSeries('${esc(b.series).replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span></span>`:''}</div>
         <div class="bcard-author" onclick="event.stopPropagation();navToAuthor('${esc(b.author)}')">${esc(b.author)}</div>
         <div class="bcard-meta">
           <span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span>
@@ -2345,7 +2345,7 @@ function renderTableCell(b,c){
   switch(c.id){
     case'title':return`<td${cls}${style} onclick="${go}">${esc(b.title)}</td>`;
     case'author':return`<td onclick="${go}">${esc(b.author)}</td>`;
-    case'series':return`<td onclick="${go}">${b.series?esc(b.series)+(b.seriesNumber?' #'+esc(b.seriesNumber):''):''}</td>`;
+    case'series':return`<td onclick="${go}">${b.series?`<span onclick="event.stopPropagation();navToSeries('${esc(b.series).replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span>`:''}</td>`;
     case'status':return`<td onclick="${go}"><span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span></td>`;
     case'format':return`<td onclick="${go}">${(b.formats||[]).map(f=>FMT_ICO[f]||f).join(' ')}</td>`;
     case'pages':return`<td onclick="${go}">${b.pages?(b.pagesEstimated?'~':'')+b.pages:''}</td>`;
@@ -2954,7 +2954,7 @@ function renderDashReading(){
     return`<div class="bcard" onclick="openBookPage('${b.id}')">
       ${coverHtml(b)}
       <div class="bcard-body">
-        <div class="bcard-title">${esc(b.title)}${b.series?`<span class="bcard-series-inline"> · ${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span>`:''}</div>
+        <div class="bcard-title">${esc(b.title)}${b.series?`<span class="bcard-series-inline"> · <span onclick="event.stopPropagation();navToSeries('${esc(b.series).replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span></span>`:''}</div>
         <div class="bcard-author">${esc(b.author)}</div>
         ${progressHtml}
       </div>
@@ -4696,7 +4696,7 @@ function openBookPage(id){
 function closeBookPage(){nav(bookPageReturnTo||'dashboard');}
 async function renderBookPage(b){
   document.getElementById('bp-cover').innerHTML=coverHtml(b);
-  document.getElementById('bp-title').innerHTML=esc(b.title)+(b.series?`<div style="font-weight:400;font-style:italic;font-size:15px;color:var(--text3);margin-top:4px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</div>`:'');
+  document.getElementById('bp-title').innerHTML=esc(b.title)+(b.series?`<div style="font-weight:400;font-style:italic;font-size:15px;color:var(--text3);margin-top:4px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;display:inline-block" onclick="navToSeries('${esc(b.series).replace(/'/g,"\\'")}')">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</div>`:'');
   const authorEl=document.getElementById('bp-author');
   authorEl.textContent=b.author;
   authorEl.onclick=()=>navToAuthor(b.author);
