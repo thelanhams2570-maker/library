@@ -2977,7 +2977,9 @@ function downloadMeetingICS(m){
   if(!m||!m.meeting_date){alert('This meeting has no date set yet.');return;}
   const uid=`${m.id||genId()}@anthology-app`;
   const dtstamp=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
-  const summary=icsEscape(m.meeting_name||m.book_title||'Book club meeting');
+  const titleBase=m.meeting_name||'Book club meeting';
+  const bookSuffix=m.book_title?`: ${m.book_title}${m.book_author?' by '+m.book_author:''}`:'';
+  const summary=icsEscape(titleBase+bookSuffix);
   const descParts=[];
   if(m.book_title)descParts.push(`Book: ${m.book_title}${m.book_author?' by '+m.book_author:''}`);
   if(m.discussion_notes)descParts.push(m.discussion_notes);
@@ -3446,7 +3448,7 @@ function switchSharedClub(clubId){sharedClubId=clubId;renderSharedClub();}
 async function renderInviteLinkBtn(){
   const btn=document.getElementById('copy-invite-btn');
   if(!btn)return;
-  if(!sharedClubId){btn.style.display='none';return;}
+  if(!sharedClubId||!isClubAdmin){btn.style.display='none';return;}
   btn.style.display='';
   const{data}=await sb.from('book_clubs').select('invite_code').eq('id',sharedClubId).single();
   btn.dataset.code=(data&&data.invite_code)||'';
@@ -3497,6 +3499,7 @@ async function renderSharedClub(){
   if(addBtn)addBtn.style.display=isClubAdmin?'':'none';
   const adminCard=document.getElementById('club-admin-card');
   if(adminCard)adminCard.style.display=isClubAdmin?'':'none';
+  renderInviteLinkBtn();
   if(isClubAdmin)renderClubAdminCard(members,clubBooks);
 
   document.getElementById('shared-club-roster').innerHTML=(members||[]).map(m=>{
@@ -3552,6 +3555,7 @@ function renderMeetingCard(cb,myId,featured){
       <div style="display:flex;align-items:center;gap:6px">
         <button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="downloadMeetingICS(meetingCache['${cb.id}'])">Add to calendar</button>
         ${isClubAdmin?`<button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="editSharedBCMeeting('${cb.id}')">Edit</button>`:''}
+        ${isClubAdmin?`<button class="btn btn-danger btn-sm" style="padding:2px 8px" onclick="deleteSharedBCMeeting('${cb.id}')">Delete</button>`:''}
       </div>
     </div>
     <div class="bc-book-row">
@@ -3662,6 +3666,15 @@ async function editSharedBCMeeting(id){
   document.getElementById('shared-bc-modal').classList.add('open');
 }
 function closeSharedBCModal(){document.getElementById('shared-bc-modal').classList.remove('open');}
+async function deleteSharedBCMeeting(id){
+  if(!isClubAdmin){alert('Only a club admin can delete meetings.');return;}
+  const m=meetingCache[id];
+  if(!confirm(`Delete "${(m&&m.meeting_name)||'this meeting'}"? This can't be undone.`))return;
+  const{error}=await sb.from('club_books').delete().eq('id',id);
+  if(error){alert('Failed to delete: '+error.message);return;}
+  renderSharedClub();
+  renderDashBCUpcoming();
+}
 async function saveSharedBCMeeting(){
   if(!isClubAdmin){alert('Only a club admin can save meetings.');return;}
   const name=document.getElementById('shared-bc-name').value.trim();
