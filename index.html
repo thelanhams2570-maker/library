@@ -714,7 +714,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <option value="long">Long (450pg+)</option>
     </select>
     <input type="number" class="rfilter-num" id="rf-rating" min="0" max="5" step="0.5" placeholder="Min my ★" style="width:84px" onchange="renderReports()">
-    <input type="number" class="rfilter-num" id="rf-gr-rating" min="0" max="5" step="0.1" placeholder="Min GoodReads ★" style="width:108px" onchange="renderReports()">
     <div style="display:flex;gap:5px;align-items:center">
       <span style="font-size:12px;color:var(--text2)">Finished reading:</span>
       <input type="number" class="rfilter-num" id="rf-year-from" placeholder="Year from" style="width:88px" onchange="renderReports()">
@@ -2187,8 +2186,7 @@ function coverHtml(b){
   const img=b.coverUrl?`<img src="${esc(b.coverUrl)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-placeholder" style="display:none">${ICON.bookStack}</div>`:`<div class="cover-placeholder">${ICON.bookStack}</div>`;
   const ribbon=bookInBookClub(b)?`<div class="bcard-ribbon">${ICON.bookmark} Book Club</div>`:'';
   const review=b.needsReview?`<div class="bcard-ribbon" style="background:var(--danger)">${ICON.warning} Needs review</div>`:'';
-  const gr=b.grRating?`<div class="bcard-gr-badge">★ ${b.grRating}</div>`:'';
-  return`<div class="bcard-cover">${img}${ribbon}${review}${gr}</div>`;
+  return`<div class="bcard-cover">${img}${ribbon}${review}</div>`;
 }
 
 let libView='grid';
@@ -2271,7 +2269,6 @@ const TABLE_COLUMNS=[
   {id:'bookclub',label:'Book club',width:90,sortable:true},
   {id:'genre',label:'Genre',width:150,sortable:true},
   {id:'dateAdded',label:'Date added',width:100,sortable:true},
-  {id:'grRating',label:'GoodReads',width:90,sortable:true},
   {id:'lending',label:'Lending',width:140,sortable:true},
   {id:'notes',label:'Notes',width:220,sortable:true},
 ];
@@ -2333,7 +2330,6 @@ function renderTableCell(b,c){
     case'rating':return`<td class="td-rating">${[1,2,3,4,5].map(n=>{const fill=(b.rating||0)>=n?100:(b.rating||0)>=n-0.5?50:0;return`<span class="td-star" onclick="setTableRating('${b.id}',${n})" title="Set rating to ${n}">★<span class="star-fg" style="width:${fill}%">★</span></span>`;}).join('')}</td>`;
     case'dateRead':return`<td onclick="${go}">${esc(b.dateRead||'')}</td>`;
     case'dateAdded':return`<td onclick="${go}">${esc((b.dateAdded||'').slice(0,10))}</td>`;
-    case'grRating':return`<td onclick="${go}">${b.grRating||''}</td>`;
     case'genre':return`<td onclick="${go}">${(b.genre||[]).join(', ')}</td>`;
     case'bookclub':return`<td onclick="${go}">${bookInBookClub(b)?ICON.bookmark:''}</td>`;
     case'lending':return`<td><label class="td-lend"><input type="checkbox" ${b.lendable?'checked':''} onchange="setTableLendable('${b.id}',this.checked)">${b.lentTo?'Out: '+esc(b.lentTo):'Will lend'}</label></td>`;
@@ -2363,7 +2359,7 @@ function renderLibTable(filtered){
     else if(col==='genre')va=(a.genre||[]).join(','),vb=(b.genre||[]).join(',');
     else if(col==='bookclub')va=bookInBookClub(a)?1:0,vb=bookInBookClub(b)?1:0;
     else if(col==='lending')va=a.lentTo?2:a.lendable?1:0,vb=b.lentTo?2:b.lendable?1:0;
-    else if(col==='pages'||col==='rating'||col==='grRating')va=a[col]||0,vb=b[col]||0;
+    else if(col==='pages'||col==='rating')va=a[col]||0,vb=b[col]||0;
     else va=(a[col]||'').toString().toLowerCase(),vb=(b[col]||'').toString().toLowerCase();
     if(va<vb)return -1*dir;if(va>vb)return 1*dir;return 0;
   });
@@ -2750,14 +2746,13 @@ async function lookupAuthorAI(){if(!currentAuthor)return;const res=document.getE
 
 // ═══════════ REPORTS ═══════════
 function setReportTab(t,btn){currentReportTab=t;document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.rpanel').forEach(p=>p.classList.remove('active'));document.getElementById('rpanel-'+t).classList.add('active');renderReports();}
-function clearReportFilters(){['rf-status','rf-format','rf-genre','rf-length'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['rf-rating','rf-gr-rating','rf-year-from','rf-year-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderReports();}
+function clearReportFilters(){['rf-status','rf-format','rf-genre','rf-length'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});['rf-rating','rf-year-from','rf-year-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderReports();}
 function getReportBooks(){
   const status=document.getElementById('rf-status')?.value||'';
   const fmt=document.getElementById('rf-format')?.value||'';
   const genre=document.getElementById('rf-genre')?.value||'';
   const lengthFilter=document.getElementById('rf-length')?.value||'';
   const minRating=parseFloat(document.getElementById('rf-rating')?.value)||0;
-  const minGrRating=parseFloat(document.getElementById('rf-gr-rating')?.value)||0;
   const yearFrom=parseInt(document.getElementById('rf-year-from')?.value)||0;
   const yearTo=parseInt(document.getElementById('rf-year-to')?.value)||9999;
   const dateFilterActive=yearFrom>0||yearTo<9999;
@@ -2767,7 +2762,6 @@ function getReportBooks(){
     if(genre&&!(b.genre||[]).includes(genre))return false;
     if(lengthFilter){const p=b.pages||0;if(!p)return false;if(lengthFilter==='short'&&p>=250)return false;if(lengthFilter==='medium'&&(p<250||p>450))return false;if(lengthFilter==='long'&&p<450)return false;}
     if(minRating&&(b.rating||0)<minRating)return false;
-    if(minGrRating&&(b.grRating||0)<minGrRating)return false;
     if(dateFilterActive){const yr=parseInt((b.dateRead||'').slice(0,4))||0;if(!yr||yr<yearFrom||yr>yearTo)return false;}
     return true;
   });
@@ -3206,7 +3200,7 @@ async function getRecs(){
   try{
     if(topBooks.length){
       const exclude=[...myTitles,...continuations.map(c=>normTitle(c.title))];
-      const prompt=`Based on these highly-rated books: ${topBooks.map(b=>`"${b.title}" by ${b.author} (${b.rating}★, genres: ${(b.genre||[]).join(', ')||'unknown'})`).join('; ')} - recommend 10 NEW books (not sequels to series already covered) the reader would love that they haven't read yet. For each, also estimate: an approximate print page count (integer); whichever single format - Ebook, Audiobook, or Hardcopy - best suits that specific book's style (e.g. narration-driven or full-cast books suit Audiobook; dense reference or heavily-illustrated books suit Ebook/Hardcopy); and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate, not a rating of how well it matches). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence why they'd love it based on their reading taste","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${exclude.slice(0,40).join(', ')}.`;
+      const prompt=`Based on these highly-rated books: ${topBooks.map(b=>`"${b.title}" by ${b.author} (${b.rating}★, genres: ${(b.genre||[]).join(', ')||'unknown'})`).join('; ')} - recommend 10 NEW books (not sequels to series already covered) the reader would love that they haven't read yet. For each, also estimate: an approximate print page count (integer); whichever single format - Ebook, Audiobook, or Hardcopy - best suits that specific book's style (e.g. narration-driven or full-cast books suit Audiobook; dense reference or heavily-illustrated books suit Ebook/Hardcopy). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence why they'd love it based on their reading taste","pages":320,"format":"Audiobook"}]. Do not include any of: ${exclude.slice(0,40).join(', ')}.`;
       const raw=await askClaude(prompt);
       const text=aiStr(raw);
       const jsonMatch=text.match(/\[[\s\S]*\]/);
@@ -3236,7 +3230,7 @@ async function getRecsNL(){
     const topBooks=books.filter(b=>b.status==='read'&&b.rating>=4).sort((a,b)=>(b.rating||0)-(a.rating||0)).slice(0,10);
     const myTitles=[...new Set(books.map(b=>normTitle(b.title)))];
     const context=topBooks.length?`\n\nFor minor tone/pacing calibration ONLY - never let this override or broaden the genre of the request above - they have also separately rated these highly: ${topBooks.map(b=>`"${b.title}" by ${b.author}`).join('; ')}.`:'';
-    const prompt=`The reader typed this specific recommendation request: "${q}"\n\nTreat this request as the primary and complete instruction. Match the genre, subject matter, and style it describes or implies as closely as possible, even where that differs from the reader's general reading history. If a specific book or author is named, infer genre/tone/comparable titles from that specific book itself - do not substitute a different genre just because it appears more often in the reader's history below. If unfamiliar with a named book, make your best judgement from its title and any details given in the request, rather than defaulting to an unrelated genre.${context}\n\nRecommend up to 8 books matching the request as closely as possible. For each, estimate genre, an approximate print page count (integer), whichever single format - Ebook, Audiobook, or Hardcopy - best suits that specific book, and its approximate GoodReads community average rating (a decimal between 1.00 and 5.00, your best real-world estimate). Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence tying it to their request","pages":320,"format":"Audiobook","grRating":4.21}]. Do not include any of: ${myTitles.slice(0,40).join(', ')}.`;
+    const prompt=`The reader typed this specific recommendation request: "${q}"\n\nTreat this request as the primary and complete instruction. Match the genre, subject matter, and style it describes or implies as closely as possible, even where that differs from the reader's general reading history. If a specific book or author is named, infer genre/tone/comparable titles from that specific book itself - do not substitute a different genre just because it appears more often in the reader's history below. If unfamiliar with a named book, make your best judgement from its title and any details given in the request, rather than defaulting to an unrelated genre.${context}\n\nRecommend up to 8 books matching the request as closely as possible. For each, estimate genre, an approximate print page count (integer), and whichever single format - Ebook, Audiobook, or Hardcopy - best suits that specific book. Return ONLY valid JSON: [{"title":"...","author":"...","genre":"...","reason":"one sentence tying it to their request","pages":320,"format":"Audiobook"}]. Do not include any of: ${myTitles.slice(0,40).join(', ')}.`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
@@ -3284,7 +3278,7 @@ function filterRecs(){
     const existing=findExisting(r.title,r.author);
     const ownStatus=!existing?'new':((existing.formats||[]).length?'owned':'wishlist');
     const ownBadge=ownStatus==='owned'?`<span class="badge b-fmt">Owned</span>`:ownStatus==='wishlist'?`<span class="badge b-tbr">Wishlisted</span>`:`<span class="badge b-genre">New</span>`;
-    const btn=existing?`<button class="btn btn-outline btn-sm" onclick="openBookPage('${existing.id}')">${ICON.bookmark} ${ownStatus==='owned'?'In library':'On wishlist'}</button>`:`<button class="btn btn-series btn-sm" onclick="addRecToWishlist('${esc(r.title).replace(/'/g,"\\'")}','${esc(r.author).replace(/'/g,"\\'")}','${esc(r.series||'').replace(/'/g,"\\'")}','${esc(r.seriesNumber||'').replace(/'/g,"\\'")}','${esc(r.coverUrl||'').replace(/'/g,"\\'")}',${r.pages||0},${r.grRating||0},this)">+ Wishlist</button>`;
+    const btn=existing?`<button class="btn btn-outline btn-sm" onclick="openBookPage('${existing.id}')">${ICON.bookmark} ${ownStatus==='owned'?'In library':'On wishlist'}</button>`:`<button class="btn btn-series btn-sm" onclick="addRecToWishlist('${esc(r.title).replace(/'/g,"\\'")}','${esc(r.author).replace(/'/g,"\\'")}','${esc(r.series||'').replace(/'/g,"\\'")}','${esc(r.seriesNumber||'').replace(/'/g,"\\'")}','${esc(r.coverUrl||'').replace(/'/g,"\\'")}',${r.pages||0},this)">+ Wishlist</button>`;
     const cover=r.coverUrl?`<img src="${esc(r.coverUrl)}" style="width:44px;height:60px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:`<div class="cover-placeholder" style="width:44px;height:60px;flex-shrink:0">${ICON.bookStack}</div>`;
     return`<div class="rec-card" style="display:flex;gap:10px">
       ${cover}
@@ -3295,7 +3289,6 @@ function filterRecs(){
         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:5px 0;font-size:11px;color:var(--text3)">
           ${r.pages?`<span>${r.pages}pg</span>`:''}
           ${r.format?`<span>${FMT_ICO[r.format]||''} ${esc(r.format)}</span>`:''}
-          ${r.grRating?`<span>GR ★ ${r.grRating}</span>`:''}
           ${ownBadge}
         </div>
         <div class="rec-reason">"${esc(r.reason)}"</div>
@@ -3305,7 +3298,7 @@ function filterRecs(){
   }).join('')}</div>`;
 }
 
-function addRecToWishlist(title,author,series,seriesNumber,coverUrl,pages,grRating,btn){const existing=findExisting(title,author);if(existing){btn.textContent='✓ Already added';btn.disabled=true;return;}books.push({id:genId(),title,author,status:'wishlist',formats:[],borrowedFormats:[],series:series||'',seriesNumber:seriesNumber||'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:grRating||0,isbn:'',pages:pages||0,pagesEstimated:!!pages,notes:'',genre:[],coverUrl:coverUrl||'',readFormat:'',readRecords:[]});save();btn.textContent='✓ Added!';btn.style.background='var(--accent-bg)';btn.style.color='var(--accent)';btn.disabled=true;}
+function addRecToWishlist(title,author,series,seriesNumber,coverUrl,pages,btn){const existing=findExisting(title,author);if(existing){btn.textContent='✓ Already added';btn.disabled=true;return;}books.push({id:genId(),title,author,status:'wishlist',formats:[],borrowedFormats:[],series:series||'',seriesNumber:seriesNumber||'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:pages||0,pagesEstimated:!!pages,notes:'',genre:[],coverUrl:coverUrl||'',readFormat:'',readRecords:[]});save();btn.textContent='✓ Added!';btn.style.background='var(--accent-bg)';btn.style.color='var(--accent)';btn.disabled=true;}
 
 // ═══════════ BOOK CLUB ═══════════
 function getLinkedBook(m){
