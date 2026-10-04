@@ -3554,8 +3554,32 @@ function renderMeetingCard(cb,myId,featured){
         </select>
         <div class="star-row">${stars}</div>
       </div>
+      <a href="#" style="font-size:11px;color:var(--accent);display:inline-block;margin-top:6px" onclick="event.preventDefault();toggleMeetingDetail('${cb.id}')">View everyone's status</a>
+      <div id="meeting-detail-${cb.id}" style="display:none;margin-top:8px">${memberStatusTableHtml(cb,myId)}</div>
     </div>
   </div>`;
+}
+function toggleMeetingDetail(id){
+  const el=document.getElementById('meeting-detail-'+id);
+  if(el)el.style.display=el.style.display==='none'?'':'none';
+}
+function memberStatusTableHtml(cb,myId){
+  const byUser={};
+  (cb.club_book_engagement||[]).forEach(e=>{byUser[e.user_id]=Object.assign(byUser[e.user_id]||{},{profiles:e.profiles,status:e.status,rating:e.rating});});
+  (cb.club_meeting_rsvp||[]).forEach(r=>{byUser[r.user_id]=Object.assign(byUser[r.user_id]||{},{profiles:byUser[r.user_id]?.profiles||r.profiles,rsvp:r.status});});
+  const rows=Object.entries(byUser);
+  if(!rows.length)return`<div style="font-size:12px;color:var(--text3)">No RSVPs or ratings yet.</div>`;
+  const rsvpLabel={going:'Going',maybe:'Maybe',not_going:"Can't go"};
+  return`<table style="width:100%;font-size:12px;border-collapse:collapse">
+    <thead><tr style="color:var(--text3);text-align:left"><th style="padding:4px 0">Member</th><th>RSVP</th><th>Read status</th><th>Rating</th></tr></thead>
+    <tbody>${rows.map(([uid,v])=>{
+      const p=v.profiles||{};
+      const name=(p.first_name||p.last_name)?`${p.first_name||''} ${p.last_name||''}`.trim():'(no name set)';
+      const you=uid===myId?' (you)':'';
+      const rating=v.rating?starDisplayHTML(v.rating):'<span style="color:var(--text3)">Not rated</span>';
+      return`<tr style="border-top:1px solid var(--rule)"><td style="padding:5px 0">${esc(name)}${you}</td><td>${rsvpLabel[v.rsvp]||'<span style="color:var(--text3)">No response</span>'}</td><td>${esc(STATUS_LABELS[v.status]||'Not started')}</td><td>${rating}</td></tr>`;
+    }).join('')}</tbody>
+  </table>`;
 }
 
 async function setMyEngagement(clubBookId,patch){
