@@ -804,7 +804,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
     <div>
       <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Recent and upcoming releases</div>
-      <div style="font-size:12px;color:var(--text2)">New books in series you or book club have already read</div>
+      <div style="font-size:12px;color:var(--text2)">New books in series this club has already read</div>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px">
       <button class="btn btn-outline btn-sm" onclick="checkForSequels()"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Check for sequels</button>
@@ -823,7 +823,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div style="display:flex;align-items:center;gap:10px;margin:28px 0 14px;flex-wrap:wrap">
     <div>
       <div style="font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px">Series We've Read</div>
-      <div style="font-size:12px;color:var(--text2)">Grouped by series across all book club meetings</div>
+      <div style="font-size:12px;color:var(--text2)">Grouped by series across this club's meetings</div>
     </div>
     <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="backfillBCSeries()">Backfill series info</button>
   </div>
@@ -3380,6 +3380,9 @@ async function loadSharedClubs(){
     if(addBtn)addBtn.style.display='none';
     renderInviteLinkBtn();
     loadSuggestions();
+    currentClubMeetings=[];
+    renderUpcoming();
+    renderSeriesRead();
     return;
   }
   sel.innerHTML=joined.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
@@ -3493,6 +3496,9 @@ async function renderSharedClub(){
   if(mErr||bErr){status.textContent='Failed to load: '+((mErr||bErr).message);return;}
   status.textContent='';
   loadSuggestions();
+  currentClubMeetings=clubBooks||[];
+  renderUpcoming();
+  renderSeriesRead();
 
   isClubAdmin=(members||[]).some(m=>m.user_id===myId&&m.role==='owner');
   const addBtn=document.getElementById('add-shared-meeting-btn');
@@ -3735,9 +3741,9 @@ function seedUpcoming(){
   if(!missing.length)return;
   saveUpcoming([...existing,...missing]);
 }
-function bcClubSeriesSet(){const names=new Set();getAllBCMeetings().forEach(m=>{if(m.series)names.add(m.series);});return names;}
+let currentClubMeetings=[];
+function bcClubSeriesSet(){const names=new Set();currentClubMeetings.forEach(m=>{if(m.series)names.add(m.series);});return names;}
 function personalSeriesSet(){const names=new Set();books.forEach(b=>{if(b.series)names.add(b.series);});return names;}
-function bcSeriesList(){const names=bcClubSeriesSet();personalSeriesSet().forEach(s=>names.add(s));return names;}
 let cadenceSuggestionCache=null;
 function lastWeekdayOf(year,monthIndex0,weekday){
   const lastDay=new Date(year,monthIndex0+1,0);
@@ -3807,14 +3813,19 @@ async function saveCadence(){
 async function renderUpcoming(containerId){
   const grid=document.getElementById(containerId||'upcoming-grid');
   if(!grid)return;
+  if(!sharedClubId){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Join or select a shared club above to see new releases in series it's read.</p></div>`;return;}
   const clubSeries=bcClubSeriesSet();
   const ownSeries=personalSeriesSet();
-  const list=getUpcoming().slice().sort((a,b)=>(a.releaseDate||'').localeCompare(b.releaseDate||''));
-  if(!list.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No upcoming releases tracked yet.</p></div>`;return;}
+  const fullList=getUpcoming().slice().sort((a,b)=>(a.releaseDate||'').localeCompare(b.releaseDate||''));
+  const list=fullList.filter(u=>clubSeries.has(u.series));
+  if(!list.length){
+    const otherNote=fullList.length?` You have ${fullList.length} release${fullList.length!==1?'s':''} tracked for series this club hasn't read.`:'';
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No tracked releases in series this club has read yet.${otherNote} Use "Check for sequels" or "+ Add Release" below.</p></div>`;
+    return;
+  }
   await computeCadenceSuggestion();
   const today=new Date().toISOString().slice(0,10);
   grid.innerHTML=list.map(u=>{
-    const isClubSeries=clubSeries.has(u.series);
     const isOwnSeries=ownSeries.has(u.series);
     const released=u.releaseDate&&u.releaseDate<today;
     return`<div class="bc-meeting">
@@ -3824,7 +3835,6 @@ async function renderUpcoming(containerId){
       <div style="font-size:12px;color:var(--text2);margin-bottom:4px">by ${esc(u.author)} · <span style="color:var(--series)">${esc(u.series)}</span></div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span class="badge ${released?'b-owned':'b-want'}" style="font-size:10px">${released?'Released':'Releases'} ${esc(fmtDateDMY(u.releaseDate))}</span>
-        ${isClubSeries?`<span class="badge b-reading" style="font-size:10px">${ICON.bookmark} Book club pick</span>`:''}
         ${isOwnSeries?`<span class="badge b-read" style="font-size:10px">You've read this series</span>`:''}
       </div>
       ${u.note?`<div style="font-size:11px;color:var(--text3);margin-top:6px">${esc(u.note)}</div>`:''}
@@ -3997,8 +4007,9 @@ async function loadSuggestions(){
 }
 async function checkForSequels(){
   const st=document.getElementById('upcoming-status');
-  const series=[...bcSeriesList()].filter(Boolean);
-  if(!series.length){st.textContent='No series found yet in Book Club or Library to check.';return;}
+  if(!sharedClubId){st.textContent='Join or select a shared club first.';return;}
+  const series=[...bcClubSeriesSet()].filter(Boolean);
+  if(!series.length){st.textContent='No series found yet for this club to check - log a meeting with a series set, or use "Backfill series info" below.';return;}
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Asking AI to check for upcoming releases in ${series.length} series…</div>`;
   try{
     const existing=getUpcoming().map(u=>u.book.toLowerCase());
@@ -4022,34 +4033,39 @@ async function checkForSequels(){
 function renderSeriesRead(){
   const grid=document.getElementById('series-read-grid');
   if(!grid)return;
-  const meetings=getBCMeetings();
+  if(!sharedClubId){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Join or select a shared club above to see the series it's read.</p></div>`;return;}
   const map={};
-  meetings.forEach(m=>{if(!m.series)return;if(!map[m.series])map[m.series]=[];map[m.series].push(m);});
+  currentClubMeetings.forEach(m=>{if(!m.series)return;if(!map[m.series])map[m.series]=[];map[m.series].push(m);});
   const names=Object.keys(map).sort();
-  if(!names.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No series tagged yet. Add a series when logging a meeting, or use "Backfill series info" below.</p></div>`;return;}
+  if(!names.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No series tagged yet for this club. Add a series when logging a meeting, or use "Backfill series info" below.</p></div>`;return;}
   grid.innerHTML=names.map(n=>{
-    const entries=map[n].sort((a,b)=>(a.seriesNumber||'').localeCompare(b.seriesNumber||'',undefined,{numeric:true}));
-    return`<div class="bc-meeting"><div class="bc-meeting-title" style="margin-bottom:6px">${esc(n)}</div>${entries.map(e=>`<div style="font-size:11px;color:var(--text2)">#${esc(e.seriesNumber||'?')} - ${esc(e.bookTitle)}</div>`).join('')}</div>`;
+    const entries=map[n].sort((a,b)=>(a.series_number||'').localeCompare(b.series_number||'',undefined,{numeric:true}));
+    return`<div class="bc-meeting"><div class="bc-meeting-title" style="margin-bottom:6px">${esc(n)}</div>${entries.map(e=>`<div style="font-size:11px;color:var(--text2)">#${esc(e.series_number||'?')} - ${esc(e.book_title)}</div>`).join('')}</div>`;
   }).join('');
 }
 async function backfillBCSeries(){
   const st=document.getElementById('bc-series-status');
-  const meetings=getBCMeetings();
-  const toFill=meetings.filter(m=>!m.series&&m.bookTitle);
+  if(!sharedClubId){st.textContent='Join or select a shared club first.';return;}
+  const toFill=currentClubMeetings.filter(m=>!m.series&&m.book_title);
   if(!toFill.length){st.textContent='All meetings already have series info!';return;}
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Looking up series info for ${toFill.length} books…</div>`;
   try{
-    const prompt=`For each book, tell me the series name and book number it belongs to, if any (if it's a standalone, use empty strings). Return ONLY valid JSON: [{"title":"...","series":"...","seriesNumber":"1"},...]. Books: ${toFill.map(b=>`"${b.bookTitle}" by ${b.bookAuthor}`).join('; ')}`;
+    const prompt=`For each book, tell me the series name and book number it belongs to, if any (if it's a standalone, use empty strings). Return ONLY valid JSON: [{"title":"...","series":"...","seriesNumber":"1"},...]. Books: ${toFill.map(b=>`"${b.book_title}" by ${b.book_author}`).join('; ')}`;
     const raw=await askClaude(prompt);
     const text=aiStr(raw);
     const jsonMatch=text.match(/\[[\s\S]*\]/);
     if(!jsonMatch)throw new Error('No data returned');
     const results=JSON.parse(jsonMatch[0]);
     let updated=0;
-    results.forEach(r=>{const m=toFill.find(mm=>normTitle(mm.bookTitle)===normTitle(r.title));if(m&&r.series){m.series=r.series;m.seriesNumber=r.seriesNumber||'';updated++;}});
-    saveBCMeetings(meetings);
-    renderBCMeetings();renderUpcoming();renderSeriesRead();
-    st.textContent=`Series info added for ${updated} meetings - double-check accuracy, AI estimates can be wrong.`;
+    for(const r of results){
+      const m=toFill.find(mm=>normTitle(mm.book_title)===normTitle(r.title));
+      if(m&&r.series){
+        const{error}=await sb.from('club_books').update({series:r.series,series_number:r.seriesNumber||''}).eq('id',m.id);
+        if(!error)updated++;
+      }
+    }
+    renderSharedClub();
+    st.textContent=`Series info added for ${updated} meeting${updated!==1?'s':''} - double-check accuracy, AI estimates can be wrong.`;
   }catch(e){st.textContent=`Error: ${esc(String(e))}`;}
 }
 
