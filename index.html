@@ -133,6 +133,9 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .kanban-card-title{font-weight:600;margin-bottom:2px}
 .kanban-card-author{color:var(--text2);font-size:11px}
 .bcard-cover{width:44px;flex-shrink:0;display:flex;flex-direction:column;gap:3px}
+#bp-cover .bcard-cover{width:150px}
+#bp-cover .bcard-cover img{width:150px;height:220px}
+#bp-cover .cover-placeholder{width:150px;height:220px;font-size:36px}
 .bcard-ribbon{background:var(--accent);color:var(--on-accent);font-size:8px;font-weight:600;text-align:center;border-radius:3px;padding:2px 1px;line-height:1.3;display:flex;align-items:center;justify-content:center;gap:2px}
 .bcard-ribbon .ico{width:9px;height:9px}
 .bcard-gr-badge{font-size:9px;color:var(--text3);text-align:center;font-weight:500}
@@ -630,6 +633,40 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <button class="btn btn-series" onclick="lookupAuthorAI()" id="ad-lookup-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Look up full bibliography</button>
       <div id="ad-ai-result"></div>
     </div>
+  </div>
+</div>
+
+<!-- BOOK PAGE -->
+<div id="panel-book-detail" class="panel">
+  <button class="btn btn-outline btn-sm" onclick="closeBookPage()">← Back</button>
+  <div style="display:flex;gap:24px;margin-top:16px;flex-wrap:wrap">
+    <div id="bp-cover" style="width:150px;flex-shrink:0"></div>
+    <div style="flex:1;min-width:260px">
+      <div id="bp-title" style="font-family:var(--font-serif);font-size:28px;font-weight:600;line-height:1.2"></div>
+      <div id="bp-author" style="font-size:15px;color:var(--accent);cursor:pointer;margin-top:6px;display:inline-block"></div>
+      <div id="bp-meta" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
+      <button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="openModal(currentBookPageId)">Edit</button>
+    </div>
+  </div>
+
+  <div style="margin-top:30px">
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Your take</h2>
+    <div id="bp-your-take" class="settings-card"></div>
+  </div>
+
+  <div style="margin-top:30px">
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Copies</h2>
+    <div id="bp-copies" class="settings-card"></div>
+  </div>
+
+  <div id="bp-club-section" style="margin-top:30px;display:none">
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Book Club</h2>
+    <div id="bp-club" class="settings-card"></div>
+  </div>
+
+  <div style="margin-top:30px">
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Timeline</h2>
+    <div id="bp-timeline"></div>
   </div>
 </div>
 
@@ -1167,6 +1204,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div class="fg"><label>Lent to (if currently out)</label><input type="text" id="m-lent-to" placeholder="e.g. Jane"></div>
     </div>
     <div class="fg"><label>Notes</label><textarea id="m-notes" rows="2"></textarea></div>
+    <div class="fg"><label>Favorite quote</label><textarea id="m-favorite-quote" rows="2" placeholder="A line that stuck with you"></textarea></div>
+    <div class="fg"><label>Mood / vibe tags <span style="font-weight:400;color:var(--text3);font-size:11px">— comma separated</span></label><input type="text" id="m-mood-tags" placeholder="e.g. cozy, slow-burn, found-family"></div>
     <div class="modal-actions">
       <button class="btn btn-danger btn-sm" onclick="deleteBook(currentId)">Delete</button>
       <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
@@ -1338,6 +1377,8 @@ function load(){
     if(!Array.isArray(b.readRecords)){
       b.readRecords=b.dateRead?[{format:b.readFormat||(b.formats&&b.formats[0])||'Unknown',date:b.dateRead}]:[];
     }
+    if(!Array.isArray(b.moodTags)) b.moodTags=[];
+    if(b.favoriteQuote===undefined) b.favoriteQuote='';
     if(b.status==='dnf'&&!b.dnfDate) b.dnfDate='';
     // Parse series from old notes
     if(!b.series&&b.notes&&b.notes.startsWith('Series: ')){const m=b.notes.match(/^Series: (.+?)(?:\s*#(.+))?$/);if(m){b.series=m[1];b.seriesNumber=m[2]||'';b.notes='';}}
@@ -1945,7 +1986,7 @@ function renderLibGrid(filtered){
     if(b.dateRead)dateParts.push(`Read ${b.dateRead}`);
     if(b.publishedDate)dateParts.push(`Pub ${esc(b.publishedDate)}`);
     const readRows=(b.readRecords||[]).map((r,i)=>`<div class="bcard-read-row">${FMT_ICO[r.format]||''}<span>${esc(r.format)} · ${esc(r.date)}</span><span class="read-del" onclick="event.stopPropagation();removeReadRecord('${b.id}',${i})" title="Remove this read record">×</span></div>`).join('');
-    return`<div class="bcard" style="position:relative" onclick="${selectMode?`toggleSelect('${b.id}')`:`openModal('${b.id}')`}">
+    return`<div class="bcard" style="position:relative" onclick="${selectMode?`toggleSelect('${b.id}')`:`openBookPage('${b.id}')`}">
       ${checkbox}
       ${coverHtml(b)}
       <div class="bcard-body">
@@ -2042,7 +2083,7 @@ function setTableLendable(id,val){
 function renderTableCell(b,c){
   const cls=c.freeze?' class="td-freeze"':'';
   const style=c.freeze?` style="left:${selectMode?'36px':'0'}"`:'';
-  const go=`openModal('${b.id}')`;
+  const go=`openBookPage('${b.id}')`;
   switch(c.id){
     case'title':return`<td${cls}${style} onclick="${go}">${esc(b.title)}</td>`;
     case'author':return`<td onclick="${go}">${esc(b.author)}</td>`;
@@ -2156,7 +2197,7 @@ function renderLibKanban(filtered){
     const dragAttrs=draggable?`ondragover="kanbanDragOver(event)" ondragleave="kanbanDragLeave(event)" ondrop="kanbanDrop(event,'${col.id}')"`:'';
     return`<div class="kanban-col" ${dragAttrs}>
       <div class="kanban-col-h"><span>${esc(col.label)}</span><span>${colBooks.length}</span></div>
-      ${colBooks.map(b=>`<div class="kanban-card" ${draggable?`draggable="true" ondragstart="kanbanDragStart(event,'${b.id}')" ondragend="kanbanDragEnd(event)"`:''} onclick="openModal('${b.id}')">
+      ${colBooks.map(b=>`<div class="kanban-card" ${draggable?`draggable="true" ondragstart="kanbanDragStart(event,'${b.id}')" ondragend="kanbanDragEnd(event)"`:''} onclick="openBookPage('${b.id}')">
         <div class="kanban-card-title">${esc(b.title)}</div>
         <div class="kanban-card-author">${esc(b.author)}</div>
         ${bookInBookClub(b)?`<div style="font-size:10px;color:var(--series);margin-top:3px">${ICON.bookmark} Book club</div>`:''}
@@ -2310,7 +2351,7 @@ function renderSeries(){
       return`<div class="sc-book-row">
         ${thumb}
         <span class="sc-book-num">${b.seriesNumber?'#'+b.seriesNumber:''}</span>
-        <span class="sc-book-title" onclick="openModal('${b.id}')">${esc(b.title)}</span>
+        <span class="sc-book-title" onclick="openBookPage('${b.id}')">${esc(b.title)}</span>
         <span style="font-size:12px">${ownedFmts}${borrowedFmts}</span>
         ${readFmt}
         <span>${ic}</span>
@@ -2436,7 +2477,7 @@ function openAuthorDetail(name){
   Object.entries(seriesGroups).forEach(([sname,sbooks])=>{
     html+=`<div class="ad-series-group">
       <div class="ad-series-name">${esc(sname)} <span style="font-weight:400;color:var(--text3)">(${sbooks.length} books)</span></div>
-      ${sbooks.map(b=>`<div class="ad-book-row" onclick="openModal('${b.id}')">
+      ${sbooks.map(b=>`<div class="ad-book-row" onclick="openBookPage('${b.id}')">
         ${b.coverUrl?`<img src="${esc(b.coverUrl)}" style="width:20px;height:28px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:''}
         <span class="ad-book-icons">${STATUS_ICO[b.status]||ICON.question}</span>
         <span class="ad-book-title">${esc(b.title)}${b.seriesNumber?` <span style="color:var(--text3)">#${esc(b.seriesNumber)}</span>`:''}</span>
@@ -2449,7 +2490,7 @@ function openAuthorDetail(name){
   if(noSeries.length){
     html+=`<div class="ad-series-group">
       <div class="ad-series-name">Standalone</div>
-      ${noSeries.map(b=>`<div class="ad-book-row" onclick="openModal('${b.id}')">
+      ${noSeries.map(b=>`<div class="ad-book-row" onclick="openBookPage('${b.id}')">
         ${b.coverUrl?`<img src="${esc(b.coverUrl)}" style="width:20px;height:28px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:''}
         <span class="ad-book-icons">${STATUS_ICO[b.status]||ICON.question}</span>
         <span class="ad-book-title">${esc(b.title)}</span>
@@ -2575,7 +2616,7 @@ function dashGlobalSearch(q){
 function dashGlobalSearchOpen(id){
   document.getElementById('dash-global-search').value='';
   document.getElementById('dash-global-search-results').style.display='none';
-  openModal(id);
+  openBookPage(id);
 }
 function dashGlobalSearchAdd(q){
   document.getElementById('dash-global-search').value='';
@@ -2641,7 +2682,7 @@ function renderDashReading(){
   if(!reading.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing in progress right now.</p></div>`;return;}
   grid.innerHTML=reading.slice(0,4).map(b=>{
     const progressHtml=b.progress?`<div class="pct-bar" style="margin-top:4px"><div class="pct-fill" style="width:${b.progress}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px">${b.progress}% done</div>`:'';
-    return`<div class="bcard" onclick="openModal('${b.id}')">
+    return`<div class="bcard" onclick="openBookPage('${b.id}')">
       ${coverHtml(b)}
       <div class="bcard-body">
         <div class="bcard-title">${esc(b.title)}${b.series?`<span class="bcard-series-inline"> · ${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span>`:''}</div>
@@ -2947,7 +2988,7 @@ function filterRecs(){
     const existing=findExisting(r.title,r.author);
     const ownStatus=!existing?'new':((existing.formats||[]).length?'owned':'wishlist');
     const ownBadge=ownStatus==='owned'?`<span class="badge b-fmt">Owned</span>`:ownStatus==='wishlist'?`<span class="badge b-tbr">Wishlisted</span>`:`<span class="badge b-genre">New</span>`;
-    const btn=existing?`<button class="btn btn-outline btn-sm" onclick="openModal('${existing.id}')">${ICON.bookmark} ${ownStatus==='owned'?'In library':'On wishlist'}</button>`:`<button class="btn btn-series btn-sm" onclick="addRecToWishlist('${esc(r.title).replace(/'/g,"\\'")}','${esc(r.author).replace(/'/g,"\\'")}','${esc(r.series||'').replace(/'/g,"\\'")}','${esc(r.seriesNumber||'').replace(/'/g,"\\'")}','${esc(r.coverUrl||'').replace(/'/g,"\\'")}',${r.pages||0},${r.grRating||0},this)">+ Wishlist</button>`;
+    const btn=existing?`<button class="btn btn-outline btn-sm" onclick="openBookPage('${existing.id}')">${ICON.bookmark} ${ownStatus==='owned'?'In library':'On wishlist'}</button>`:`<button class="btn btn-series btn-sm" onclick="addRecToWishlist('${esc(r.title).replace(/'/g,"\\'")}','${esc(r.author).replace(/'/g,"\\'")}','${esc(r.series||'').replace(/'/g,"\\'")}','${esc(r.seriesNumber||'').replace(/'/g,"\\'")}','${esc(r.coverUrl||'').replace(/'/g,"\\'")}',${r.pages||0},${r.grRating||0},this)">+ Wishlist</button>`;
     const cover=r.coverUrl?`<img src="${esc(r.coverUrl)}" style="width:44px;height:60px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:`<div class="cover-placeholder" style="width:44px;height:60px;flex-shrink:0">${ICON.bookStack}</div>`;
     return`<div class="rec-card" style="display:flex;gap:10px">
       ${cover}
@@ -3947,8 +3988,79 @@ function handleStarClick(e,n,modal){
 }
 function saveBook(){const title=document.getElementById('f-title').value.trim(),author=normalizeAuthorName(document.getElementById('f-author').value.trim());if(!title||!author){alert('Title and author are required.');return;}const finpGenre=document.getElementById('genre-inp').value.trim();if(finpGenre)addTag(finpGenre,false);const editId=document.getElementById('f-id').value;const readRecords=getReadRecordRows(false);const b={id:editId||genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateStarted:document.getElementById('f-date-started').value||'',dateRead:latestReadDate(readRecords,document.getElementById('f-date-read').value||''),dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),publishedDate:document.getElementById('f-published-date').value.trim(),rating:parseFloat(document.getElementById('f-rating').value)||0,grRating:parseFloat(document.getElementById('f-gr-rating').value)||0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,progress:parseInt(document.getElementById('f-progress').value)||0,lendable:document.getElementById('f-lendable').checked,lentTo:document.getElementById('f-lent-to').value.trim(),notes:document.getElementById('f-notes').value.trim(),genre:[...formGenres],coverUrl:document.getElementById('f-cover').value||'',readFormat:document.getElementById('f-read-format').value,readRecords};if(editId){const i=books.findIndex(x=>x.id===editId);if(i>=0)books[i]=b;}else books.push(b);save();clearForm();nav('library');}
 
+// ═══════════ BOOK PAGE (read-only) ═══════════
+let currentBookPageId=null;
+let bookPageReturnTo='dashboard';
+async function findClubMeetingForBook(book){
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const{data:memberships}=await sb.from('club_members').select('club_id').eq('user_id',session.user.id);
+    const clubIds=(memberships||[]).map(m=>m.club_id);
+    if(!clubIds.length)return null;
+    const{data:meetings}=await sb.from('club_books').select('id,meeting_name,meeting_date,book_title,book_author,book_clubs(name)').in('club_id',clubIds);
+    const an=(book.author||'').trim().toLowerCase();
+    return(meetings||[]).find(m=>(m.book_author||'').trim().toLowerCase()===an&&titlesMatch(m.book_title,book.title))||null;
+  }catch(e){return null;}
+}
+function fmtMonthYear(ym){
+  if(!ym)return'';
+  const m=String(ym).match(/^(\d{4})-(\d{2})/);
+  if(!m)return ym;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return`${months[parseInt(m[2],10)-1]} ${m[1]}`;
+}
+function openBookPage(id){
+  const b=books.find(x=>x.id===id);
+  if(!b)return;
+  closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();
+  const current=currentPanel();
+  if(current!=='book-detail')bookPageReturnTo=current;
+  currentBookPageId=id;
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('panel-book-detail').classList.add('active');
+  renderBookPage(b);
+  closeMobileMenu();
+}
+function closeBookPage(){nav(bookPageReturnTo||'dashboard');}
+async function renderBookPage(b){
+  document.getElementById('bp-cover').innerHTML=coverHtml(b);
+  document.getElementById('bp-title').innerHTML=esc(b.title)+(b.series?`<div style="font-weight:400;font-style:italic;font-size:15px;color:var(--text3);margin-top:4px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</div>`:'');
+  const authorEl=document.getElementById('bp-author');
+  authorEl.textContent=b.author;
+  authorEl.onclick=()=>navToAuthor(b.author);
+  document.getElementById('bp-meta').innerHTML=`<span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span>${(b.genre||[]).slice(0,3).map(g=>`<span class="badge b-genre">${esc(g)}</span>`).join('')}${b.pages?`<span style="font-size:12px;color:var(--text3)">${b.pagesEstimated?'~':''}${b.pages}pg</span>`:''}`;
+
+  const stars=b.rating?starDisplayHTML(b.rating):'<span style="font-size:13px;color:var(--text3)">Not rated yet</span>';
+  document.getElementById('bp-your-take').innerHTML=`
+    <div style="margin-bottom:10px">${stars}</div>
+    ${b.favoriteQuote?`<div style="font-style:italic;font-size:14px;color:var(--text2);border-left:3px solid var(--accent);padding-left:12px;margin-bottom:10px">"${esc(b.favoriteQuote)}"</div>`:''}
+    ${b.notes?`<p style="font-size:13px;color:var(--text2);line-height:1.6">${esc(b.notes)}</p>`:''}
+    ${(b.moodTags||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${b.moodTags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+    ${!b.rating&&!b.favoriteQuote&&!b.notes&&!(b.moodTags||[]).length?'<p style="font-size:13px;color:var(--text3)">Nothing recorded yet — add a rating, note or quote from Edit.</p>':''}
+  `;
+
+  document.getElementById('bp-copies').innerHTML=`<div style="margin-bottom:8px">${formatIconRow(b)}</div>${b.lentTo?`<div style="font-size:12px;color:var(--borrowed)">${ICON.lend} Currently lent to ${esc(b.lentTo)}</div>`:''}`;
+
+  const timelineEvents=[];
+  if(b.dateAdded)timelineEvents.push({date:b.dateAdded,label:`Added to library`});
+  if(b.dateStarted)timelineEvents.push({date:b.dateStarted+'-01',label:`Started reading`,display:fmtMonthYear(b.dateStarted)});
+  (b.readRecords||[]).forEach(r=>timelineEvents.push({date:r.date+'-01',label:`Finished reading (${esc(r.format)})`,display:fmtMonthYear(r.date)}));
+  if(b.status==='dnf')timelineEvents.push({date:b.dnfDate||b.dateAdded||'',label:'Did not finish'});
+  timelineEvents.sort((a,b2)=>(a.date||'').localeCompare(b2.date||''));
+  document.getElementById('bp-timeline').innerHTML=timelineEvents.length?timelineEvents.map(e=>`<div style="display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--rule);font-size:13px"><span style="color:var(--text3);min-width:90px">${esc(e.display||fmtDateDMY(e.date))}</span><span>${e.label}</span></div>`).join(''):'<p style="font-size:13px;color:var(--text3)">No history recorded yet.</p>';
+
+  const clubSection=document.getElementById('bp-club-section');
+  const meeting=await findClubMeetingForBook(b);
+  if(meeting&&currentBookPageId===b.id){
+    clubSection.style.display='';
+    document.getElementById('bp-club').innerHTML=`<div style="font-size:13px"><strong>${esc(meeting.meeting_name)}</strong>${meeting.book_clubs?.name?` · ${esc(meeting.book_clubs.name)}`:''}</div>${meeting.meeting_date?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${esc(fmtDateDMY(meeting.meeting_date))}</div>`:''}`;
+  }else{
+    clubSection.style.display='none';
+  }
+}
+
 // ═══════════ MODAL ═══════════
-function openModal(id){const b=books.find(x=>x.id===id);if(!b)return;currentId=id;document.getElementById('modal-h').textContent=b.title;document.getElementById('m-title').value=b.title;document.getElementById('m-author').value=b.author;document.getElementById('m-status').value=b.status;document.getElementById('m-series').value=b.series||'';document.getElementById('m-series-num').value=b.seriesNumber||'';document.getElementById('m-date-started').value=b.dateStarted||'';document.getElementById('m-date-read').value=b.dateRead||'';document.getElementById('m-published-date').value=b.publishedDate||'';renderReadRecordRows(true,b.readRecords||[]);document.getElementById('m-gr-rating').value=b.grRating||'';document.getElementById('m-isbn').value=b.isbn||'';document.getElementById('m-pages').value=b.pages||'';document.getElementById('m-notes').value=b.notes||'';document.getElementById('m-read-format').value=b.readFormat||'';document.getElementById('m-progress').value=b.progress||0;document.getElementById('m-progress-val').textContent=b.progress||0;document.getElementById('m-lent-to').value=b.lentTo||'';const mlCb=document.getElementById('m-lendable');mlCb.checked=!!b.lendable;mlCb.closest('.fmt-check').classList.toggle('checked',!!b.lendable);setRating(b.rating||0,true);setCheckedFormats('m-fmt-checks',b.formats||[]);setCheckedFormats('m-borrow-checks',b.borrowedFormats||[]);modalGenres=[...(b.genre||[])];renderModalTags();toggleReadFormat('m-read-fmt-row',b.status);toggleRowIf('m-progress-row',b.status==='reading');document.getElementById('modal').classList.add('open');}
+function openModal(id){const b=books.find(x=>x.id===id);if(!b)return;currentId=id;document.getElementById('modal-h').textContent=b.title;document.getElementById('m-title').value=b.title;document.getElementById('m-author').value=b.author;document.getElementById('m-status').value=b.status;document.getElementById('m-series').value=b.series||'';document.getElementById('m-series-num').value=b.seriesNumber||'';document.getElementById('m-date-started').value=b.dateStarted||'';document.getElementById('m-date-read').value=b.dateRead||'';document.getElementById('m-published-date').value=b.publishedDate||'';renderReadRecordRows(true,b.readRecords||[]);document.getElementById('m-gr-rating').value=b.grRating||'';document.getElementById('m-isbn').value=b.isbn||'';document.getElementById('m-pages').value=b.pages||'';document.getElementById('m-notes').value=b.notes||'';document.getElementById('m-favorite-quote').value=b.favoriteQuote||'';document.getElementById('m-mood-tags').value=(b.moodTags||[]).join(', ');document.getElementById('m-read-format').value=b.readFormat||'';document.getElementById('m-progress').value=b.progress||0;document.getElementById('m-progress-val').textContent=b.progress||0;document.getElementById('m-lent-to').value=b.lentTo||'';const mlCb=document.getElementById('m-lendable');mlCb.checked=!!b.lendable;mlCb.closest('.fmt-check').classList.toggle('checked',!!b.lendable);setRating(b.rating||0,true);setCheckedFormats('m-fmt-checks',b.formats||[]);setCheckedFormats('m-borrow-checks',b.borrowedFormats||[]);modalGenres=[...(b.genre||[])];renderModalTags();toggleReadFormat('m-read-fmt-row',b.status);toggleRowIf('m-progress-row',b.status==='reading');document.getElementById('modal').classList.add('open');}
 
 async function aiLookupSeriesInfo(){
   const title=document.getElementById('m-title').value.trim();
@@ -3969,7 +4081,7 @@ document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===d
 document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===document.getElementById('up-modal'))closeUpModal();});
 document.getElementById('backlog-modal').addEventListener('click',e=>{if(e.target===document.getElementById('backlog-modal'))closeBacklogModal();});
 document.getElementById('shared-bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('shared-bc-modal'))closeSharedBCModal();});
-function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateStarted=document.getElementById('m-date-started').value||'';b.readRecords=getReadRecordRows(true);b.dateRead=latestReadDate(b.readRecords,document.getElementById('m-date-read').value||'');b.publishedDate=document.getElementById('m-published-date').value.trim();b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.rating=parseFloat(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
+function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateStarted=document.getElementById('m-date-started').value||'';b.readRecords=getReadRecordRows(true);b.dateRead=latestReadDate(b.readRecords,document.getElementById('m-date-read').value||'');b.publishedDate=document.getElementById('m-published-date').value.trim();b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.favoriteQuote=document.getElementById('m-favorite-quote').value.trim();b.moodTags=document.getElementById('m-mood-tags').value.split(',').map(s=>s.trim()).filter(Boolean);b.rating=parseFloat(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
 // ═══════════ IMPORTS ═══════════
