@@ -1849,6 +1849,7 @@ function keepReviewAsTyped(id){clearReviewRow(id);}
 function editReviewEntry(id){clearReviewRow(id);openModal(id);}
 
 // ═══════════ MERGE SIMILAR NAMES ═══════════
+let similarNamesOffset={};
 async function findSimilarNames(type){
   const field=type==='series'?'series':'author';
   const st=document.getElementById('merge-names-status');
@@ -1857,7 +1858,9 @@ async function findSimilarNames(type){
   const allNames=[...new Set(books.map(b=>b[field]).filter(Boolean))].sort();
   if(allNames.length<2){st.textContent='Not enough '+type+' names to compare.';return;}
   const BATCH=60;
-  const names=allNames.slice(0,BATCH);
+  let offset=similarNamesOffset[type]||0;
+  if(offset>=allNames.length)offset=0;
+  const names=allNames.slice(offset,offset+BATCH);
   st.innerHTML=`<div class="loading"><div class="spinner"></div> Asking AI to compare ${names.length} ${type} names…</div>`;
   try{
     const prompt=`Here is a list of ${type} names from a personal book library, as a JSON array: ${JSON.stringify(names)}. Identify pairs that most likely refer to the exact same ${type} but are written differently - abbreviations, alternate titles, "and"/"&", subtitle differences, spelling variants, or name order. Only include pairs you are genuinely confident are duplicates, not just similar-sounding different things. Return ONLY valid JSON, no other text: [{"a":"name one","b":"name two","reason":"short reason"}]. Return an empty array [] if none found.`;
@@ -1869,7 +1872,10 @@ async function findSimilarNames(type){
     try{pairs=JSON.parse(jsonMatch[0]);}
     catch(parseErr){throw new Error('AI response was cut off or malformed - try again, or there may be too many '+type+' names to compare in one go.');}
     pairs=pairs.filter(p=>p.a&&p.b&&names.includes(p.a)&&names.includes(p.b)&&p.a!==p.b);
-    const moreNote=allNames.length>BATCH?` (checked first ${BATCH} of ${allNames.length} - run again to check more)`:'';
+    const nextOffset=offset+BATCH;
+    similarNamesOffset[type]=nextOffset>=allNames.length?0:nextOffset;
+    const wrapped=similarNamesOffset[type]===0&&nextOffset>=allNames.length;
+    const moreNote=allNames.length>BATCH?` (checked ${offset+1}-${offset+names.length} of ${allNames.length} - run again for the next batch${wrapped?', starting back from the top':''})`:'';
     if(!pairs.length){st.textContent=`No likely duplicate ${type} names found${moreNote}.`;return;}
     st.textContent=`Found ${pairs.length} possible duplicate pair${pairs.length!==1?'s':''}${moreNote} - review below:`;
     out.innerHTML=pairs.map((p,i)=>{
@@ -1925,6 +1931,8 @@ function renderPanel(p){
   if(p==='add')checkDuplicates();
 }
 function currentPanel(){const el=document.querySelector('.panel.active');return el?el.id.replace('panel-',''):'dashboard';}
+const VALID_PANELS=['dashboard','library','series','authors','bookclub','discover','reports','add','settings'];
+let suppressHashUpdate=false;
 function nav(p){
   closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
@@ -1933,7 +1941,15 @@ function nav(p){
   document.getElementById('panel-'+p).classList.add('active');
   renderPanel(p);
   closeMobileMenu();
+  if(!suppressHashUpdate&&location.hash.slice(1)!==p)location.hash=p;
 }
+window.addEventListener('hashchange',()=>{
+  const raw=location.hash.slice(1);
+  suppressHashUpdate=true;
+  if(raw.startsWith('book/'))openBookPage(raw.slice(5));
+  else if(VALID_PANELS.includes(raw))nav(raw);
+  suppressHashUpdate=false;
+});
 function toggleMobileMenu(){
   const open=document.getElementById('sb-drawer').classList.toggle('mobile-open');
   document.getElementById('sb-backdrop').classList.toggle('open',open);
@@ -4586,6 +4602,7 @@ function openBookPage(id){
   document.getElementById('panel-book-detail').classList.add('active');
   renderBookPage(b);
   closeMobileMenu();
+  if(!suppressHashUpdate&&location.hash.slice(1)!=='book/'+id)location.hash='book/'+id;
 }
 function closeBookPage(){nav(bookPageReturnTo||'dashboard');}
 async function renderBookPage(b){
@@ -4776,6 +4793,9 @@ function seedBookClub(){
   wireSharedBCBookTypeahead();
   wireLocationTypeahead();
   subscribeRealtime();
+  const initialHash=location.hash.slice(1);
+  if(initialHash.startsWith('book/'))openBookPage(initialHash.slice(5));
+  else if(VALID_PANELS.includes(initialHash))nav(initialHash);
   handleJoinLinkIfPresent();
 })();
 </script>
