@@ -85,6 +85,9 @@ select.fsel:hover{border-color:var(--accent2)}
 .msel-opt{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:var(--r);font-size:12.5px;cursor:pointer;user-select:none}
 .msel-opt:hover{background:var(--surface2)}
 .msel-opt input{accent-color:var(--accent);cursor:pointer}
+#feedback-fab{position:fixed;right:20px;bottom:20px;width:46px;height:46px;border-radius:50%;background:var(--accent);color:var(--on-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);z-index:90}
+#feedback-fab:hover{background:var(--accent2)}
+#feedback-fab .ico{width:20px;height:20px}
 .dash-search-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);max-height:280px;overflow-y:auto}
 .dash-search-row{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--rule)}
 .dash-search-row:last-child{border-bottom:none}
@@ -1011,6 +1014,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <p style="font-size:15px;color:var(--text2);line-height:1.6;max-width:640px">Data syncs automatically to your private Supabase database and updates in real time across your devices. Export a JSON backup regularly from Data tools below as an extra safety net.</p>
   </div>
   <div class="settings-card">
+    <h2>Privacy</h2>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6">Your personal library stays private to your account. Book club meetings, RSVPs and ratings are visible to the other members of clubs you join. When you use an AI feature (recommendations, lookups), the book titles/authors involved are sent to Claude (Anthropic) to generate a response — no other personal data is included. Feedback you submit is readable only by the app owner.</p>
+  </div>
+  <div class="settings-card">
     <h2>Appearance</h2>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
       <div>
@@ -1106,6 +1113,22 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 </div><!-- /content -->
 </div><!-- /main -->
 </div><!-- /app -->
+
+<button id="feedback-fab" onclick="openFeedbackModal()" title="Send feedback" aria-label="Send feedback"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button>
+
+<!-- Feedback Modal -->
+<div class="modal-ov" id="feedback-modal">
+  <div class="modal">
+    <h2>Send feedback</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Found a bug, or something that'd make this better? Goes straight to Taria.</p>
+    <div class="fg"><textarea id="feedback-text" rows="4" placeholder="What's on your mind…"></textarea></div>
+    <div id="feedback-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" onclick="closeFeedbackModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitFeedback()">Send</button>
+    </div>
+  </div>
+</div>
 
 <!-- Edit Modal -->
 <div class="modal-ov" id="modal">
@@ -1708,7 +1731,7 @@ function renderPanel(p){
 }
 function currentPanel(){const el=document.querySelector('.panel.active');return el?el.id.replace('panel-',''):'dashboard';}
 function nav(p){
-  closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();
+  closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
   document.getElementById('sb-sub-library').classList.toggle('open',p==='library'||p==='series'||p==='authors');
@@ -2544,6 +2567,10 @@ async function renderDashWelcome(){
   const el=document.getElementById('dash-welcome');
   if(!el)return;
   const name=(myProfile&&myProfile.first_name)||'';
+  if(!books.length){
+    el.innerHTML=`Welcome${name?', '+esc(name):''} — your library's empty so far. <a href="#" onclick="event.preventDefault();nav('add');setAddTab('import')" style="color:var(--accent)">Import from Goodreads/Audible/Kindle</a>, or <a href="#" onclick="event.preventDefault();nav('add')" style="color:var(--accent)">add your first book</a>.`;
+    return;
+  }
   const parts=[`Welcome back${name?', '+name:''}.`];
   try{
     const{data:{session}}=await sb.auth.getSession();
@@ -3077,7 +3104,7 @@ async function loadSharedClubs(){
   if(!joined.length){
     sel.innerHTML='<option value="">No shared clubs joined yet</option>';
     document.getElementById('shared-club-roster').innerHTML='';
-    document.getElementById('shared-bc-next').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>Join a shared club above to see its meetings.</p></div>`;
+    document.getElementById('shared-bc-next').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>Join a shared club above to see its meetings.</p><p style="font-size:12px;margin-top:6px">Coming from Goodreads? <a href="#" onclick="event.preventDefault();nav('add');setAddTab('import')" style="color:var(--accent)">Import your library</a> so club picks show what you already own.</p></div>`;
     document.getElementById('shared-bc-upcoming-h').style.display='none';
     document.getElementById('shared-bc-upcoming-grid').innerHTML='';
     document.getElementById('shared-bc-previous-h').style.display='none';
@@ -4012,7 +4039,7 @@ function fmtMonthYear(ym){
 function openBookPage(id){
   const b=books.find(x=>x.id===id);
   if(!b)return;
-  closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();
+  closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
   const current=currentPanel();
   if(current!=='book-detail')bookPageReturnTo=current;
   currentBookPageId=id;
@@ -4076,11 +4103,25 @@ async function aiLookupSeriesInfo(){
   btn.innerHTML=origHtml;btn.disabled=false;
 }
 function closeModal(){document.getElementById('modal').classList.remove('open');currentId=null;}
+function openFeedbackModal(){document.getElementById('feedback-text').value='';document.getElementById('feedback-status').textContent='';document.getElementById('feedback-modal').classList.add('open');}
+function closeFeedbackModal(){document.getElementById('feedback-modal').classList.remove('open');}
+async function submitFeedback(){
+  const message=document.getElementById('feedback-text').value.trim();
+  const status=document.getElementById('feedback-status');
+  if(!message){status.textContent='Type something first.';return;}
+  status.textContent='Sending…';
+  const{data:{session}}=await sb.auth.getSession();
+  const{error}=await sb.from('feedback').insert({user_id:session.user.id,message,page:currentPanel()});
+  if(error){status.textContent='Failed to send: '+error.message;return;}
+  closeFeedbackModal();
+  alert('Thanks — that\'s been sent!');
+}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bc-modal'))closeBCModal();});
 document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===document.getElementById('up-modal'))closeUpModal();});
 document.getElementById('backlog-modal').addEventListener('click',e=>{if(e.target===document.getElementById('backlog-modal'))closeBacklogModal();});
 document.getElementById('shared-bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('shared-bc-modal'))closeSharedBCModal();});
+document.getElementById('feedback-modal').addEventListener('click',e=>{if(e.target===document.getElementById('feedback-modal'))closeFeedbackModal();});
 function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateStarted=document.getElementById('m-date-started').value||'';b.readRecords=getReadRecordRows(true);b.dateRead=latestReadDate(b.readRecords,document.getElementById('m-date-read').value||'');b.publishedDate=document.getElementById('m-published-date').value.trim();b.grRating=parseFloat(document.getElementById('m-gr-rating').value)||0;b.isbn=document.getElementById('m-isbn').value.trim();const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.favoriteQuote=document.getElementById('m-favorite-quote').value.trim();b.moodTags=document.getElementById('m-mood-tags').value.split(',').map(s=>s.trim()).filter(Boolean);b.rating=parseFloat(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
