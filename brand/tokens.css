@@ -1,0 +1,17 @@
+:root{
+  /* Anthology brand tokens v1. Tagline: "Your life, in books." */
+  --color-cream:#FBF8F3; --color-surface:#FFFFFF; --color-mist:#E7EEE8; --color-line:#E2E6E1;
+  --color-ink:#17211D; --color-muted:#55625C;
+  --color-forest:#163D33; --color-sage:#5E8C79; --color-sage-text:#3F6F5D; --color-moss:#A7BBA8;
+  --color-terracotta:#D9A783; --color-terracotta-text:#94582C; --color-sand:#EAD9C6; /* sand: marketing only */
+  --color-primary:var(--color-forest); --color-on-primary:#FFFFFF;
+  --font-serif:"Playfair","Playfair Display",Georgia,serif; /* Google Fonts: Playfair, opsz 5..1200 */
+  --font-sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius-cover:3px; --radius-sm:8px; --radius-md:12px; --radius-lg:20px; --radius-pill:999px;
+  --shadow-lift:0 1px 2px rgba(22,61,51,.06),0 6px 20px rgba(22,61,51,.07);
+}
+@media (prefers-color-scheme: dark){:root{
+  --color-cream:#0E1915; --color-surface:#15241F; --color-mist:#1C2E28; --color-line:#27392F;
+  --color-ink:#EEF1EC; --color-muted:#A6B3AD; --color-sage-text:#8FBFA9; --color-terracotta-text:#D9A783;
+  --color-primary:#8FBFA9; --color-on-primary:#0E1915;
+}}

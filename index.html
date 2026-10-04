@@ -4,41 +4,42 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anthology</title>
-<link rel="icon" href="icon.svg?v=2" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg?v=2">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4a6b5e">
+<link rel="icon" href="brand/app-icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="brand/app-icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="brand/app-icons/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#163D33">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Anthology">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Inter:wght@400..600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair:ital,opsz,wght@0,5..1200,300..800;1,5..1200,300..800&family=Inter:wght@400..600&display=swap" rel="stylesheet">
 <script>(function(){try{const t=localStorage.getItem('booktracker_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
-<script>if(window.Chart){const isDark=document.documentElement.getAttribute('data-theme')==='dark';Chart.defaults.color=isDark?'#a9a59d':'#5a5f6b';Chart.defaults.borderColor=isDark?'#343c50':'#d9cfc2';}</script>
+<script>if(window.Chart){const isDark=document.documentElement.getAttribute('data-theme')==='dark';Chart.defaults.color=isDark?'#A6B3AD':'#55625C';Chart.defaults.borderColor=isDark?'#27392F':'#E2E6E1';}</script>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root{color-scheme:light;
-  --ink:#1a1f2e;--cream:#f5f1eb;--archive-green:#4a6b5e;--warm-gold:#b8956a;--soft-clay:#e8d7c3;
-  --bg:var(--cream);--bg-alt:var(--soft-clay);--surface2:var(--soft-clay);--surface:#faf7f2;--text:var(--ink);--text2:#5a5f6b;--text3:#5a5f6b;
-  --rule:#d9cfc2;--border:#7d776d;--accent:var(--archive-green);--accent2:#5c8273;--accent-bg:#e3ece7;--on-accent:var(--cream);
-  --highlight:var(--warm-gold);--star:var(--warm-gold);--series:var(--accent);--focus:var(--archive-green);
+  --ink:#17211D;--cream:#FBF8F3;--forest:#163D33;--sage:#5E8C79;--sage-text:#3F6F5D;--moss:#A7BBA8;--terracotta:#D9A783;--terracotta-text:#94582C;
+  --bg:var(--cream);--bg-alt:#E7EEE8;--surface2:#E7EEE8;--surface:#FFFFFF;--text:var(--ink);--text2:#55625C;--text3:#55625C;
+  --rule:#E2E6E1;--border:#8C9690;--accent:var(--forest);--accent2:var(--sage-text);--accent-bg:#E7EEE8;--on-accent:#FFFFFF;
+  --highlight:var(--terracotta-text);--star:var(--terracotta-text);--series:var(--accent2);--focus:var(--sage);
   --read:var(--accent);--tbr:var(--text2);--want:var(--text2);--owned:var(--text2);--wishlist:var(--text2);--dnf:var(--text2);--borrowed:var(--text2);
-  --reading-color:#84643a;--danger:#9a3e35;
-  --r:0;--r-sm:2px;--r-full:9999px;--shadow:none;
-  --font-serif:'Lora',Georgia,'Times New Roman',serif;--font-sans:'Inter','Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --reading-color:var(--terracotta-text);--danger:#8B3A1F;
+  --r:8px;--r-sm:8px;--r-md:12px;--r-lg:20px;--r-full:9999px;--shadow:none;--shadow-lift:0 1px 2px rgba(22,61,51,.06),0 6px 20px rgba(22,61,51,.07);
+  --font-serif:'Playfair','Playfair Display',Georgia,'Times New Roman',serif;--font-sans:'Inter','Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif;
   --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:40px;--sp-6:64px;--sp-7:96px}
 :root[data-theme="dark"]{color-scheme:dark;
-  --bg:var(--ink);--bg-alt:#232a3b;--surface2:#232a3b;--surface:#20263a;--text:var(--cream);--text2:#a9a59d;--text3:#a9a59d;
-  --rule:#343c50;--border:#6d7488;--accent:#8fb3a3;--accent2:#a3c4b5;--accent-bg:#26352f;--on-accent:var(--ink);
-  --highlight:var(--warm-gold);--star:var(--warm-gold);--focus:var(--warm-gold);
-  --reading-color:var(--warm-gold);--danger:#c9776a}
+  --bg:#0E1915;--bg-alt:#1C2E28;--surface2:#1C2E28;--surface:#15241F;--text:#EEF1EC;--text2:#A6B3AD;--text3:#A6B3AD;
+  --rule:#27392F;--border:#3F4F47;--accent:#8FBFA9;--accent2:#8FBFA9;--accent-bg:#1C2E28;--on-accent:#0E1915;
+  --highlight:#D9A783;--star:#D9A783;--focus:#8FBFA9;
+  --reading-color:#D9A783;--danger:#E2A47E;--shadow-lift:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;transition:background .15s,color .15s}
-.ico{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;vertical-align:-3px}
+.ico{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
 .app{display:flex;flex-direction:row;height:100vh}
 .sidebar{width:222px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
 .sb-brand{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);flex-shrink:0}
@@ -46,7 +47,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-hei
 .sb-drawer{display:flex;flex-direction:column;flex:1;min-height:0}
 .sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
 .sb-backdrop.open{display:block}
-.sb-lockup{height:26px;line-height:26px;width:auto;display:block;font-family:var(--font-serif);font-weight:600;font-size:21px;color:var(--accent);letter-spacing:.2px}
+.sb-lockup{height:26px;width:auto;display:block}
 .sb-nav{display:flex;flex-direction:column;gap:2px;padding:var(--sp-2);flex:1}
 .sb-goal{padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--border);font-size:12px;color:var(--text2);flex-shrink:0}
 .sb-goal-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
@@ -54,7 +55,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-hei
 .goal-bar{height:100%;background:var(--accent);border-radius:var(--r-full);transition:width .3s}
 .main{flex:1;display:flex;flex-direction:column;min-width:0}
 .nb{display:flex;align-items:center;gap:10px;padding:9px 12px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;border-radius:var(--r);transition:all .15s;width:100%;text-align:left}
-.nb svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nb svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .nb:hover{color:var(--text);background:var(--surface2)}.nb.active{color:var(--on-accent);background:var(--accent)}
 .sb-sub{display:none;flex-direction:column;gap:2px;padding-left:16px;overflow:hidden}
 .sb-sub.open{display:flex}
@@ -78,17 +79,17 @@ select.fsel:hover{border-color:var(--accent2)}
 .msel-btn.active{background:var(--accent-bg);border-color:var(--accent2);color:var(--accent)}
 .msel-btn .ico{width:14px;height:14px}
 .msel-count{background:var(--accent);color:var(--on-accent);font-size:10px;font-weight:700;padding:1px 6px;border-radius:var(--r-full);line-height:1.4}
-.msel-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:40;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:var(--sp-2);min-width:200px;max-width:260px}
+.msel-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:40;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-lift);padding:var(--sp-2);min-width:200px;max-width:260px}
 .msel-pop.open{display:block}
 .msel-search{width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surface2);color:var(--text);margin-bottom:6px}
 .msel-list{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:1px}
 .msel-opt{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:var(--r);font-size:12.5px;cursor:pointer;user-select:none}
 .msel-opt:hover{background:var(--surface2)}
 .msel-opt input{accent-color:var(--accent);cursor:pointer}
-#feedback-fab{position:fixed;right:20px;bottom:20px;width:46px;height:46px;border-radius:50%;background:var(--accent);color:var(--on-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);z-index:90}
+#feedback-fab{position:fixed;right:20px;bottom:20px;width:46px;height:46px;border-radius:50%;background:var(--accent);color:var(--on-accent);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow-lift);z-index:90}
 #feedback-fab:hover{background:var(--accent2)}
 #feedback-fab .ico{width:20px;height:20px}
-.dash-search-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);max-height:280px;overflow-y:auto}
+.dash-search-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--shadow-lift);max-height:280px;overflow-y:auto}
 .dash-search-row{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--rule)}
 .dash-search-row:last-child{border-bottom:none}
 .dash-search-row:hover{background:var(--surface2)}
@@ -96,7 +97,7 @@ select.fsel:hover{border-color:var(--accent2)}
 .msel-clear-row{border-top:1px solid var(--border);margin-top:6px;padding-top:6px}
 .msel-clear-all{font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none;padding:4px 2px;text-decoration:underline}
 .books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:var(--sp-3)}
-.bcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-4);box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s;display:flex;gap:var(--sp-3)}
+.bcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-4);box-shadow:var(--shadow-lift);cursor:pointer;transition:border-color .12s;display:flex;gap:var(--sp-3)}
 .bcard:hover{border-color:var(--accent2)}
 .view-toggle{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:3px}
 .view-toggle button{padding:var(--sp-2) var(--sp-3);border:none;border-radius:var(--r);background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
@@ -129,7 +130,7 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .kanban-board{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:6px}
 .kanban-col{flex:0 0 250px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-3);min-height:120px}
 .kanban-col-h{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:var(--sp-2);display:flex;justify-content:space-between;align-items:center}
-.kanban-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-2) var(--sp-3);margin-bottom:var(--sp-2);cursor:grab;font-size:12px}
+.kanban-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-2) var(--sp-3);margin-bottom:var(--sp-2);cursor:grab;font-size:12px;box-shadow:var(--shadow-lift)}
 .kanban-card:active{cursor:grabbing}
 .kanban-card.dragging{opacity:.4}
 .kanban-col.dragover{border-color:var(--accent2);background:var(--accent-bg)}
@@ -160,7 +161,7 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .bcard-author{font-size:12px;color:var(--accent);margin-bottom:7px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 .bcard-author:hover{color:var(--accent2)}
 .bcard-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
-.badge{font-size:11px;padding:2px 8px;border-radius:var(--r);font-weight:500}
+.badge{font-size:11px;padding:2px 8px;border-radius:var(--r-full);font-weight:500}
 .b-read{background:var(--accent-bg);color:var(--accent)}.b-want{background:var(--bg-alt);color:var(--text2)}
 .b-owned{background:var(--bg-alt);color:var(--text2)}.b-wishlist{background:var(--bg-alt);color:var(--text2)}.b-tbr{background:var(--bg-alt);color:var(--text2)}
 .b-reading{background:rgba(184,149,106,.18);color:var(--reading-color)}.b-fmt{background:var(--bg-alt);color:var(--text2)}
@@ -171,7 +172,7 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .empty .ei{font-size:40px;margin-bottom:10px}.empty p{font-size:13px;line-height:1.6}
 /* Series */
 .series-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
-.series-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-4);box-shadow:var(--shadow)}
+.series-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-4);box-shadow:var(--shadow)}
 .sc-name{font-family:var(--font-serif);font-size:18px;font-weight:600;color:var(--series);margin-bottom:2px}
 .sc-author{font-size:12px;color:var(--accent);margin-bottom:10px;cursor:pointer;display:inline-block;text-decoration:underline;text-underline-offset:2px}
 .sc-bar-wrap{height:8px;background:var(--border);border-radius:var(--r-full);overflow:hidden;margin:4px 0;display:flex}
@@ -192,7 +193,7 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .sc-missing-row{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;border-bottom:1px solid var(--rule);color:var(--text2)}
 /* Authors */
 .author-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
-.author-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-4);box-shadow:var(--shadow);cursor:pointer;transition:border-color .12s;display:flex;gap:var(--sp-3);align-items:flex-start}
+.author-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-4);box-shadow:var(--shadow-lift);cursor:pointer;transition:border-color .12s;display:flex;gap:var(--sp-3);align-items:flex-start}
 .ac-avatar{width:38px;height:38px;border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--on-accent);flex-shrink:0}
 .ac-body{flex:1;min-width:0}
 .author-card:hover{border-color:var(--accent2)}
@@ -220,7 +221,7 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .rfilter select,.rfilter input{padding:5px 9px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;background:var(--surface);color:var(--text)}
 .rpanel{display:none}.rpanel.active{display:block}
 .reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
-.rcrd{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-4);box-shadow:var(--shadow)}
+.rcrd{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-4);box-shadow:var(--shadow)}
 .rcrd h3{font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--text);margin-bottom:12px}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
 .stat-row:last-child{border-bottom:none}.stat-val{font-weight:600;color:var(--accent)}
@@ -237,14 +238,14 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .series-pct-pill{font-size:10px;padding:1px 6px;border-radius:var(--r);background:var(--surface2);color:var(--text2)}
 /* Recommendations */
 .recs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:14px}
-.rec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-4);box-shadow:var(--shadow)}
+.rec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-4);box-shadow:var(--shadow)}
 .rec-title{font-family:var(--font-serif);font-size:16px;font-weight:600;margin-bottom:2px}
 .rec-author{font-size:12px;color:var(--text2);margin-bottom:6px}
 .rec-reason{font-size:12px;color:var(--text2);font-style:italic;line-height:1.5;margin-bottom:8px}
 .rec-actions{display:flex;gap:6px}
 /* Book Club */
 .bc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.bc-meeting{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-4);box-shadow:var(--shadow)}
+.bc-meeting{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-4);box-shadow:var(--shadow)}
 .bc-meeting-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .bc-meeting-title{font-family:var(--font-serif);font-size:16px;font-weight:600}
 .bc-meeting-date{font-size:12px;color:var(--text3)}
@@ -257,7 +258,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .proposed-meta{font-size:11px;color:var(--text2)}
 /* Form */
 .form-wrap{max-width:680px;margin:0 auto}
-.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);box-shadow:var(--shadow)}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow)}
 .form-card h2{font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:14px}
 .fg{margin-bottom:12px}
 .fg label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:4px}
@@ -288,7 +289,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 /* Import */
 .import-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
 #dedup-banner{margin-bottom:14px}
-.import-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);box-shadow:var(--shadow)}
+.import-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow)}
 .import-card h2{font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:7px}
 .import-card p,.import-card ol{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
 .import-card ol{padding-left:18px}
@@ -302,7 +303,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .dedup-card p{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px}
 #panel-settings{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
 #panel-settings.active{display:grid}
-.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);box-shadow:var(--shadow)}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow)}
 .settings-card h2{font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:14px}
 .archivist-tool{display:flex;align-items:center;gap:var(--sp-4);padding:var(--sp-3) 0;border-top:1px solid var(--rule)}
 .archivist-tool:first-of-type{border-top:none;padding-top:0}
@@ -319,10 +320,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .btn-warn{background:var(--bg-alt);border:1px solid var(--border);color:var(--text)}.btn-warn:hover{background:var(--surface2);border-color:var(--accent2)}
 .btn-series{background:var(--accent-bg);border:1px solid var(--accent2);color:var(--accent);font-size:11px;padding:4px 10px}
 .btn-sm{padding:var(--sp-1) var(--sp-2);font-size:11px}
-.avatar{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:600;flex-shrink:0}
+.avatar{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:var(--on-accent);font-weight:600;flex-shrink:0}
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;padding:14px}
 .modal-ov.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:var(--sp-5);max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-5);max-width:480px;width:100%;max-height:90vh;overflow-y:auto}
 .modal h2{font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:14px}
 .modal-actions{display:flex;gap:7px;margin-top:16px;justify-content:flex-end}
 .loading{color:var(--text2);font-size:13px;display:flex;align-items:center;gap:6px;padding:8px 0}
@@ -334,7 +335,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   .app{flex-direction:column;height:100vh}
   .sidebar{width:100%;flex-direction:row;align-items:center;border-right:none;border-bottom:1px solid var(--border);overflow:visible;flex-shrink:0}
   .sb-brand{padding:8px 10px;width:100%}
-  .sb-lockup{height:22px;line-height:22px;font-size:18px}
+  .sb-lockup{height:22px}
   .sb-hamburger{display:flex}
   .sb-drawer{position:fixed;top:0;left:0;bottom:0;width:260px;max-width:80vw;background:var(--surface);transform:translateX(-100%);transition:transform .2s ease;z-index:200;border-right:1px solid var(--border);overflow-y:auto;box-shadow:var(--shadow)}
   .sb-drawer.mobile-open{transform:translateX(0)}
@@ -375,21 +376,21 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <div class="app">
 <nav class="sidebar" id="sidebar">
   <div class="sb-brand">
-    <div class="sb-lockup" id="brand-lockup">Anthology</div>
+    <img class="sb-lockup" id="brand-lockup" src="brand/logos/anthology-logo-horizontal-no-tagline.svg" alt="Anthology">
     <button class="sb-hamburger" id="sb-hamburger" onclick="toggleMobileMenu()" aria-label="Menu"><svg class="ico" viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
   </div>
   <div class="sb-drawer" id="sb-drawer">
     <div class="sb-nav" id="sb-nav">
-      <button class="nb active" data-p="dashboard" onclick="nav('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span>Home</span></button>
-      <button class="nb" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="M4 5c2-1.2 5-1.2 8 0v14c-3-1.2-6-1.2-8 0V5z"/><path d="M20 5c-2-1.2-5-1.2-8 0v14c3-1.2 6-1.2 8 0V5z"/></svg><span>Library</span></button>
+      <button class="nb active" data-p="dashboard" onclick="nav('dashboard')"><svg viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span>Home</span></button>
+      <button class="nb" data-p="library" onclick="nav('library')"><svg viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg><span>Library</span></button>
       <div class="sb-sub" id="sb-sub-library">
-        <button class="nb nb-sub" data-p="series" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Series</span></button>
-        <button class="nb nb-sub" data-p="authors" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Authors</span></button>
+        <button class="nb nb-sub" data-p="series" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg><span>Series</span></button>
+        <button class="nb nb-sub" data-p="authors" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg><span>Authors</span></button>
       </div>
-      <button class="nb" data-p="bookclub" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4V5z"/></svg><span>Club</span></button>
-      <button class="nb" data-p="discover" onclick="nav('discover')"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg><span>Discover</span></button>
-      <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Insights</span></button>
-      <button class="nb" data-p="settings" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="17" cy="6" r="2"/><circle cx="9" cy="18" r="2"/></svg><span>Settings</span></button>
+      <button class="nb" data-p="bookclub" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>Club</span></button>
+      <button class="nb" data-p="discover" onclick="nav('discover')"><svg viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg><span>Discover</span></button>
+      <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16h8"/><path d="M7 11h12"/><path d="M7 6h3"/></svg><span>Insights</span></button>
+      <button class="nb" data-p="settings" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></button>
     </div>
     <div class="sb-goal" id="goal-widget" style="display:none">
       <div class="sb-goal-row"><span id="goal-label"></span><span id="goal-pct" style="font-weight:600;color:var(--accent2)"></span></div>
@@ -410,7 +411,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <input class="search-box" id="dash-global-search" type="search" style="width:100%" placeholder="Search your library or find a new book…" oninput="dashGlobalSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();dashGlobalSearchEnter();}">
       <div id="dash-global-search-results" class="dash-search-pop"></div>
     </div>
-    <button class="btn btn-primary" onclick="nav('add');openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg> Scan</button>
+    <button class="btn btn-primary" onclick="nav('add');openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan</button>
     <button class="btn btn-outline" onclick="nav('add')">+ Add book</button>
   </div>
 
@@ -440,7 +441,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
   <!-- 6. Find your next read -->
   <div style="margin-bottom:var(--sp-5)">
-    <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Find your next read <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
+    <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Find your next read <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
       <button class="btn btn-outline btn-sm" onclick="dashRecsChip('continuation')">Next in a series I've started</button>
       <button class="btn btn-outline btn-sm" onclick="dashRecsChip('owned')">Something I already own</button>
@@ -476,10 +477,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <div id="panel-discover" class="panel">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
     <div>
-      <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Discover <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
+      <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Discover <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
       <div style="font-size:12px;color:var(--text2)">Based on your highest-rated books, plus series you're mid-way through</div>
     </div>
-    <button class="btn btn-primary" style="margin-left:auto" onclick="getRecs()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Get recommendations</button>
+    <button class="btn btn-primary" style="margin-left:auto" onclick="getRecs()"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Get recommendations</button>
   </div>
   <div class="settings-card" style="margin-bottom:14px">
     <label style="display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px">Ask for something specific</label>
@@ -540,11 +541,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
     <div id="lib-count" style="font-size:12px;color:var(--text3)"></div>
     <div class="view-toggle" style="margin-left:auto">
-      <button id="view-btn-grid" class="on" onclick="setLibView('grid')"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> Grid</button>
-      <button id="view-btn-table" onclick="setLibView('table')"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg> Table</button>
-      <button id="view-btn-kanban" onclick="setLibView('kanban')"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg> Kanban</button>
+      <button id="view-btn-grid" class="on" onclick="setLibView('grid')"><svg class="ico" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> Grid</button>
+      <button id="view-btn-table" onclick="setLibView('table')"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Table</button>
+      <button id="view-btn-kanban" onclick="setLibView('kanban')"><svg class="ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/></svg> Kanban</button>
     </div>
-    <button class="btn btn-outline btn-sm" id="select-toggle-btn" onclick="toggleSelectMode()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="7 12 10 15 17 8"/></svg> Select</button>
+    <button class="btn btn-outline btn-sm" id="select-toggle-btn" onclick="toggleSelectMode()"><svg class="ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m16 9-5.5 5.5L8 12"/></svg> Select</button>
   </div>
   <div id="bulk-bar" style="display:none;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
     <span id="bulk-count" style="font-size:12px;color:var(--text2);font-weight:600"></span>
@@ -560,13 +561,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <button class="btn btn-series btn-sm" onclick="applyBulkStatus()">Apply</button>
     <button class="btn btn-series btn-sm" onclick="applyBulkLendable(true)"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12h7"/><path d="M7 8l-4 4 4 4"/><path d="M21 12h-7"/><path d="M17 8l4 4-4 4"/></svg> Mark willing to lend</button>
     <button class="btn btn-outline btn-sm" onclick="applyBulkLendable(false)">Clear lending flag</button>
-    <button class="btn btn-danger btn-sm" onclick="bulkDelete()"><svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/></svg> Delete selected</button>
+    <button class="btn btn-danger btn-sm" onclick="bulkDelete()"><svg class="ico" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete selected</button>
     <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="clearSelection()">Clear selection</button>
   </div>
   <div class="books-grid" id="lib-grid"></div>
   <div class="lib-table-toolbar" id="lib-table-toolbar">
     <div class="msel">
-      <button type="button" class="msel-btn" onclick="toggleColPicker()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg> Columns <svg class="ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <button type="button" class="msel-btn" onclick="toggleColPicker()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/></svg> Columns <svg class="ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
       <div class="msel-pop" id="col-picker-pop"></div>
     </div>
     <div style="margin-left:auto;font-size:11px;color:var(--text3)">Drag a column's right edge to resize. First column stays visible while you scroll.</div>
@@ -633,7 +634,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div id="ad-series-books"></div>
     <div class="ad-ai-section">
       <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--text);margin-bottom:8px">Full bibliography <span style="font-weight:400;font-family:var(--font-sans);color:var(--text3)">(via AI)</span></h3>
-      <button class="btn btn-series" onclick="lookupAuthorAI()" id="ad-lookup-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Look up full bibliography</button>
+      <button class="btn btn-series" onclick="lookupAuthorAI()" id="ad-lookup-btn"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Look up full bibliography</button>
       <div id="ad-ai-result"></div>
     </div>
   </div>
@@ -768,7 +769,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div style="font-size:12px;color:var(--text2)">New books in series you or book club have already read</div>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="btn btn-outline btn-sm" onclick="checkForSequels()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Check for sequels</button>
+      <button class="btn btn-outline btn-sm" onclick="checkForSequels()"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Check for sequels</button>
       <button class="btn btn-primary btn-sm" onclick="openUpForm()">+ Add Release</button>
     </div>
   </div>
@@ -829,9 +830,9 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- ADD -->
 <div id="panel-add" class="panel">
   <div id="dedup-banner" class="dedup-card" style="display:none">
-    <h2><svg class="ico" viewBox="0 0 24 24"><path d="M10.6 3.5a1.6 1.6 0 012.8 0l8.4 14.6a1.6 1.6 0 01-1.4 2.4H3.6a1.6 1.6 0 01-1.4-2.4L10.6 3.5z"/><line x1="12" y1="9.5" x2="12" y2="13.5"/><circle cx="12" cy="16.5" r="0.9" fill="currentColor" stroke="none"/></svg> Duplicate books detected</h2>
+    <h2><svg class="ico" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Duplicate books detected</h2>
     <p id="dedup-msg"></p>
-    <button class="btn btn-warn" onclick="runDedup()"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Merge duplicates now</button>
+    <button class="btn btn-warn" onclick="runDedup()"><svg class="ico" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg> Merge duplicates now</button>
     <span style="font-size:12px;color:var(--borrowed);margin-left:10px" id="dedup-status"></span>
   </div>
   <div class="view-toggle" style="margin-bottom:14px">
@@ -847,7 +848,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <input type="text" id="ol-search-q" class="search-box" placeholder="Title or author…" onkeydown="if(event.key==='Enter'){event.preventDefault();searchOpenLibrary();}">
         <button class="btn btn-primary" onclick="searchOpenLibrary()">Search</button>
-        <button type="button" class="btn btn-series" onclick="openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg> Scan barcode</button>
+        <button type="button" class="btn btn-series" onclick="openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan barcode</button>
       </div>
       <div id="ol-search-status" style="font-size:12px;color:var(--text2);margin-top:10px"></div>
       <div id="ol-search-results" style="margin-top:10px;display:flex;flex-direction:column;gap:8px"></div>
@@ -863,7 +864,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="form-card">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
         <h2 id="form-h" style="margin-bottom:0">Add a Book</h2>
-        <button type="button" class="btn btn-series" onclick="openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg> Scan barcode</button>
+        <button type="button" class="btn btn-series" onclick="openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan barcode</button>
       </div>
       <input type="hidden" id="f-id">
       <input type="hidden" id="f-cover">
@@ -900,9 +901,9 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div class="fg">
         <label>Owned formats</label>
         <div class="fmt-checks" id="f-fmt-checks">
-          <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Ebook"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="5" y1="17.5" x2="19" y2="17.5"/></svg> Ebook</label>
-          <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Audiobook"><svg class="ico" viewBox="0 0 24 24"><path d="M4 13v-1a8 8 0 0116 0v1"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg> Audio</label>
-          <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Hardcopy"><svg class="ico" viewBox="0 0 24 24"><path d="M5 3.5A2 2 0 017 2h12v18H7a2 2 0 00-2 1.5"/><path d="M5 20.5A2 2 0 017 19h12"/></svg> Hard</label>
+          <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Ebook"><svg class="ico" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Ebook</label>
+          <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Audiobook"><svg class="ico" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg> Audio</label>
+          <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Hardcopy"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg> Hard</label>
         </div>
       </div>
       <div class="fg">
@@ -935,7 +936,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
           <span id="genre-tags"></span>
           <input class="tag-inp" id="genre-inp" placeholder="Add genre, press Enter…" onkeydown="tagKeydown(event,false)" oninput="tagInput(event,false)">
         </div>
-        <span class="ai-suggest" onclick="suggestGenre()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Suggest genre from AI</span>
+        <span class="ai-suggest" onclick="suggestGenre()"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Suggest genre from AI</span>
       </div>
       <div class="frow">
         <div class="fg">
@@ -976,7 +977,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <h2>GoodReads Library</h2>
     <p>Go to <strong>goodreads.com → My Books → Import and Export → Export Library</strong>. Download the CSV and drop it below.</p>
     <div class="drop-zone" id="gr-dz" onclick="document.getElementById('gr-inp').click()" ondragover="dzo(event,'gr-dz')" ondragleave="dzl('gr-dz')" ondrop="dzd(event,'gr-dz',processGR)">
-      <div class="dz-icon"><svg class="ico" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="M5 3.5A2 2 0 017 2h12v18H7a2 2 0 00-2 1.5"/><path d="M5 20.5A2 2 0 017 19h12"/></svg></div><p class="dz-p"><strong>Click or drop</strong> goodreads_library_export.csv</p>
+      <div class="dz-icon"><svg class="ico" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg></div><p class="dz-p"><strong>Click or drop</strong> goodreads_library_export.csv</p>
     </div>
     <input type="file" id="gr-inp" accept=".csv" style="display:none" onchange="processGR(event.target.files[0])">
     <div id="gr-result"></div>
@@ -985,7 +986,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <h2>Audible Library Extractor</h2>
     <p>Install the <strong>Audible Library Extractor</strong> browser extension → Your Library → Export to JSON.</p>
     <div class="drop-zone" id="au-dz" onclick="document.getElementById('au-inp').click()" ondragover="dzo(event,'au-dz')" ondragleave="dzl('au-dz')" ondrop="dzd(event,'au-dz',processAudible)">
-      <div class="dz-icon"><svg class="ico" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="M4 13v-1a8 8 0 0116 0v1"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg></div><p class="dz-p"><strong>Click or drop</strong> Audible Library Extractor Data.json</p>
+      <div class="dz-icon"><svg class="ico" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg></div><p class="dz-p"><strong>Click or drop</strong> Audible Library Extractor Data.json</p>
     </div>
     <input type="file" id="au-inp" accept=".json" style="display:none" onchange="processAudible(event.target.files[0])">
     <div id="au-result"></div>
@@ -999,7 +1000,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <li>Drop the downloaded <strong>kindle_books.csv</strong> below</li>
     </ol>
     <div class="drop-zone" id="kn-dz" onclick="document.getElementById('kn-inp').click()" ondragover="dzo(event,'kn-dz')" ondragleave="dzl('kn-dz')" ondrop="dzd(event,'kn-dz',processKindle)">
-      <div class="dz-icon"><svg class="ico" style="width:28px;height:28px" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="5" y1="17.5" x2="19" y2="17.5"/></svg></div><p class="dz-p"><strong>Click or drop</strong> kindle_books.csv</p>
+      <div class="dz-icon"><svg class="ico" style="width:28px;height:28px" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></div><p class="dz-p"><strong>Click or drop</strong> kindle_books.csv</p>
     </div>
     <input type="file" id="kn-inp" accept=".csv" style="display:none" onchange="processKindle(event.target.files[0])">
     <div id="kn-result"></div>
@@ -1062,35 +1063,35 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <h2>The Archivist</h2>
     <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Housekeeping tools that keep your library tidy and complete.</p>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="backfillCovers()"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 15.5l-5-5-10 10"/></svg> Backfill cover art</button>
+      <button class="btn btn-outline" onclick="backfillCovers()"><svg class="ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> Backfill cover art</button>
       <p>Uses Open Library to fill in missing cover art for any book with an ISBN on file.</p>
     </div>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="backfillLibrarySeries()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg> Backfill series info (AI)</button>
+      <button class="btn btn-outline" onclick="backfillLibrarySeries()"><svg class="ico" viewBox="0 0 24 24"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg> Backfill series info (AI)</button>
       <p>Asks AI for the series name and book number for any book with no series set yet — 20 at a time, run again for more.</p>
     </div>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="backfillGenres()"><svg class="ico" viewBox="0 0 24 24"><path d="M20.5 12.5L12 21l-9-9V4a2 2 0 012-2h8z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg> Backfill genres (AI)</button>
+      <button class="btn btn-outline" onclick="backfillGenres()"><svg class="ico" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg> Backfill genres (AI)</button>
       <p>Asks AI to suggest 2–3 genre tags for any book that doesn't have one yet.</p>
     </div>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="backfillPages()"><svg class="ico" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="1.5"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="11" y1="7" x2="11" y2="11"/><line x1="15" y1="7" x2="15" y2="11"/><line x1="19" y1="7" x2="19" y2="11"/></svg> Backfill page counts</button>
+      <button class="btn btn-outline" onclick="backfillPages()"><svg class="ico" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg> Backfill page counts</button>
       <p>Tries Open Library first, then falls back to an AI estimate (shown with a ~) for anything not found.</p>
     </div>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="runDedup()"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find &amp; merge duplicate books</button>
+      <button class="btn btn-outline" onclick="runDedup()"><svg class="ico" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg> Find &amp; merge duplicate books</button>
       <p>Merges books with the same title and author, combining formats and keeping the best status and rating.</p>
     </div>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="findSimilarNames('series')"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find similar series names</button>
+      <button class="btn btn-outline" onclick="findSimilarNames('series')"><svg class="ico" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg> Find similar series names</button>
       <p>Scans your series names for likely duplicates (e.g. "ACOTAR" vs "A Court of Thorns and Roses") — you approve each merge. Checks up to 60 at a time.</p>
     </div>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="findSimilarNames('author')"><svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg> Find similar author names</button>
+      <button class="btn btn-outline" onclick="findSimilarNames('author')"><svg class="ico" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg> Find similar author names</button>
       <p>Same idea, for author names — catches spelling variants and name-order differences.</p>
     </div>
     <div class="archivist-tool">
-      <button class="btn btn-outline" onclick="normalizeAllAuthors()"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg> Normalize author names</button>
+      <button class="btn btn-outline" onclick="normalizeAllAuthors()"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg> Normalize author names</button>
       <p>Converts any "Last, First" author names to "First Last" for consistency. New entries are normalized automatically.</p>
     </div>
     <div id="backfill-status" style="font-size:12px;color:var(--text2);margin-top:4px"></div>
@@ -1101,10 +1102,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div class="settings-card" style="grid-column:1/-1">
     <h2>Manage Data</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-outline" onclick="exportJSON()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg> Export backup (JSON)</button>
-      <button class="btn btn-outline" onclick="exportCSV()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg> Export CSV (Excel)</button>
-      <button class="btn btn-outline" onclick="document.getElementById('restore-inp').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 21V9"/><polyline points="7 13 12 8 17 13"/><line x1="4" y1="4" x2="20" y2="4"/></svg> Restore from backup</button>
-      <button class="btn btn-danger" onclick="if(confirm('Delete all data?')){books=[];save();renderLib()}"><svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/></svg> Clear all</button>
+      <button class="btn btn-outline" onclick="exportJSON()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg> Export backup (JSON)</button>
+      <button class="btn btn-outline" onclick="exportCSV()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg> Export CSV (Excel)</button>
+      <button class="btn btn-outline" onclick="document.getElementById('restore-inp').click()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> Restore from backup</button>
+      <button class="btn btn-danger" onclick="if(confirm('Delete all data?')){books=[];save();renderLib()}"><svg class="ico" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Clear all</button>
     </div>
     <input type="file" id="restore-inp" accept=".json" style="display:none" onchange="restoreJSON(event)">
   </div>
@@ -1114,7 +1115,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 </div><!-- /main -->
 </div><!-- /app -->
 
-<button id="feedback-fab" onclick="openFeedbackModal()" title="Send feedback" aria-label="Send feedback"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button>
+<button id="feedback-fab" onclick="openFeedbackModal()" title="Send feedback" aria-label="Send feedback"><svg class="ico" viewBox="0 0 24 24"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg></button>
 
 <!-- Feedback Modal -->
 <div class="modal-ov" id="feedback-modal">
@@ -1160,9 +1161,9 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="fg">
       <label>Owned formats</label>
       <div class="fmt-checks" id="m-fmt-checks">
-        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Ebook"><svg class="ico" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="5" y1="17.5" x2="19" y2="17.5"/></svg> Ebook</label>
-        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Audiobook"><svg class="ico" viewBox="0 0 24 24"><path d="M4 13v-1a8 8 0 0116 0v1"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg> Audio</label>
-        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Hardcopy"><svg class="ico" viewBox="0 0 24 24"><path d="M5 3.5A2 2 0 017 2h12v18H7a2 2 0 00-2 1.5"/><path d="M5 20.5A2 2 0 017 19h12"/></svg> Hard</label>
+        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Ebook"><svg class="ico" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Ebook</label>
+        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Audiobook"><svg class="ico" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg> Audio</label>
+        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Hardcopy"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg> Hard</label>
       </div>
     </div>
     <div class="fg">
@@ -1177,7 +1178,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <label>Series</label>
         <div style="display:flex;gap:5px;align-items:center">
           <input type="text" id="m-series" style="flex:1">
-          <button class="btn btn-series btn-sm" onclick="aiLookupSeriesInfo()" title="AI lookup series info"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg></button>
+          <button class="btn btn-series btn-sm" onclick="aiLookupSeriesInfo()" title="AI lookup series info"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg></button>
         </div>
       </div>
       <div class="fg"><label>Book #</label><input type="text" id="m-series-num"></div>
@@ -1288,7 +1289,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- Barcode Scanner Modal -->
 <div class="modal-ov" id="scanner-modal">
   <div class="modal" style="max-width:400px">
-    <h2><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg> Scan a barcode</h2>
+    <h2><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan a barcode</h2>
     <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Point your camera at the book's ISBN barcode (usually on the back cover).</p>
     <div id="scanner-viewport" style="border-radius:var(--r);overflow:hidden;background:#000;min-height:200px"></div>
     <div id="scan-status" style="font-size:12px;color:var(--text2);margin-top:10px"></div>
@@ -1308,53 +1309,60 @@ const STATUS_LABELS={read:'Read',tbr:'TBR',want:'TBR',owned:'TBR',wishlist:'Wish
 const STATUS_BADGE={read:'b-read',tbr:'b-tbr',want:'b-tbr',owned:'b-tbr',wishlist:'b-wishlist',reading:'b-reading',dnf:'b-dnf'};
 // ═══════════ ICONS (inline SVG, no emoji) ═══════════
 const ICON={
-  ebook:'<svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>',
-  audiobook:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 13v-1a8 8 0 0116 0v1"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/></svg>',
-  hardcopy:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 016.5 2H20v18H6.5A2.5 2.5 0 014 17.5v-13z"/><path d="M4 17.5A2.5 2.5 0 016.5 15H20"/><line x1="8" y1="2" x2="8" y2="15"/></svg>',
-  repeat:'<svg class="ico" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>',
-  lend:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 12h7"/><path d="M7 8l-4 4 4 4"/><path d="M21 12h-7"/><path d="M17 8l4 4-4 4"/></svg>',
-  sparkle:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg>',
-  warning:'<svg class="ico" viewBox="0 0 24 24"><path d="M10.6 3.5a1.6 1.6 0 012.8 0l8.4 14.6a1.6 1.6 0 01-1.4 2.4H3.6a1.6 1.6 0 01-1.4-2.4L10.6 3.5z"/><line x1="12" y1="9.5" x2="12" y2="13.5"/><circle cx="12" cy="16.5" r="0.9" fill="currentColor" stroke="none"/></svg>',
-  check:'<svg class="ico" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
-  checkCircle:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9.5"/></svg>',
-  x:'<svg class="ico" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
-  xCircle:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="9.5" y1="9.5" x2="14.5" y2="14.5"/><line x1="14.5" y1="9.5" x2="9.5" y2="14.5"/></svg>',
-  clock:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
-  question:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.1 9.3a3 3 0 115.6 1.3c-.7 1-1.7 1.3-1.7 2.9"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/></svg>',
-  trophy:'<svg class="ico" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H4a3 3 0 003 5M17 5h3a3 3 0 01-3 5"/><line x1="12" y1="14" x2="12" y2="18"/><path d="M8 21h8l-1-3H9l-1 3z"/></svg>',
-  camera:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg>',
-  download:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><line x1="4" y1="20" x2="20" y2="20"/></svg>',
-  upload:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 21V9"/><polyline points="7 13 12 8 17 13"/><line x1="4" y1="4" x2="20" y2="4"/></svg>',
-  checkSquare:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><polyline points="7 12 10 15 17 8"/></svg>',
-  trash:'<svg class="ico" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m2 0v14a2 2 0 01-2 2H8a2 2 0 01-2-2V6h12z"/></svg>',
-  shuffle:'<svg class="ico" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>',
-  tag:'<svg class="ico" viewBox="0 0 24 24"><path d="M20.5 12.5L12 21l-9-9V4a2 2 0 012-2h8z"/><circle cx="7.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/></svg>',
-  ruler:'<svg class="ico" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="1.5"/><line x1="7" y1="7" x2="7" y2="11"/><line x1="11" y1="7" x2="11" y2="11"/><line x1="15" y1="7" x2="15" y2="11"/><line x1="19" y1="7" x2="19" y2="11"/></svg>',
-  image:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 15.5l-5-5-10 10"/></svg>',
-  inbox:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 10l3-6h12l3 6"/><path d="M3 10v9a1 1 0 001 1h16a1 1 0 001-1v-9"/><path d="M3 10h5l1.5 3h5L16 10h5"/></svg>',
-  bookStack:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="14" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="11" height="4" rx="1"/></svg>',
-  bookmark:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg>',
-  person:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>',
-  chevDown:'<svg class="ico" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>',
-  filter:'<svg class="ico" viewBox="0 0 24 24"><polygon points="3 4 21 4 14 13 14 20 10 20 10 13 3 4"/></svg>',
-  sun:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="4.2" y1="4.2" x2="6" y2="6"/><line x1="18" y1="18" x2="19.8" y2="19.8"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.2" y1="19.8" x2="6" y2="18"/><line x1="18" y1="6" x2="19.8" y2="4.2"/></svg>',
-  moon:'<svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"/></svg>'
+  ebook:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>',
+  audiobook:'<svg class="ico" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>',
+  hardcopy:'<svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg>',
+  repeat:'<svg class="ico" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>',
+  lend:'<svg class="ico" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>',
+  sparkle:'<svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>',
+  warning:'<svg class="ico" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  check:'<svg class="ico" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
+  checkCircle:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg>',
+  x:'<svg class="ico" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  xCircle:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>',
+  clock:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+  question:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>',
+  trophy:'<svg class="ico" viewBox="0 0 24 24"><path d="M10 14.66V17a1 1 0 0 1-1 1 2 2 0 0 0-2 2v2"/><path d="M14 14.66V17a1 1 0 0 0 1 1 2 2 0 0 1 2 2v2"/><path d="M17.916 10H19.5A2.5 2.5 0 0 0 22 7.5V5a1 1 0 0 0-1-1h-3"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6.084 10H4.5A2.5 2.5 0 0 1 2 7.5V5a1 1 0 0 1 1-1h3"/></svg>',
+  camera:'<svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg>',
+  download:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg>',
+  upload:'<svg class="ico" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>',
+  checkSquare:'<svg class="ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m16 9-5.5 5.5L8 12"/></svg>',
+  trash:'<svg class="ico" viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  shuffle:'<svg class="ico" viewBox="0 0 24 24"><path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/></svg>',
+  tag:'<svg class="ico" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>',
+  ruler:'<svg class="ico" viewBox="0 0 24 24"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></svg>',
+  image:'<svg class="ico" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+  inbox:'<svg class="ico" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+  bookStack:'<svg class="ico" viewBox="0 0 24 24"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>',
+  bookmark:'<svg class="ico" viewBox="0 0 24 24"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"/></svg>',
+  person:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>',
+  chevDown:'<svg class="ico" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+  filter:'<svg class="ico" viewBox="0 0 24 24"><path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>'
 };
 const STATUS_ICO={read:ICON.checkCircle,reading:ICON.clock,tbr:ICON.bookStack,owned:ICON.bookStack,want:ICON.bookStack,wishlist:ICON.bookmark,dnf:ICON.xCircle};
 const FMT_ICO={Ebook:ICON.ebook,Kindle:ICON.ebook,Audiobook:ICON.audiobook,Hardcopy:ICON.hardcopy};
 const FMT_ALL=['Ebook','Audiobook','Hardcopy'];
+// Chart.js needs literal color strings, not CSS var() -- these mirror brand/tokens.css so chart colors stay in the same family.
+const BRAND={forest:'#163D33',sage:'#5E8C79',sageText:'#3F6F5D',moss:'#A7BBA8',terracotta:'#D9A783',terracottaText:'#94582C',ink:'#17211D',muted:'#55625C',line:'#E2E6E1'};
+const AVATAR_COLORS=[BRAND.forest,BRAND.terracottaText,BRAND.muted,BRAND.sageText,'#8B3A1F',BRAND.moss];
+const FMT_C={Ebook:BRAND.sageText,Audiobook:BRAND.forest,Hardcopy:BRAND.terracottaText,Unknown:BRAND.muted};
+const genrePalette=[BRAND.forest,BRAND.terracottaText,BRAND.sageText,BRAND.sage,BRAND.moss,BRAND.terracotta,BRAND.muted,'#8B3A1F','#2A4A40','#6B8F7C'];
 function toggleTheme(){
   const cur=document.documentElement.getAttribute('data-theme')||'light';
   const next=cur==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',next);
   localStorage.setItem('booktracker_theme',next);
   updateThemeToggleIcon();
-  if(window.Chart){Chart.defaults.color=next==='dark'?'#a9a59d':'#5a5f6b';Chart.defaults.borderColor=next==='dark'?'#343c50':'#d9cfc2';destroyCharts();if(currentPanel()==='reports')renderReports();}
+  if(window.Chart){Chart.defaults.color=next==='dark'?'#A6B3AD':'#55625C';Chart.defaults.borderColor=next==='dark'?'#27392F':'#E2E6E1';destroyCharts();if(currentPanel()==='reports')renderReports();}
 }
 function updateThemeToggleIcon(){
   const cur=document.documentElement.getAttribute('data-theme')||'light';
   const btn=document.getElementById('settings-theme-btn');
   if(btn)btn.innerHTML=(cur==='dark'?ICON.sun:ICON.moon)+(cur==='dark'?' Switch to light':' Switch to dark');
+  const logo=document.getElementById('brand-lockup');
+  if(logo)logo.src=cur==='dark'?'brand/logos/anthology-logo-horizontal-no-tagline-reverse.svg':'brand/logos/anthology-logo-horizontal-no-tagline.svg';
 }
 
 function normTitle(t){return String(t||'').toLowerCase().trim().replace(/\s*\([^)]*\)\s*$/,'').trim();}
@@ -2472,13 +2480,12 @@ function addMissingBook(title,author,series,seriesNumber,btn){
 }
 
 // ═══════════ AUTHORS ═══════════
-const AVATAR_COLORS=['#4a6b5e','#84643a','#7d776d','#5c8273','#9a3e35','#6d7488'];
 function avatarColorFor(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
 function initialsFor(name){const parts=name.trim().split(/\s+/).filter(Boolean);if(!parts.length)return'?';if(parts.length===1)return parts[0][0].toUpperCase();return(parts[0][0]+parts[parts.length-1][0]).toUpperCase();}
 
 function buildAuthorMap(){const map={};books.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),borrowedFormats:new Set(),series:new Set(),books:[]};if(b.status==='read')map[a].read++;else if(b.status==='reading')map[a].owned++;else if(['tbr','owned','want','wishlist'].includes(b.status))map[a].want++;else if(b.status==='dnf')map[a].dnf++;(b.formats||[]).forEach(f=>map[a].formats.add(f));(b.borrowedFormats||[]).forEach(f=>map[a].borrowedFormats.add(f));if(b.series)map[a].series.add(b.series);map[a].books.push(b);});return map;}
 
-function renderAuthors(){const map=buildAuthorMap();const q=(document.getElementById('author-search')?.value||'').toLowerCase();const lenF=document.getElementById('author-length')?.value||'';const list=document.getElementById('author-list');const entries=Object.values(map).filter(a=>{if(q&&!a.name.toLowerCase().includes(q))return false;if(lenF&&!a.books.some(b=>{const p=b.pages||0;if(!p)return false;if(lenF==='short')return p<250;if(lenF==='medium')return p>=250&&p<=450;if(lenF==='long')return p>450;return false;}))return false;return true;}).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));if(!entries.length){list.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></div><p>No authors found.</p></div>`;return;}list.innerHTML=entries.map(a=>{const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');const ser=[...a.series].slice(0,2).join(', ')+(a.series.size>2?'…':'');return`<div class="author-card" onclick="openAuthorDetail('${esc(a.name)}')"><div class="ac-avatar" style="background:${avatarColorFor(a.name)}">${esc(initialsFor(a.name))}</div><div class="ac-body"><div class="ac-name">${esc(a.name)}</div><div class="ac-stats">${a.read} read · ${a.owned} owned · ${a.want} want${a.dnf?` · ${a.dnf} DNF`:''}<br>${fmts?fmts+'<br>':''}${ser?`<span style="color:var(--series)">${esc(ser)}</span>`:''}</div></div></div>`;}).join('');}
+function renderAuthors(){const map=buildAuthorMap();const q=(document.getElementById('author-search')?.value||'').toLowerCase();const lenF=document.getElementById('author-length')?.value||'';const list=document.getElementById('author-list');const entries=Object.values(map).filter(a=>{if(q&&!a.name.toLowerCase().includes(q))return false;if(lenF&&!a.books.some(b=>{const p=b.pages||0;if(!p)return false;if(lenF==='short')return p<250;if(lenF==='medium')return p>=250&&p<=450;if(lenF==='long')return p>450;return false;}))return false;return true;}).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));if(!entries.length){list.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div><p>No authors found.</p></div>`;return;}list.innerHTML=entries.map(a=>{const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');const ser=[...a.series].slice(0,2).join(', ')+(a.series.size>2?'…':'');return`<div class="author-card" onclick="openAuthorDetail('${esc(a.name)}')"><div class="ac-avatar" style="background:${avatarColorFor(a.name)}">${esc(initialsFor(a.name))}</div><div class="ac-body"><div class="ac-name">${esc(a.name)}</div><div class="ac-stats">${a.read} read · ${a.owned} owned · ${a.want} want${a.dnf?` · ${a.dnf} DNF`:''}<br>${fmts?fmts+'<br>':''}${ser?`<span style="color:var(--series)">${esc(ser)}</span>`:''}</div></div></div>`;}).join('');}
 
 function openAuthorDetail(name){
   currentAuthor=name;
@@ -2689,7 +2696,7 @@ function renderDashGoalChart(){
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const ctx=document.getElementById('dash-goal-chart');
   if(ctx){
-    chartInst.dashGoal=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'Books read',data:byMonth,backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+    chartInst.dashGoal=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{label:'Books read',data:byMonth,backgroundColor:BRAND.forest,borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
   }
   const summary=document.getElementById('dash-goal-summary');
   if(summary){
@@ -2790,10 +2797,8 @@ function renderReportSummary(){
   const startedByStatus={};startedThisYear.forEach(b=>{startedByStatus[b.status]=(startedByStatus[b.status]||0)+1;});
   const statusKeys=Object.keys(startedByStatus);
   const fmtCounts={};read.forEach(b=>{(b.formats&&b.formats.length?b.formats:['Unknown']).forEach(f=>{fmtCounts[f]=(fmtCounts[f]||0)+1;});});
-  const FMT_C={Ebook:'#7c5cbf',Audiobook:'#2d7a4f',Hardcopy:'#c07a1a',Unknown:'#aaa'};
   const genreCounts={};read.forEach(b=>{(b.genre||[]).forEach(g=>{genreCounts[g]=(genreCounts[g]||0)+1;});});
   const genreEntries=Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const genrePalette=['#4a6b5e','#b8956a','#7c5cbf','#2d7a4f','#c07a1a','#a08b72','#8d8577','#5c8273','#d9c3a8','#9c7a52'];
   const el=document.getElementById('rpanel-summary');
   el.innerHTML=`
   <div class="rcrd" style="grid-column:1/-1;margin-bottom:14px">
@@ -2828,12 +2833,12 @@ function renderReportSummary(){
   </div>`;
   setTimeout(()=>{
     if(currentPanel()!=='reports')return;
-    const gc=document.getElementById('ch-goal');if(gc){const ex=Chart.getChart(gc);if(ex)ex.destroy();chartInst.goal=new Chart(gc,{type:'bar',data:{labels:months,datasets:[{label:'Books read',data:byMonth,backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
-    if(years.length>1){const ctx=document.getElementById('ch-year');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.yr=new Chart(ctx,{type:'bar',data:{labels:years,datasets:[{label:'Books',data:years.map(y=>byYear[y]),backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
-    if(rated.length){const ctx=document.getElementById('ch-ratings');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.rat=new Chart(ctx,{type:'bar',data:{labels:['★','★★','★★★','★★★★','★★★★★'],datasets:[{data:rDist,backgroundColor:['#d9c3a8','#cdb08c','#c1a077','#b8956a','#9c7a52'],borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
-    const sc=document.getElementById('ch-shelf');if(sc){const ex=Chart.getChart(sc);if(ex)ex.destroy();chartInst.shelf=new Chart(sc,{type:'doughnut',data:{labels:['Read','Reading','TBR','DNF'],datasets:[{data:[read.length,rb.filter(b=>b.status==='reading').length,rb.filter(b=>['tbr','owned','want','wishlist'].includes(b.status)).length,rb.filter(b=>b.status==='dnf').length],backgroundColor:['#4a6b5e','#b8956a','#a08b72','#8d8577'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
-    const st=document.getElementById('ch-started');if(st){const ex=Chart.getChart(st);if(ex)ex.destroy();chartInst.started=new Chart(st,{type:'bar',data:{labels:statusKeys.map(s=>STATUS_LABELS[s]||s),datasets:[{data:statusKeys.map(s=>startedByStatus[s]),backgroundColor:'#b8956a',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
-    const rf=document.getElementById('ch-read-format');if(rf){const ex=Chart.getChart(rf);if(ex)ex.destroy();const entries=Object.entries(fmtCounts);chartInst.readFmt=new Chart(rf,{type:'pie',data:{labels:entries.map(([f])=>f),datasets:[{data:entries.map(([,n])=>n),backgroundColor:entries.map(([f])=>FMT_C[f]||'#aaa'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
+    const gc=document.getElementById('ch-goal');if(gc){const ex=Chart.getChart(gc);if(ex)ex.destroy();chartInst.goal=new Chart(gc,{type:'bar',data:{labels:months,datasets:[{label:'Books read',data:byMonth,backgroundColor:BRAND.forest,borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
+    if(years.length>1){const ctx=document.getElementById('ch-year');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.yr=new Chart(ctx,{type:'bar',data:{labels:years,datasets:[{label:'Books',data:years.map(y=>byYear[y]),backgroundColor:BRAND.forest,borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
+    if(rated.length){const ctx=document.getElementById('ch-ratings');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.rat=new Chart(ctx,{type:'bar',data:{labels:['★','★★','★★★','★★★★','★★★★★'],datasets:[{data:rDist,backgroundColor:['#E8C6AC',BRAND.terracotta,'#C08858',BRAND.terracottaText,'#6B3D1F'],borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}}
+    const sc=document.getElementById('ch-shelf');if(sc){const ex=Chart.getChart(sc);if(ex)ex.destroy();chartInst.shelf=new Chart(sc,{type:'doughnut',data:{labels:['Read','Reading','TBR','DNF'],datasets:[{data:[read.length,rb.filter(b=>b.status==='reading').length,rb.filter(b=>['tbr','owned','want','wishlist'].includes(b.status)).length,rb.filter(b=>b.status==='dnf').length],backgroundColor:[BRAND.forest,BRAND.terracottaText,BRAND.muted,'#8B3A1F'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
+    const st=document.getElementById('ch-started');if(st){const ex=Chart.getChart(st);if(ex)ex.destroy();chartInst.started=new Chart(st,{type:'bar',data:{labels:statusKeys.map(s=>STATUS_LABELS[s]||s),datasets:[{data:statusKeys.map(s=>startedByStatus[s]),backgroundColor:BRAND.terracottaText,borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});}
+    const rf=document.getElementById('ch-read-format');if(rf){const ex=Chart.getChart(rf);if(ex)ex.destroy();const entries=Object.entries(fmtCounts);chartInst.readFmt=new Chart(rf,{type:'pie',data:{labels:entries.map(([f])=>f),datasets:[{data:entries.map(([,n])=>n),backgroundColor:entries.map(([f])=>FMT_C[f]||BRAND.muted),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
     const rg=document.getElementById('ch-read-genre');if(rg){const ex=Chart.getChart(rg);if(ex)ex.destroy();chartInst.readGenre=new Chart(rg,{type:'pie',data:{labels:genreEntries.map(([g])=>g),datasets:[{data:genreEntries.map(([,n])=>n),backgroundColor:genreEntries.map((_,i)=>genrePalette[i%genrePalette.length]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12}}}}});}
   },50);
 }
@@ -2870,9 +2875,9 @@ function renderReportSeries(){
   <p style="font-size:11px;color:var(--text3);margin-top:8px">* Series are checked automatically in the background on the Series tab; totals update once that finishes. Click series name → go to Series tab.</p></div>`;
 }
 
-function renderReportGenre(){const rb=getReportBooks();const map={};rb.forEach(b=>{(b.genre||[]).forEach(g=>{if(!map[g])map[g]={name:g,read:0,owned:0,want:0,dnf:0};if(b.status==='read')map[g].read++;else if(b.status==='reading')map[g].owned++;else if(b.status==='dnf')map[g].dnf++;else map[g].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-genre');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.tag}</div><p>No genre data. Add genres when editing books.</p></div>`;return;}el.innerHTML=`<div class="reports-grid"><div class="rcrd" style="grid-column:1/-1"><h3>Genre breakdown</h3><div class="chart-wrap" style="height:${Math.max(180,rows.length*28)}px"><canvas id="ch-genre"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Genre</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.dnf||0}</td><td class="num">${r.read+r.owned+r.want+r.dnf}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{if(currentPanel()!=='reports')return;const ctx=document.getElementById('ch-genre');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.genre=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Read',data:rows.map(r=>r.read),backgroundColor:'#4a6b5e'},{label:'Owned',data:rows.map(r=>r.owned),backgroundColor:'#b8956a'},{label:'Want',data:rows.map(r=>r.want),backgroundColor:'#a69a85'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true,ticks:{precision:0}},y:{stacked:true}}}});}},50);}
+function renderReportGenre(){const rb=getReportBooks();const map={};rb.forEach(b=>{(b.genre||[]).forEach(g=>{if(!map[g])map[g]={name:g,read:0,owned:0,want:0,dnf:0};if(b.status==='read')map[g].read++;else if(b.status==='reading')map[g].owned++;else if(b.status==='dnf')map[g].dnf++;else map[g].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-genre');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.tag}</div><p>No genre data. Add genres when editing books.</p></div>`;return;}el.innerHTML=`<div class="reports-grid"><div class="rcrd" style="grid-column:1/-1"><h3>Genre breakdown</h3><div class="chart-wrap" style="height:${Math.max(180,rows.length*28)}px"><canvas id="ch-genre"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Genre</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.dnf||0}</td><td class="num">${r.read+r.owned+r.want+r.dnf}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{if(currentPanel()!=='reports')return;const ctx=document.getElementById('ch-genre');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.genre=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Read',data:rows.map(r=>r.read),backgroundColor:BRAND.forest},{label:'Owned',data:rows.map(r=>r.owned),backgroundColor:BRAND.terracottaText},{label:'Want',data:rows.map(r=>r.want),backgroundColor:BRAND.muted}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true,ticks:{precision:0}},y:{stacked:true}}}});}},50);}
 
-function renderReportFormat(){const rb=getReportBooks();const map={};rb.forEach(b=>{const allFmts=[...(b.formats||[]).map(f=>({f,type:'owned'})),...(b.borrowedFormats||[]).map(f=>({f,type:'borrowed'}))];(allFmts.length?allFmts:[{f:'Unknown',type:'owned'}]).forEach(({f,type})=>{if(!map[f])map[f]={name:f,read:0,owned:0,want:0,borrowed:0};if(b.status==='read')map[f].read++;else if(b.status==='reading')map[f].owned++;else map[f].want++;if(type==='borrowed')map[f].borrowed++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read);const FMT_C={Ebook:'#7c5cbf',Audiobook:'#2d7a4f',Hardcopy:'#c07a1a',Unknown:'#aaa'};const el=document.getElementById('rpanel-format');el.innerHTML=`<div class="reports-grid"><div class="rcrd"><h3>Format — books read</h3><div class="chart-wrap"><canvas id="ch-fmt-read"></canvas></div></div><div class="rcrd"><h3>Format — all books</h3><div class="chart-wrap"><canvas id="ch-fmt-all"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Format</th><th>Read</th><th>Owned Unread</th><th>Want</th><th>Borrowed</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${FMT_ICO[r.name]||''} ${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.borrowed}</td><td class="num">${r.read+r.owned+r.want}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const mk=(id,data)=>{const ctx=document.getElementById(id);if(!ctx)return;return new Chart(ctx,{type:'doughnut',data:{labels:data.map(r=>r.name),datasets:[{data:data.map(r=>r.n),backgroundColor:data.map(r=>FMT_C[r.name]||'#aaa'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});};chartInst.fr=mk('ch-fmt-read',rows.map(r=>({name:r.name,n:r.read})));chartInst.fa=mk('ch-fmt-all',rows.map(r=>({name:r.name,n:r.read+r.owned+r.want})));},50);}
+function renderReportFormat(){const rb=getReportBooks();const map={};rb.forEach(b=>{const allFmts=[...(b.formats||[]).map(f=>({f,type:'owned'})),...(b.borrowedFormats||[]).map(f=>({f,type:'borrowed'}))];(allFmts.length?allFmts:[{f:'Unknown',type:'owned'}]).forEach(({f,type})=>{if(!map[f])map[f]={name:f,read:0,owned:0,want:0,borrowed:0};if(b.status==='read')map[f].read++;else if(b.status==='reading')map[f].owned++;else map[f].want++;if(type==='borrowed')map[f].borrowed++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read);const el=document.getElementById('rpanel-format');el.innerHTML=`<div class="reports-grid"><div class="rcrd"><h3>Format — books read</h3><div class="chart-wrap"><canvas id="ch-fmt-read"></canvas></div></div><div class="rcrd"><h3>Format — all books</h3><div class="chart-wrap"><canvas id="ch-fmt-all"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Format</th><th>Read</th><th>Owned Unread</th><th>Want</th><th>Borrowed</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${FMT_ICO[r.name]||''} ${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.borrowed}</td><td class="num">${r.read+r.owned+r.want}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const mk=(id,data)=>{const ctx=document.getElementById(id);if(!ctx)return;return new Chart(ctx,{type:'doughnut',data:{labels:data.map(r=>r.name),datasets:[{data:data.map(r=>r.n),backgroundColor:data.map(r=>FMT_C[r.name]||BRAND.muted),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});};chartInst.fr=mk('ch-fmt-read',rows.map(r=>({name:r.name,n:r.read})));chartInst.fa=mk('ch-fmt-all',rows.map(r=>({name:r.name,n:r.read+r.owned+r.want})));},50);}
 
 // ═══════════ COVER LOOKUP (shared) ═══════════
 async function lookupCoverUrl(title,author){
@@ -3065,7 +3070,7 @@ function renderBCMeetings(){
         <div class="bc-meeting-title">${esc(m.name)}</div>
         <div style="display:flex;align-items:center;gap:6px">
           <div class="bc-meeting-date">${esc(fmtDateDMY(m.date))}</div>
-          <button class="btn btn-outline btn-sm" onclick="editBCMeeting('${m.id}')" title="Edit meeting"><svg class="ico" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="btn btn-outline btn-sm" onclick="editBCMeeting('${m.id}')" title="Edit meeting"><svg class="ico" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
           <button class="btn btn-danger btn-sm" onclick="deleteBCMeeting('${m.id}')">×</button>
         </div>
       </div>
