@@ -85,6 +85,10 @@ select.fsel:hover{border-color:var(--accent2)}
 .msel-opt{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:var(--r);font-size:12.5px;cursor:pointer;user-select:none}
 .msel-opt:hover{background:var(--surface2)}
 .msel-opt input{accent-color:var(--accent);cursor:pointer}
+.dash-search-pop{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);max-height:280px;overflow-y:auto}
+.dash-search-row{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.dash-search-row:last-child{border-bottom:none}
+.dash-search-row:hover{background:var(--surface2)}
 .msel-empty{font-size:12px;color:var(--text3);padding:6px 7px}
 .msel-clear-row{border-top:1px solid var(--border);margin-top:6px;padding-top:6px}
 .msel-clear-all{font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none;padding:4px 2px;text-decoration:underline}
@@ -376,8 +380,9 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <button class="nb nb-sub" data-p="series" onclick="nav('series')"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Series</span></button>
         <button class="nb nb-sub" data-p="authors" onclick="nav('authors')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg><span>Authors</span></button>
       </div>
-      <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Reports</span></button>
       <button class="nb" data-p="bookclub" onclick="nav('bookclub')"><svg viewBox="0 0 24 24"><path d="M4 5h16v10H8l-4 4V5z"/></svg><span>Book Club</span></button>
+      <button class="nb" data-p="discover" onclick="nav('discover')"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg><span>Discover</span></button>
+      <button class="nb" data-p="reports" onclick="nav('reports')"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg><span>Reports</span></button>
       <button class="nb" data-p="tools" onclick="nav('tools')"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2-2 2.5-2.5z"/></svg><span>Tools</span></button>
       <button class="nb" data-p="settings" onclick="nav('settings')"><svg viewBox="0 0 24 24"><path d="M4 6h10M4 12h16M4 18h10"/><circle cx="17" cy="6" r="2"/><circle cx="9" cy="18" r="2"/></svg><span>Settings</span></button>
     </div>
@@ -392,11 +397,81 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <div class="main">
 <div class="content">
 
-<!-- DASHBOARD -->
+<!-- DASHBOARD (Home) -->
 <div id="panel-dashboard" class="panel active">
+  <!-- 1. Global search + add/scan -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    <div style="position:relative;flex:1;min-width:240px">
+      <input class="search-box" id="dash-global-search" type="search" style="width:100%" placeholder="Search your library or find a new book…" oninput="dashGlobalSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();dashGlobalSearchEnter();}">
+      <div id="dash-global-search-results" class="dash-search-pop"></div>
+    </div>
+    <button class="btn btn-primary" onclick="nav('add');openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg> Scan</button>
+    <button class="btn btn-outline" onclick="nav('add')">+ Add book</button>
+  </div>
+
+  <!-- 2. Welcome sentence -->
+  <div id="dash-welcome" style="font-family:var(--font-serif);font-size:17px;line-height:1.55;margin-bottom:var(--sp-5)"></div>
+
+  <!-- 3. Book club hero -->
+  <div id="dash-bc-section" style="margin-bottom:var(--sp-5)">
+    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Book Club</div>
+    <div id="dash-bc-grid" class="bc-grid"></div>
+  </div>
+
+  <!-- 4. Continue reading -->
+  <div style="margin-bottom:var(--sp-5)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="font-family:var(--font-serif);font-size:19px;font-weight:600">Continue reading</div>
+      <a href="#" id="dash-reading-nudge" style="display:none;margin-left:auto;font-size:12px;color:var(--accent)" onclick="event.preventDefault();nav('library');document.getElementById('lib-search').focus();"></a>
+    </div>
+    <div id="dash-reading-grid" class="books-grid"></div>
+  </div>
+
+  <!-- 5. Up next -->
+  <div style="margin-bottom:var(--sp-5)">
+    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Up next</div>
+    <div id="dash-upnext-grid" class="bc-grid"></div>
+  </div>
+
+  <!-- 6. Find your next read -->
+  <div style="margin-bottom:var(--sp-5)">
+    <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Find your next read <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+      <button class="btn btn-outline btn-sm" onclick="dashRecsChip('continuation')">Next in a series I've started</button>
+      <button class="btn btn-outline btn-sm" onclick="dashRecsChip('owned')">Something I already own</button>
+      <button class="btn btn-outline btn-sm" onclick="dashRecsChip('short')">Short and light</button>
+      <button class="btn btn-outline btn-sm" onclick="dashRecsChip('favorite')">Like my last 5-star</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input class="search-box" id="dash-recs-ask" type="text" style="flex:1;min-width:220px" placeholder="e.g. 'a long litRPG for an audible credit' or 'something like Phantasma but shorter'" onkeydown="if(event.key==='Enter')dashRecsAsk()">
+      <button class="btn btn-primary" onclick="dashRecsAsk()">Ask</button>
+    </div>
+    <div style="margin-top:10px"><a href="#" onclick="event.preventDefault();nav('discover')" style="font-size:12px;color:var(--accent)">Advanced filters &amp; full results →</a></div>
+  </div>
+
+  <!-- 7. Compact stats strip -->
+  <div class="reports-grid">
+    <div class="rcrd">
+      <h3>This year's reading goal</h3>
+      <div class="chart-wrap" style="height:140px"><canvas id="dash-goal-chart"></canvas></div>
+      <div id="dash-goal-summary" style="font-size:13px;color:var(--text2);margin-top:10px"></div>
+    </div>
+    <div class="rcrd">
+      <h3>Streak</h3>
+      <div id="dash-streak-summary" style="padding:10px 0"></div>
+    </div>
+    <div class="rcrd" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">See the full breakdown — by author, series, genre and format.</p>
+      <button class="btn btn-outline" onclick="nav('reports')">View Insights →</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISCOVER -->
+<div id="panel-discover" class="panel">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
     <div>
-      <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Reading Recommendations <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
+      <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Discover <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
       <div style="font-size:12px;color:var(--text2)">Based on your highest-rated books, plus series you're mid-way through</div>
     </div>
     <button class="btn btn-primary" style="margin-left:auto" onclick="getRecs()"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z"/></svg> Get recommendations</button>
@@ -435,46 +510,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     </select>
     <select class="fsel" id="recs-genre-filter" onchange="filterRecs()"><option value="">All genres</option></select>
   </div>
-  <div id="recs-output" style="margin-bottom:var(--sp-5)"><div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">Click "Get recommendations", or ask for something specific above.</div></div>
-
-  <div class="reports-grid" style="margin-bottom:var(--sp-5)">
-    <div class="rcrd">
-      <h3>This year's reading goal</h3>
-      <div class="chart-wrap" style="height:170px"><canvas id="dash-goal-chart"></canvas></div>
-      <div id="dash-goal-summary" style="font-size:13px;color:var(--text2);margin-top:10px"></div>
-    </div>
-    <div class="rcrd">
-      <h3>Add a book</h3>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Scan a barcode to look it up and add it instantly.</p>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="nav('add');openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2.5h7L17 8h3a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z"/><circle cx="12" cy="14" r="3.3"/></svg> Scan barcode</button>
-      <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px" onclick="nav('add')">Or search / add manually</button>
-    </div>
-    <div class="rcrd" id="dash-year-card" style="display:none">
-      <h3>Books Read Per Year</h3>
-      <div class="chart-wrap" style="height:170px"><canvas id="dash-year-chart"></canvas></div>
-    </div>
-  </div>
-
-  <div id="dash-bc-section" style="margin-bottom:var(--sp-5)">
-    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Upcoming book club meetings</div>
-    <div id="dash-bc-grid" class="bc-grid"></div>
-  </div>
-
-  <div style="margin-bottom:var(--sp-5)">
-    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Recent activity</div>
-    <div id="dash-recent-activity"></div>
-  </div>
-
-  <div style="margin-bottom:var(--sp-5)">
-    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Currently reading</div>
-    <div id="dash-reading-grid" class="books-grid"></div>
-  </div>
-
-  <div>
-    <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:3px">Upcoming releases</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">New books in series you or book club have already read</div>
-    <div id="dash-upcoming-grid" class="bc-grid"></div>
-  </div>
+  <div id="recs-output"><div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">Click "Get recommendations", or ask for something specific above.</div></div>
 </div>
 
 <!-- LIBRARY -->
@@ -1463,6 +1499,7 @@ async function loadProfile(session){
   if(fEl)fEl.value=myProfile.first_name||'';
   if(lEl)lEl.value=myProfile.last_name||'';
   if(pEl)pEl.innerHTML=renderAvatarHTML(myProfile.first_name,myProfile.last_name);
+  renderDashWelcome();
 }
 async function updateProfileName(){
   const first=document.getElementById('acc-first-name').value.trim();
@@ -1625,6 +1662,7 @@ function renderPanel(p){
   if(p==='series')renderSeries();
   if(p==='authors')renderAuthors();
   if(p==='reports')renderReports();
+  if(p==='discover')renderRecsPanel();
   if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();loadSharedClubs();}
   if(p==='settings')renderSettings();
   if(p==='add')checkDuplicates();
@@ -2455,42 +2493,126 @@ function getReportBooks(){
 function destroyCharts(){Object.values(chartInst).forEach(c=>{try{c.destroy();}catch(e){}});chartInst={};}
 function renderDashboard(){
   destroyCharts();
+  renderDashWelcome();
   renderDashGoalChart();
-  renderDashYearChart();
+  renderDashStreak();
   renderDashReading();
-  renderDashRecentActivity();
   renderDashBCUpcoming();
-  renderUpcoming('dash-upcoming-grid');
+  renderDashUpNext();
   renderRecsPanel();
 }
-function renderDashYearChart(){
-  const card=document.getElementById('dash-year-card');
-  const read=books.filter(b=>b.status==='read'&&b.dateRead);
-  const byYear={};read.forEach(b=>{const y=b.dateRead.slice(0,4);if(y&&y!=='0000')byYear[y]=(byYear[y]||0)+1;});
-  const years=Object.keys(byYear).sort();
-  if(years.length<2){card.style.display='none';return;}
-  card.style.display='';
-  const ctx=document.getElementById('dash-year-chart');
-  if(ctx){
-    chartInst.dashYear=new Chart(ctx,{type:'bar',data:{labels:years,datasets:[{label:'Books',data:years.map(y=>byYear[y]),backgroundColor:'#4a6b5e',borderRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
-  }
-}
-function renderDashRecentActivity(){
-  const el=document.getElementById('dash-recent-activity');
+async function renderDashWelcome(){
+  const el=document.getElementById('dash-welcome');
   if(!el)return;
-  const events=[];
-  books.forEach(b=>{
-    if(b.dateAdded)events.push({sortKey:b.dateAdded,display:b.dateAdded,type:'added',book:b});
-    if(b.dateRead)events.push({sortKey:b.dateRead.length===7?b.dateRead+'-28':b.dateRead,display:b.dateRead,type:'finished',book:b});
-  });
-  events.sort((a,b)=>b.sortKey.localeCompare(a.sortKey));
-  const top=events.slice(0,6);
-  if(!top.length){el.innerHTML=`<p style="font-size:12px;color:var(--text3)">No activity yet.</p>`;return;}
-  el.innerHTML=top.map(e=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);cursor:pointer" onclick="openModal('${e.book.id}')">
-    <span class="badge ${e.type==='added'?'b-tbr':'b-read'}" style="font-size:10px;flex-shrink:0">${e.type==='added'?'Added':'Finished'}</span>
-    <span style="flex:1;font-size:13px">${esc(e.book.title)} <span style="color:var(--text3)">by ${esc(e.book.author)}</span></span>
-    <span style="font-size:11px;color:var(--text3)">${esc(e.display)}</span>
+  const name=(myProfile&&myProfile.first_name)||'';
+  const parts=[`Welcome back${name?', '+name:''}.`];
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const{data:memberships}=await sb.from('club_members').select('club_id').eq('user_id',session.user.id);
+    const clubIds=(memberships||[]).map(m=>m.club_id);
+    if(clubIds.length){
+      const today=new Date().toISOString().slice(0,10);
+      const{data:upcoming}=await sb.from('club_books').select('meeting_date').in('club_id',clubIds).gte('meeting_date',today).order('meeting_date',{ascending:true}).limit(1);
+      if(upcoming&&upcoming.length&&upcoming[0].meeting_date){
+        const days=Math.round((new Date(upcoming[0].meeting_date)-new Date(today))/86400000);
+        parts.push(days<=0?'Your book club meets today.':days===1?'Your book club meets tomorrow.':`Your book club meets in ${days} days.`);
+      }
+    }
+  }catch(e){}
+  const yr=new Date().getFullYear();
+  const goal=getGoal(yr);
+  const read=books.filter(b=>b.status==='read'&&(b.dateRead||'').startsWith(String(yr)));
+  if(goal)parts.push(`You've read ${read.length} of ${goal} books this year.`);
+  const paceSentence=computePace(read.length,goal);
+  if(paceSentence)parts.push(paceSentence);
+  const today2=new Date().toISOString().slice(0,10);
+  const nextRelease=getUpcoming().filter(u=>u.releaseDate&&u.releaseDate>=today2).sort((a,b)=>a.releaseDate.localeCompare(b.releaseDate))[0];
+  if(nextRelease){
+    const days=Math.round((new Date(nextRelease.releaseDate)-new Date(today2))/86400000);
+    parts.push(`${nextRelease.book} by ${nextRelease.author} is out ${days<=0?'now':days===1?'tomorrow':`in ${days} days`}.`);
+  }
+  el.textContent=parts.join(' ');
+}
+function renderDashStreak(){
+  const el=document.getElementById('dash-streak-summary');
+  if(!el)return;
+  const read=books.filter(b=>b.status==='read'&&b.dateRead);
+  const{current,longest}=computeMonthStreaks(read);
+  if(!current){el.innerHTML=`<div style="font-size:13px;color:var(--text2)">Finish a book this month to start a streak.</div>`;return;}
+  el.innerHTML=`<div style="font-size:32px;font-weight:600;color:var(--accent);line-height:1">${current}</div><div style="font-size:12px;color:var(--text2);margin-top:4px">month${current===1?'':'s'} in a row with a finished book${longest>current?` · best: ${longest}`:''}</div>`;
+}
+function renderDashUpNext(){
+  const grid=document.getElementById('dash-upnext-grid');
+  if(!grid)return;
+  const continuations=buildContinuationRecs().slice(0,2);
+  const today=new Date().toISOString().slice(0,10);
+  const releases=getUpcoming().filter(u=>!u.releaseDate||u.releaseDate>=today).slice().sort((a,b)=>(a.releaseDate||'').localeCompare(b.releaseDate||'')).slice(0,2);
+  const items=[
+    ...continuations.map(c=>({title:c.title,author:c.author,tag:`${ICON.bookStack} Continue series`,sub:c.reason})),
+    ...releases.map(u=>({title:u.book,author:u.author,tag:`${ICON.bookmark} Upcoming release`,sub:u.releaseDate?`Releases ${fmtDateDMY(u.releaseDate)}`:''}))
+  ];
+  if(!items.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing queued up yet — rate some books or track an upcoming release.</p></div>`;return;}
+  grid.innerHTML=items.map(it=>`<div class="bc-meeting">
+    <div style="font-size:11px;color:var(--series);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:4px">${it.tag}</div>
+    <div style="font-weight:500;font-size:13px">${esc(it.title)}</div>
+    <div style="font-size:11px;color:var(--text2)">by ${esc(it.author)}</div>
+    ${it.sub?`<div style="font-size:11px;color:var(--text3);margin-top:4px">${esc(it.sub)}</div>`:''}
   </div>`).join('');
+}
+function dashGlobalSearch(q){
+  const pop=document.getElementById('dash-global-search-results');
+  q=q.trim();
+  if(!q){pop.style.display='none';pop.innerHTML='';return;}
+  const ql=q.toLowerCase();
+  const matches=books.filter(b=>b.title.toLowerCase().includes(ql)||b.author.toLowerCase().includes(ql)).slice(0,8);
+  const qEsc=esc(q).replace(/'/g,"\\'");
+  if(!matches.length){
+    pop.innerHTML=`<div class="dash-search-row" style="color:var(--accent)" onclick="dashGlobalSearchAdd('${qEsc}')">Not in your library — add "${esc(q)}"?</div>`;
+  }else{
+    pop.innerHTML=matches.map(b=>`<div class="dash-search-row" onclick="dashGlobalSearchOpen('${b.id}')"><strong>${esc(b.title)}</strong> <span style="color:var(--text3)">by ${esc(b.author)}</span></div>`).join('')
+      +`<div class="dash-search-row" style="color:var(--accent)" onclick="dashGlobalSearchAdd('${qEsc}')">Not the one? Add "${esc(q)}" as new</div>`;
+  }
+  pop.style.display='block';
+}
+function dashGlobalSearchOpen(id){
+  document.getElementById('dash-global-search').value='';
+  document.getElementById('dash-global-search-results').style.display='none';
+  openModal(id);
+}
+function dashGlobalSearchAdd(q){
+  document.getElementById('dash-global-search').value='';
+  document.getElementById('dash-global-search-results').style.display='none';
+  nav('add');
+  document.getElementById('ol-search-q').value=q;
+  searchOpenLibrary();
+}
+function dashGlobalSearchEnter(){
+  const q=document.getElementById('dash-global-search').value.trim();
+  const firstRow=document.querySelector('#dash-global-search-results .dash-search-row');
+  if(firstRow)firstRow.click();
+  else if(q)dashGlobalSearchAdd(q);
+}
+function dashRecsChip(kind){
+  nav('discover');
+  const kindSel=document.getElementById('recs-kind-filter'),ownSel=document.getElementById('recs-owned-filter'),lenSel=document.getElementById('recs-length-filter');
+  if(kindSel)kindSel.value='';if(ownSel)ownSel.value='';if(lenSel)lenSel.value='';
+  if(kind==='continuation'&&kindSel)kindSel.value='continuation';
+  if(kind==='owned'&&ownSel)ownSel.value='owned';
+  if(kind==='short'&&lenSel)lenSel.value='short';
+  if(kind==='favorite'){
+    const top=books.filter(b=>b.status==='read'&&b.rating>=4.5).sort((a,b)=>(b.dateRead||'').localeCompare(a.dateRead||''))[0];
+    document.getElementById('recs-nl-input').value=top?`Something like "${top.title}" by ${top.author}`:'';
+    getRecsNL();
+    return;
+  }
+  getRecs();
+}
+function dashRecsAsk(){
+  const q=document.getElementById('dash-recs-ask').value.trim();
+  if(!q){alert('Type what you\'re looking for first.');return;}
+  nav('discover');
+  document.getElementById('recs-nl-input').value=q;
+  getRecsNL();
 }
 function renderDashGoalChart(){
   const yr=new Date().getFullYear();
@@ -2513,8 +2635,13 @@ function renderDashReading(){
   const grid=document.getElementById('dash-reading-grid');
   if(!grid)return;
   const reading=books.filter(b=>b.status==='reading');
+  const nudge=document.getElementById('dash-reading-nudge');
+  if(nudge){
+    if(reading.length>5){nudge.style.display='';nudge.textContent=`+${reading.length-4} more — view all`;}
+    else nudge.style.display='none';
+  }
   if(!reading.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing in progress right now.</p></div>`;return;}
-  grid.innerHTML=reading.map(b=>{
+  grid.innerHTML=reading.slice(0,4).map(b=>{
     const progressHtml=b.progress?`<div class="pct-bar" style="margin-top:4px"><div class="pct-fill" style="width:${b.progress}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px">${b.progress}% done</div>`:'';
     return`<div class="bcard" onclick="openModal('${b.id}')">
       ${coverHtml(b)}
@@ -2531,24 +2658,29 @@ async function renderDashBCUpcoming(){
   const grid=document.getElementById('dash-bc-grid');
   if(!section||!grid)return;
   const{data:{session}}=await sb.auth.getSession();
-  const{data:memberships}=await sb.from('club_members').select('club_id').eq('user_id',session.user.id);
+  const myId=session.user.id;
+  const{data:memberships}=await sb.from('club_members').select('club_id').eq('user_id',myId);
   const clubIds=(memberships||[]).map(m=>m.club_id);
   if(!clubIds.length){section.style.display='none';return;}
   const today=new Date().toISOString().slice(0,10);
-  const{data:upcoming}=await sb.from('club_books').select('id,meeting_name,meeting_date,start_time,location,book_title,book_author').in('club_id',clubIds).gte('meeting_date',today).order('meeting_date',{ascending:true}).limit(3);
+  const{data:upcoming}=await sb.from('club_books').select('id,meeting_name,meeting_date,start_time,location,book_title,book_author,series,series_number,discussion_notes,club_book_engagement(user_id,status,rating,notes,date_read,profiles(first_name,last_name)),club_meeting_rsvp(user_id,status,profiles(first_name,last_name))').in('club_id',clubIds).gte('meeting_date',today).order('meeting_date',{ascending:true}).limit(3);
   if(!upcoming||!upcoming.length){section.style.display='none';return;}
   section.style.display='';
-  grid.innerHTML=upcoming.map(m=>{
-    const whenParts=[fmtDateDMY(m.meeting_date),m.start_time?m.start_time.slice(0,5):'',m.location?esc(m.location):''].filter(Boolean);
-    return`<div class="bc-meeting">
-      <div class="bc-meeting-header">
-        <div class="bc-meeting-title">${esc(m.meeting_name)}</div>
-        <div class="bc-meeting-date">${esc(whenParts.join(' · '))}</div>
-      </div>
-      <div style="font-size:13px"><strong>${esc(m.book_title)}</strong></div>
-      <div style="font-size:11px;color:var(--text2)">by ${esc(m.book_author)}</div>
-    </div>`;
-  }).join('');
+  const next=upcoming[0];
+  const rest=upcoming.slice(1);
+  const days=next.meeting_date?Math.round((new Date(next.meeting_date)-new Date(today))/86400000):999;
+  grid.innerHTML=(days<=30?renderMeetingCard(next,myId,true):compactMeetingCardHTML(next))+rest.map(compactMeetingCardHTML).join('');
+}
+function compactMeetingCardHTML(m){
+  const whenParts=[fmtDateDMY(m.meeting_date),m.start_time?m.start_time.slice(0,5):'',m.location?esc(m.location):''].filter(Boolean);
+  return`<div class="bc-meeting">
+    <div class="bc-meeting-header">
+      <div class="bc-meeting-title">${esc(m.meeting_name)}</div>
+      <div class="bc-meeting-date">${esc(whenParts.join(' · '))}</div>
+    </div>
+    <div style="font-size:13px"><strong>${esc(m.book_title)}</strong></div>
+    <div style="font-size:11px;color:var(--text2)">by ${esc(m.book_author)}</div>
+  </div>`;
 }
 function renderReports(){destroyCharts();const t=currentReportTab;if(t==='summary')renderReportSummary();else if(t==='author')renderReportAuthor();else if(t==='series')renderReportSeries();else if(t==='genre')renderReportGenre();else if(t==='format')renderReportFormat();}
 
@@ -3031,6 +3163,7 @@ async function setMyEngagement(clubBookId,patch){
   const{error}=await sb.from('club_book_engagement').upsert({club_book_id:clubBookId,user_id:session.user.id,...patch},{onConflict:'club_book_id,user_id'});
   if(error){alert('Failed to save: '+error.message);return;}
   renderSharedClub();
+  renderDashBCUpcoming();
 }
 
 async function setMyRsvp(clubBookId,status){
@@ -3038,6 +3171,7 @@ async function setMyRsvp(clubBookId,status){
   const{error}=await sb.from('club_meeting_rsvp').upsert({club_book_id:clubBookId,user_id:session.user.id,status},{onConflict:'club_book_id,user_id'});
   if(error){alert('Failed to save RSVP: '+error.message);return;}
   renderSharedClub();
+  renderDashBCUpcoming();
 }
 
 function openSharedBCForm(){
