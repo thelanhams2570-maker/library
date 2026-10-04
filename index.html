@@ -2943,12 +2943,47 @@ function meetingTopHtml(clubName,meetingDate,startTime,location,bookTitle,bookAu
     </div>
   </div>`;
 }
+const meetingCache={};
+function icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');}
+function icsDateTime(dateStr,timeStr){return`${dateStr.replace(/-/g,'')}T${timeStr.replace(':','')}00`;}
+function downloadMeetingICS(m){
+  if(!m||!m.meeting_date){alert('This meeting has no date set yet.');return;}
+  const uid=`${m.id||genId()}@anthology-app`;
+  const dtstamp=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const summary=icsEscape(m.meeting_name||m.book_title||'Book club meeting');
+  const descParts=[];
+  if(m.book_title)descParts.push(`Book: ${m.book_title}${m.book_author?' by '+m.book_author:''}`);
+  if(m.discussion_notes)descParts.push(m.discussion_notes);
+  const description=icsEscape(descParts.join('\n'));
+  const location=icsEscape(m.location||'');
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Anthology//Book Club//EN','BEGIN:VEVENT',`UID:${uid}`,`DTSTAMP:${dtstamp}`];
+  if(m.start_time){
+    const[h,min]=m.start_time.split(':').map(Number);
+    const endH=(h+2)%24;
+    lines.push(`DTSTART:${icsDateTime(m.meeting_date,m.start_time)}`,`DTEND:${icsDateTime(m.meeting_date,`${String(endH).padStart(2,'0')}:${String(min).padStart(2,'0')}`)}`);
+  }else{
+    lines.push(`DTSTART;VALUE=DATE:${m.meeting_date.replace(/-/g,'')}`);
+  }
+  lines.push(`SUMMARY:${summary}`);
+  if(description)lines.push(`DESCRIPTION:${description}`);
+  if(location)lines.push(`LOCATION:${location}`);
+  lines.push('END:VEVENT','END:VCALENDAR');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`${(m.meeting_name||m.book_title||'meeting').replace(/[^a-z0-9]+/gi,'-').toLowerCase()}.ics`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 function compactMeetingCardHTML(m){
+  meetingCache[m.id]=m;
   return`<div class="bc-meeting">
     ${meetingTopHtml((m.book_clubs||{}).name,m.meeting_date,m.start_time,m.location,m.book_title,m.book_author)}
     <div class="bc-meeting-title">${esc(m.meeting_name)}</div>
     <div style="font-size:13px"><strong>${esc(m.book_title)}</strong></div>
     <div style="font-size:11px;color:var(--text2)">by ${esc(m.book_author)}</div>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="downloadMeetingICS(meetingCache['${m.id}'])">Add to calendar</button>
   </div>`;
 }
 function renderReports(){destroyCharts();const t=currentReportTab;if(t==='summary')renderReportSummary();else if(t==='author')renderReportAuthor();else if(t==='series')renderReportSeries();else if(t==='genre')renderReportGenre();else if(t==='format')renderReportFormat();}
@@ -3466,6 +3501,7 @@ async function renderSharedClub(){
 }
 
 function renderMeetingCard(cb,myId,featured){
+  meetingCache[cb.id]=cb;
   const engagement=cb.club_book_engagement||[];
   const mine=engagement.find(e=>e.user_id===myId)||{status:'tbr',rating:null};
   const iHaveRead=mine.status==='read';
@@ -3484,7 +3520,10 @@ function renderMeetingCard(cb,myId,featured){
     ${meetingTopHtml((cb.book_clubs||{}).name,cb.meeting_date,cb.start_time,cb.location,cb.book_title,cb.book_author)}
     <div class="bc-meeting-header">
       <div class="bc-meeting-title">${esc(cb.meeting_name)}</div>
-      ${isClubAdmin?`<button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="editSharedBCMeeting('${cb.id}')">Edit</button>`:''}
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="downloadMeetingICS(meetingCache['${cb.id}'])">Add to calendar</button>
+        ${isClubAdmin?`<button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="editSharedBCMeeting('${cb.id}')">Edit</button>`:''}
+      </div>
     </div>
     <div class="bc-book-row">
       <span style="flex:1">
@@ -3531,6 +3570,9 @@ async function setMyRsvp(clubBookId,status){
   const{data:{session}}=await sb.auth.getSession();
   const{error}=await sb.from('club_meeting_rsvp').upsert({club_book_id:clubBookId,user_id:session.user.id,status},{onConflict:'club_book_id,user_id'});
   if(error){alert('Failed to save RSVP: '+error.message);return;}
+  if((status==='going'||status==='maybe')&&meetingCache[clubBookId]&&confirm("You're down for this one - add it to your calendar?")){
+    downloadMeetingICS(meetingCache[clubBookId]);
+  }
   renderSharedClub();
   renderDashBCUpcoming();
 }
