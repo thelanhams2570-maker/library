@@ -11,8 +11,8 @@ alter table book_clubs add column if not exists meeting_cadence jsonb;
 --    already has a role you're happy with.
 update club_members cm
 set role = 'admin'
-where cm.id in (
-  select distinct on (club_id) id
+where (cm.club_id, cm.user_id) in (
+  select distinct on (club_id) club_id, user_id
   from club_members
   order by club_id, created_at asc nulls last
 )
