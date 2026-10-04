@@ -1,6 +1,6 @@
 {
-  "name": "Anecdote",
-  "short_name": "Anecdote",
+  "name": "Anthology",
+  "short_name": "Anthology",
   "description": "A personal library, kept by hand — books, series, recommendations, and book club.",
   "start_url": "./index.html",
   "display": "standalone",
