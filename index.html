@@ -1025,6 +1025,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <input type="file" id="kn-inp" accept=".csv" style="display:none" onchange="processKindle(event.target.files[0])">
     <div id="kn-result"></div>
   </div>
+  <div id="import-review-banner" class="dedup-card" style="display:none;grid-column:1/-1">
+    <h2><svg class="ico" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg> Needs a quick check</h2>
+    <p id="import-review-msg"></p>
+    <div id="import-review-list" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+  </div>
   </div>
 </div>
 
@@ -1453,7 +1458,7 @@ function load(){
   });
 }
 
-function save(){localStorage.setItem(SK,JSON.stringify(books));updateGoalWidget();updateGenreFilters();checkDuplicates();cloudPush('books',books);}
+function save(){localStorage.setItem(SK,JSON.stringify(books));updateGoalWidget();updateGenreFilters();checkDuplicates();checkNeedsReview();cloudPush('books',books);}
 function getGoalsMap(){
   let raw;
   try{raw=JSON.parse(localStorage.getItem(GK)||'{}');}catch(e){raw={};}
@@ -1699,6 +1704,126 @@ function findDuplicates(){const groups=[],used=new Set();for(let i=0;i<books.len
 function checkDuplicates(){const dups=findDuplicates();const banner=document.getElementById('dedup-banner');if(!banner)return;if(dups.length>0){const total=dups.reduce((s,a)=>s+a.length,0);document.getElementById('dedup-msg').textContent=`Found ${dups.length} book${dups.length>1?'s':''} with multiple records (${total} total records).`;banner.style.display='';}else{banner.style.display='none';}}
 function runDedup(){const dups=findDuplicates();if(!dups.length){document.getElementById('dedup-status').textContent='No duplicates found!';return;}let merged=0;dups.forEach(group=>{group.sort((a,b)=>(STATUS_PRI[b.status]||0)-(STATUS_PRI[a.status]||0));const keeper=group[0];group.forEach(b=>{keeper.title=canonTitle(keeper.title,b.title);});group.slice(1).forEach(dup=>{(dup.formats||[]).forEach(f=>{if(!keeper.formats.includes(f))keeper.formats.push(f);});(dup.borrowedFormats||[]).forEach(f=>{if(!keeper.borrowedFormats.includes(f))keeper.borrowedFormats.push(f);});if(dup.rating&&(!keeper.rating||dup.rating>keeper.rating))keeper.rating=dup.rating;if(dup.grRating&&(!keeper.grRating||dup.grRating>keeper.grRating))keeper.grRating=dup.grRating;if(dup.dateRead&&(!keeper.dateRead||dup.dateRead<keeper.dateRead))keeper.dateRead=dup.dateRead;if(dup.dateAdded&&!keeper.dateAdded)keeper.dateAdded=dup.dateAdded;(dup.genre||[]).forEach(g=>{if(!(keeper.genre||[]).includes(g)){if(!keeper.genre)keeper.genre=[];keeper.genre.push(g);}});if(!keeper.series&&dup.series)keeper.series=dup.series;if(!keeper.seriesNumber&&dup.seriesNumber)keeper.seriesNumber=dup.seriesNumber;if(!keeper.coverUrl&&dup.coverUrl)keeper.coverUrl=dup.coverUrl;});const toRemove=new Set(group.slice(1).map(b=>b.id));books=books.filter(b=>!toRemove.has(b.id));merged+=group.length-1;});save();renderLib();const s=document.getElementById('dedup-status');if(s)s.textContent=`Merged ${merged} duplicate record${merged>1?'s':''}.`;setTimeout(()=>{if(s)s.textContent='';},4000);}
 function findExisting(title,author){const an=author.trim().toLowerCase();return books.find(b=>b.author.trim().toLowerCase()===an&&titlesMatch(b.title,title));}
+
+// ═══════════ IMPORT REVIEW QUEUE ═══════════
+function looksMalformedEntry(title,author){
+  if(!title||title.trim().length<2)return true;
+  if(!author||author.trim().length<2)return true;
+  if(/^[a-z]{1,3}$/i.test(author.trim()))return true;
+  if(/^[0-9]+$/.test(author.trim()))return true;
+  return false;
+}
+function authorsRoughlyMatch(a,b){
+  const na=String(a||'').toLowerCase().replace(/[^a-z]/g,''),nb=String(b||'').toLowerCase().replace(/[^a-z]/g,'');
+  if(!na||!nb)return true;
+  if(na.includes(nb)||nb.includes(na))return true;
+  return na.length>=4&&nb.length>=4&&na.slice(-4)===nb.slice(-4);
+}
+async function flagImportedForReview(ids){
+  for(const id of ids){
+    const b=books.find(x=>x.id===id);
+    if(!b||b.needsReview)continue;
+    let flag=looksMalformedEntry(b.title,b.author);
+    if(!flag){
+      try{
+        const res=await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(b.title+' '+b.author)}&fields=title,author_name&limit=1`);
+        if(res.ok){
+          const data=await res.json();
+          const top=data.docs&&data.docs[0];
+          if(!top)flag=true;
+          else{
+            const topAuthor=(top.author_name||[])[0]||'';
+            if(topAuthor&&!authorsRoughlyMatch(topAuthor,b.author))flag=true;
+          }
+        }
+      }catch(e){/* network hiccup - don't flag, don't block import */}
+    }
+    if(flag)b.needsReview=true;
+  }
+  save();
+  renderLib();
+}
+function checkNeedsReview(){
+  const flagged=books.filter(b=>b.needsReview);
+  const banner=document.getElementById('import-review-banner');
+  if(!banner)return;
+  if(flagged.length>0){
+    document.getElementById('import-review-msg').textContent=`${flagged.length} imported book${flagged.length>1?'s':''} could use a quick check before they're treated as clean.`;
+    banner.style.display='';
+    renderImportReviewList();
+  }else{
+    banner.style.display='none';
+    document.getElementById('import-review-list').innerHTML='';
+  }
+}
+async function renderImportReviewList(){
+  const list=document.getElementById('import-review-list');
+  if(!list)return;
+  const flagged=books.filter(b=>b.needsReview);
+  list.innerHTML=flagged.map(b=>`<div class="settings-card" id="review-row-${b.id}" style="padding:12px;display:flex;gap:10px;align-items:center">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:500;font-size:13px">${esc(b.title)}</div>
+      <div style="font-size:12px;color:var(--text2)">by ${esc(b.author)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px" id="review-suggestion-${b.id}">Checking Open Library…</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <button class="btn btn-series btn-sm" id="review-accept-${b.id}" style="display:none" onclick="acceptReviewSuggestion('${b.id}')">Accept suggestion</button>
+      <button class="btn btn-outline btn-sm" onclick="keepReviewAsTyped('${b.id}')">Keep as typed</button>
+      <button class="btn btn-outline btn-sm" onclick="editReviewEntry('${b.id}')">Edit manually</button>
+    </div>
+  </div>`).join('');
+  for(const b of flagged){
+    if(reviewSuggestions[b.id]!==undefined)applyCachedReviewSuggestion(b.id);
+    else fetchReviewSuggestion(b.id);
+  }
+}
+const reviewSuggestions={};
+function applyCachedReviewSuggestion(id){
+  const note=document.getElementById(`review-suggestion-${id}`);
+  const sug=reviewSuggestions[id];
+  if(!note)return;
+  if(sug===null){note.textContent='No confident Open Library match found - keep as typed or edit manually.';return;}
+  const author=(sug.author_name||[]).slice(0,2).join(', ')||'Unknown author';
+  note.textContent=`Open Library suggests: "${sug.title}" by ${author}`;
+  const btn=document.getElementById(`review-accept-${id}`);
+  if(btn)btn.style.display='';
+}
+async function fetchReviewSuggestion(id){
+  const b=books.find(x=>x.id===id);
+  const note=document.getElementById(`review-suggestion-${id}`);
+  if(!b||!note)return;
+  try{
+    const res=await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(b.title+' '+b.author)}&fields=title,author_name,cover_i&limit=1`);
+    const data=res.ok?await res.json():{};
+    const top=data.docs&&data.docs[0];
+    if(top&&(top.title||(top.author_name||[]).length)){
+      reviewSuggestions[id]=top;
+      const author=(top.author_name||[]).slice(0,2).join(', ')||'Unknown author';
+      note.textContent=`Open Library suggests: "${top.title}" by ${author}`;
+      const btn=document.getElementById(`review-accept-${id}`);
+      if(btn)btn.style.display='';
+    }else{
+      reviewSuggestions[id]=null;
+      note.textContent='No confident Open Library match found - keep as typed or edit manually.';
+    }
+  }catch(e){note.textContent='Could not reach Open Library to suggest a match.';}
+}
+function clearReviewRow(id){
+  const b=books.find(x=>x.id===id);
+  if(b){delete b.needsReview;save();}
+  delete reviewSuggestions[id];
+}
+function acceptReviewSuggestion(id){
+  const b=books.find(x=>x.id===id);
+  const sug=reviewSuggestions[id];
+  if(!b||!sug)return;
+  if(sug.title)b.title=sug.title;
+  if(sug.author_name&&sug.author_name.length)b.author=normalizeAuthorName(sug.author_name.join(', '));
+  if(sug.cover_i)b.coverUrl=`https://covers.openlibrary.org/b/id/${sug.cover_i}-M.jpg`;
+  clearReviewRow(id);
+}
+function keepReviewAsTyped(id){clearReviewRow(id);}
+function editReviewEntry(id){clearReviewRow(id);openModal(id);}
 
 // ═══════════ MERGE SIMILAR NAMES ═══════════
 async function findSimilarNames(type){
@@ -2022,8 +2147,9 @@ function formatIconRow(b){
 function coverHtml(b){
   const img=b.coverUrl?`<img src="${esc(b.coverUrl)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-placeholder" style="display:none">${ICON.bookStack}</div>`:`<div class="cover-placeholder">${ICON.bookStack}</div>`;
   const ribbon=bookInBookClub(b)?`<div class="bcard-ribbon">${ICON.bookmark} Book Club</div>`:'';
+  const review=b.needsReview?`<div class="bcard-ribbon" style="background:var(--danger)">${ICON.warning} Needs review</div>`:'';
   const gr=b.grRating?`<div class="bcard-gr-badge">★ ${b.grRating}</div>`:'';
-  return`<div class="bcard-cover">${img}${ribbon}${gr}</div>`;
+  return`<div class="bcard-cover">${img}${ribbon}${review}${gr}</div>`;
 }
 
 let libView='grid';
@@ -4306,7 +4432,7 @@ document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===d
 document.getElementById('backlog-modal').addEventListener('click',e=>{if(e.target===document.getElementById('backlog-modal'))closeBacklogModal();});
 document.getElementById('shared-bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('shared-bc-modal'))closeSharedBCModal();});
 document.getElementById('feedback-modal').addEventListener('click',e=>{if(e.target===document.getElementById('feedback-modal'))closeFeedbackModal();});
-function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateStarted=document.getElementById('m-date-started').value||'';b.readRecords=getReadRecordRows(true);b.dateRead=latestReadDate(b.readRecords,document.getElementById('m-date-read').value||'');b.publishedDate=document.getElementById('m-published-date').value.trim();b.isbn=document.getElementById('m-isbn').value.trim();const mCoverVal=document.getElementById('m-cover').value;if(mCoverVal)b.coverUrl=mCoverVal;const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.favoriteQuote=document.getElementById('m-favorite-quote').value.trim();b.moodTags=document.getElementById('m-mood-tags').value.split(',').map(s=>s.trim()).filter(Boolean);b.rating=parseFloat(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();save();closeModal();renderLib();}
+function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateStarted=document.getElementById('m-date-started').value||'';b.readRecords=getReadRecordRows(true);b.dateRead=latestReadDate(b.readRecords,document.getElementById('m-date-read').value||'');b.publishedDate=document.getElementById('m-published-date').value.trim();b.isbn=document.getElementById('m-isbn').value.trim();const mCoverVal=document.getElementById('m-cover').value;if(mCoverVal)b.coverUrl=mCoverVal;const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.favoriteQuote=document.getElementById('m-favorite-quote').value.trim();b.moodTags=document.getElementById('m-mood-tags').value.split(',').map(s=>s.trim()).filter(Boolean);b.rating=parseFloat(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();delete b.needsReview;save();closeModal();renderLib();}
 function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
 
 // ═══════════ IMPORTS ═══════════
@@ -4321,32 +4447,35 @@ function upsertBook(title,author,status,format,extra={}){
   if(format==='Kindle')format='Ebook';
   const ex=findExisting(title,author);
   if(ex){
-    ex.title=canonTitle(ex.title,title);
-    if(format&&format!=='Unknown'&&!ex.formats.includes(format))ex.formats.push(format);
-    if((STATUS_PRI[status]||0)>(STATUS_PRI[ex.status]||0))ex.status=status;
-    if(extra.rating&&(!ex.rating||extra.rating>ex.rating))ex.rating=extra.rating;
-    if(extra.grRating&&(!ex.grRating||extra.grRating>ex.grRating))ex.grRating=extra.grRating;
-    if(extra.dateRead&&(!ex.dateRead||extra.dateRead<ex.dateRead))ex.dateRead=extra.dateRead;
-    if(extra.dateAdded&&!ex.dateAdded)ex.dateAdded=extra.dateAdded;
-    if(extra.series&&!ex.series)ex.series=extra.series;
-    if(extra.seriesNumber&&!ex.seriesNumber)ex.seriesNumber=extra.seriesNumber;
-    if(extra.notes&&!ex.notes)ex.notes=extra.notes;
-    (extra.genre||[]).forEach(g=>{if(!(ex.genre||[]).includes(g)){if(!ex.genre)ex.genre=[];ex.genre.push(g);}});
-    if(!ex.isbn&&extra.isbn)ex.isbn=extra.isbn;
-    if(!ex.pages&&extra.pages){ex.pages=extra.pages;ex.pagesEstimated=false;}
+    let changed=false;
+    const newTitle=canonTitle(ex.title,title);
+    if(newTitle!==ex.title){ex.title=newTitle;changed=true;}
+    if(format&&format!=='Unknown'&&!ex.formats.includes(format)){ex.formats.push(format);changed=true;}
+    if((STATUS_PRI[status]||0)>(STATUS_PRI[ex.status]||0)){ex.status=status;changed=true;}
+    if(extra.rating&&(!ex.rating||extra.rating>ex.rating)){ex.rating=extra.rating;changed=true;}
+    if(extra.grRating&&(!ex.grRating||extra.grRating>ex.grRating)){ex.grRating=extra.grRating;changed=true;}
+    if(extra.dateRead&&(!ex.dateRead||extra.dateRead<ex.dateRead)){ex.dateRead=extra.dateRead;changed=true;}
+    if(extra.dateAdded&&!ex.dateAdded){ex.dateAdded=extra.dateAdded;changed=true;}
+    if(extra.series&&!ex.series){ex.series=extra.series;changed=true;}
+    if(extra.seriesNumber&&!ex.seriesNumber){ex.seriesNumber=extra.seriesNumber;changed=true;}
+    if(extra.notes&&!ex.notes){ex.notes=extra.notes;changed=true;}
+    (extra.genre||[]).forEach(g=>{if(!(ex.genre||[]).includes(g)){if(!ex.genre)ex.genre=[];ex.genre.push(g);changed=true;}});
+    if(!ex.isbn&&extra.isbn){ex.isbn=extra.isbn;changed=true;}
+    if(!ex.pages&&extra.pages){ex.pages=extra.pages;ex.pagesEstimated=false;changed=true;}
     if(!ex.borrowedFormats)ex.borrowedFormats=[];
-    return'updated';
+    return{status:changed?'updated':'unchanged',id:ex.id};
   }else{
-    books.push({id:genId(),title,author,status,formats:format&&format!=='Unknown'?[format]:[],borrowedFormats:[],series:extra.series||'',seriesNumber:extra.seriesNumber||'',dateStarted:'',dateRead:extra.dateRead||'',dateAdded:extra.dateAdded||new Date().toISOString().slice(0,10),publishedDate:extra.publishedDate||'',rating:extra.rating||0,grRating:extra.grRating||0,isbn:extra.isbn||'',pages:extra.pages||0,pagesEstimated:false,notes:extra.notes||'',genre:extra.genre||[],coverUrl:'',readFormat:'',readRecords:[]});
-    return'added';
+    const id=genId();
+    books.push({id,title,author,status,formats:format&&format!=='Unknown'?[format]:[],borrowedFormats:[],series:extra.series||'',seriesNumber:extra.seriesNumber||'',dateStarted:'',dateRead:extra.dateRead||'',dateAdded:extra.dateAdded||new Date().toISOString().slice(0,10),publishedDate:extra.publishedDate||'',rating:extra.rating||0,grRating:extra.grRating||0,isbn:extra.isbn||'',pages:extra.pages||0,pagesEstimated:false,notes:extra.notes||'',genre:extra.genre||[],coverUrl:'',readFormat:'',readRecords:[]});
+    return{status:'added',id};
   }
 }
 
-function processGR(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]);const col=h=>hdr.findIndex(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,'')===h.toLowerCase().replace(/[^a-z0-9]/g,''));const iT=col('title'),iA=col('author'),iR=col('myrating'),iGR=col('averagerating'),iB=col('binding'),iDR=col('dateread'),iDA=col('dateadded'),iS=col('exclusiveshelf'),iISBN=col('isbn'),iRev=col('myreview'),iPages=col('numberofpages');if(iT<0||iA<0)throw new Error('Could not find title/author columns.');let added=0,updated=0;for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);if(row.length<3)continue;const rawTitle=(row[iT]||'').trim(),author=(row[iA]||'').trim();if(!rawTitle||!author)continue;const shelf=(row[iS]||'').trim().toLowerCase();const status=shelf==='read'?'read':shelf==='currently-reading'?'reading':'tbr';const binding=(row[iB]||'').trim();let format='Unknown';if(/kindle/i.test(binding))format='Ebook';else if(/audio/i.test(binding))format='Audiobook';else if(/hardcover|hardback|paperback|mass market/i.test(binding))format='Hardcopy';else if(/ebook|digital/i.test(binding))format='Ebook';let dateRead=(row[iDR]||'').trim();if(dateRead&&dateRead!=='0000-00-00')dateRead=dateRead.slice(0,7);else dateRead='';let series='',seriesNumber='';const sm=rawTitle.match(/\(([^,]+),\s*#?([0-9.]+)\)\s*$/);if(sm){series=sm[1].trim();seriesNumber=sm[2];}const title=rawTitle.replace(/\s*\([^)]+\)\s*$/,'').trim();const r=upsertBook(title,author,status,format,{series,seriesNumber,dateRead,dateAdded:(row[iDA]||'').trim().slice(0,10),rating:parseInt(row[iR])||0,grRating:parseFloat(row[iGR])||0,isbn:(iISBN>=0?row[iISBN]:'').replace(/[="']/g,'').trim(),pages:iPages>=0?(parseInt(row[iPages])||0):0,notes:(iRev>=0?row[iRev]:'').trim()});if(r==='added')added++;else if(r==='updated')updated++;}save();renderLib();document.getElementById('gr-result').innerHTML=`<div class="iresult ok">${added} new books added, ${updated} existing records updated.</div>`;}catch(err){document.getElementById('gr-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
+function processGR(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]);const col=h=>hdr.findIndex(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,'')===h.toLowerCase().replace(/[^a-z0-9]/g,''));const iT=col('title'),iA=col('author'),iR=col('myrating'),iGR=col('averagerating'),iB=col('binding'),iDR=col('dateread'),iDA=col('dateadded'),iS=col('exclusiveshelf'),iISBN=col('isbn'),iRev=col('myreview'),iPages=col('numberofpages');if(iT<0||iA<0)throw new Error('Could not find title/author columns.');let added=0,updated=0;const touched=[];for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);if(row.length<3)continue;const rawTitle=(row[iT]||'').trim(),author=(row[iA]||'').trim();if(!rawTitle||!author)continue;const shelf=(row[iS]||'').trim().toLowerCase();const status=shelf==='read'?'read':shelf==='currently-reading'?'reading':'tbr';const binding=(row[iB]||'').trim();let format='Unknown';if(/kindle/i.test(binding))format='Ebook';else if(/audio/i.test(binding))format='Audiobook';else if(/hardcover|hardback|paperback|mass market/i.test(binding))format='Hardcopy';else if(/ebook|digital/i.test(binding))format='Ebook';let dateRead=(row[iDR]||'').trim();if(dateRead&&dateRead!=='0000-00-00')dateRead=dateRead.slice(0,7);else dateRead='';let series='',seriesNumber='';const sm=rawTitle.match(/\(([^,]+),\s*#?([0-9.]+)\)\s*$/);if(sm){series=sm[1].trim();seriesNumber=sm[2];}const title=rawTitle.replace(/\s*\([^)]+\)\s*$/,'').trim();const r=upsertBook(title,author,status,format,{series,seriesNumber,dateRead,dateAdded:(row[iDA]||'').trim().slice(0,10),rating:parseInt(row[iR])||0,grRating:parseFloat(row[iGR])||0,isbn:(iISBN>=0?row[iISBN]:'').replace(/[="']/g,'').trim(),pages:iPages>=0?(parseInt(row[iPages])||0):0,notes:(iRev>=0?row[iRev]:'').trim()});if(!r)continue;if(r.status==='added'){added++;touched.push(r.id);}else if(r.status==='updated'){updated++;touched.push(r.id);}}save();renderLib();document.getElementById('gr-result').innerHTML=`<div class="iresult ok">${added} new books added, ${updated} existing records updated.</div>`;flagImportedForReview(touched);}catch(err){document.getElementById('gr-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
-function processAudible(file){const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);const raw=data.books||data;if(!Array.isArray(raw))throw new Error('No books array found.');let added=0,updated=0;raw.forEach(ab=>{const title=(ab.title||'').trim(),author=(ab.authors&&ab.authors[0])?ab.authors[0].name.trim():'Unknown';if(!title)return;const progress=(ab.progress||'').trim();const status=progress==='Finished'?'read':progress&&progress.includes('left')?'reading':'owned';const si=ab.series&&ab.series[0];const r=upsertBook(title,author,status,'Audiobook',{series:si?si.name:'',seriesNumber:si&&si.bookNumbers?si.bookNumbers[0]:'',isbn:ab.asin||''});if(r==='added')added++;else if(r==='updated')updated++;});save();renderLib();document.getElementById('au-result').innerHTML=`<div class="iresult ok">${added} new audiobooks added, ${updated} updated.</div>`;}catch(err){document.getElementById('au-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
+function processAudible(file){const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);const raw=data.books||data;if(!Array.isArray(raw))throw new Error('No books array found.');let added=0,updated=0;const touched=[];raw.forEach(ab=>{const title=(ab.title||'').trim(),author=(ab.authors&&ab.authors[0])?ab.authors[0].name.trim():'Unknown';if(!title)return;const progress=(ab.progress||'').trim();const status=progress==='Finished'?'read':progress&&progress.includes('left')?'reading':'owned';const si=ab.series&&ab.series[0];const r=upsertBook(title,author,status,'Audiobook',{series:si?si.name:'',seriesNumber:si&&si.bookNumbers?si.bookNumbers[0]:'',isbn:ab.asin||''});if(!r)return;if(r.status==='added'){added++;touched.push(r.id);}else if(r.status==='updated'){updated++;touched.push(r.id);}});save();renderLib();document.getElementById('au-result').innerHTML=`<div class="iresult ok">${added} new audiobooks added, ${updated} updated.</div>`;flagImportedForReview(touched);}catch(err){document.getElementById('au-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
-function processKindle(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());const iASIN=hdr.indexOf('asin'),iT=hdr.indexOf('title'),iA=hdr.indexOf('authors'),iI13=hdr.indexOf('isbn-13'),iI10=hdr.indexOf('isbn-10');if(iT<0)throw new Error('Could not find title column.');let added=0,updated=0;for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);const title=(row[iT]||'').replace(/^"|"$/g,'').trim();const author=(iA>=0?row[iA]||'':'').replace(/^"|"$/g,'').trim()||'Unknown';if(!title)continue;const asin=(iASIN>=0?row[iASIN]||'':'').replace(/^"|"$/g,'').trim();const isbn=((iI13>=0?row[iI13]:'')+(iI10>=0?row[iI10]:'')).replace(/[="']/g,'').trim();const r=upsertBook(title,author,'owned','Ebook',{isbn:asin||isbn});if(r==='added')added++;else if(r==='updated')updated++;}save();renderLib();document.getElementById('kn-result').innerHTML=`<div class="iresult ok">${added} Kindle books added as Ebook, ${updated} updated. Read status comes from GoodReads import.</div>`;}catch(err){document.getElementById('kn-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
+function processKindle(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]).map(h=>h.trim().toLowerCase());const iASIN=hdr.indexOf('asin'),iT=hdr.indexOf('title'),iA=hdr.indexOf('authors'),iI13=hdr.indexOf('isbn-13'),iI10=hdr.indexOf('isbn-10');if(iT<0)throw new Error('Could not find title column.');let added=0,updated=0;const touched=[];for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);const title=(row[iT]||'').replace(/^"|"$/g,'').trim();const author=(iA>=0?row[iA]||'':'').replace(/^"|"$/g,'').trim()||'Unknown';if(!title)continue;const asin=(iASIN>=0?row[iASIN]||'':'').replace(/^"|"$/g,'').trim();const isbn=((iI13>=0?row[iI13]:'')+(iI10>=0?row[iI10]:'')).replace(/[="']/g,'').trim();const r=upsertBook(title,author,'owned','Ebook',{isbn:asin||isbn});if(!r)continue;if(r.status==='added'){added++;touched.push(r.id);}else if(r.status==='updated'){updated++;touched.push(r.id);}}save();renderLib();document.getElementById('kn-result').innerHTML=`<div class="iresult ok">${added} Kindle books added as Ebook, ${updated} updated. Read status comes from GoodReads import.</div>`;flagImportedForReview(touched);}catch(err){document.getElementById('kn-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
 function exportJSON(){const blob=new Blob([JSON.stringify(books,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='my-books-backup.json';a.click();URL.revokeObjectURL(u);}
 function exportCSV(){
