@@ -690,7 +690,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
   <div id="shared-club-join-row" style="margin-bottom:12px"></div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-    <select class="fsel" id="shared-club-sel" onchange="switchSharedClub(this.value)" style="min-width:160px"></select>
+    <select class="fsel" id="shared-club-sel" onchange="switchSharedClub(this.value);renderInviteLinkBtn()" style="min-width:160px"></select>
+    <button class="btn btn-outline btn-sm" id="copy-invite-btn" onclick="copyInviteLink()">Copy invite link</button>
     <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openSharedBCForm()">+ Add Shared Meeting</button>
   </div>
   <div id="shared-club-roster" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
@@ -1196,7 +1197,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
 <div class="modal-ov" id="shared-bc-modal">
   <div class="modal">
-    <h2>Add Shared Club Meeting</h2>
+    <h2 id="shared-bc-modal-title">Add Shared Club Meeting</h2>
+    <input type="hidden" id="shared-bc-edit-id">
     <div class="fg"><label>Meeting Name / Month</label><input type="text" id="shared-bc-name" placeholder="e.g. June 2026"></div>
     <div class="frow">
       <div class="fg"><label>Date</label><input type="date" id="shared-bc-date"></div>
@@ -3040,12 +3042,14 @@ async function loadSharedClubs(){
     document.getElementById('shared-bc-previous-h').style.display='none';
     document.getElementById('shared-bc-previous-grid').innerHTML='';
     sharedClubId=null;
+    renderInviteLinkBtn();
     loadSuggestions();
     return;
   }
   sel.innerHTML=joined.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   if(!sharedClubId||!joined.some(c=>c.id===sharedClubId))sharedClubId=joined[0].id;
   sel.value=sharedClubId;
+  renderInviteLinkBtn();
   await renderSharedClub();
 }
 
@@ -3058,6 +3062,40 @@ async function joinSharedClub(clubId){
 }
 
 function switchSharedClub(clubId){sharedClubId=clubId;renderSharedClub();}
+
+async function renderInviteLinkBtn(){
+  const btn=document.getElementById('copy-invite-btn');
+  if(!btn)return;
+  if(!sharedClubId){btn.style.display='none';return;}
+  btn.style.display='';
+  const{data}=await sb.from('book_clubs').select('invite_code').eq('id',sharedClubId).single();
+  btn.dataset.code=(data&&data.invite_code)||'';
+}
+function copyInviteLink(){
+  const code=document.getElementById('copy-invite-btn').dataset.code;
+  if(!code){alert('No invite code found for this club yet.');return;}
+  const url=`${location.origin}${location.pathname}?join=${code}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=document.getElementById('copy-invite-btn');
+    const orig=btn.textContent;
+    btn.textContent='Copied!';
+    setTimeout(()=>{btn.textContent=orig;},1500);
+  }).catch(()=>alert('Could not copy — here is the link:\n'+url));
+}
+async function handleJoinLinkIfPresent(){
+  const params=new URLSearchParams(location.search);
+  const code=params.get('join');
+  if(!code)return;
+  history.replaceState(null,'',location.pathname);
+  const{data:club,error}=await sb.from('book_clubs').select('id,name').eq('invite_code',code).single();
+  if(error||!club){alert('That invite link is invalid or has expired.');return;}
+  const{data:{session}}=await sb.auth.getSession();
+  const{data:existing}=await sb.from('club_members').select('club_id').eq('club_id',club.id).eq('user_id',session.user.id).maybeSingle();
+  if(existing){alert(`You're already a member of ${club.name}.`);return;}
+  await joinSharedClub(club.id);
+  alert(`You've joined ${club.name}!`);
+  nav('bookclub');
+}
 
 async function renderSharedClub(){
   if(!sharedClubId)return;
@@ -3107,6 +3145,7 @@ async function renderSharedClub(){
 function renderMeetingCard(cb,myId,featured){
   const engagement=cb.club_book_engagement||[];
   const mine=engagement.find(e=>e.user_id===myId)||{status:'tbr',rating:null};
+  const iHaveRead=mine.status==='read';
   const readers=engagement.filter(e=>e.status==='read');
   const rated=readers.filter(e=>e.rating>0);
   const avg=rated.length?(rated.reduce((s,e)=>s+e.rating,0)/rated.length).toFixed(1):null;
@@ -3117,15 +3156,21 @@ function renderMeetingCard(cb,myId,featured){
   const going=rsvps.filter(r=>r.status==='going');
   const goingAvatars=going.map(r=>renderAvatarHTML((r.profiles||{}).first_name,(r.profiles||{}).last_name,20)).join('');
   const whenParts=[fmtDateDMY(cb.meeting_date),cb.start_time?cb.start_time.slice(0,5):'',cb.location?esc(cb.location):''].filter(Boolean);
+  const myBook=findExisting(cb.book_title,cb.book_author);
+  const ownedBadge=myBook&&(myBook.formats||[]).length?`<span class="badge b-owned" style="font-size:10px">You own it in ${myBook.formats.map(esc).join(', ')}</span>`:'';
   return`<div class="bc-meeting"${featured?' style="grid-column:1/-1"':''}>
     <div class="bc-meeting-header">
       <div class="bc-meeting-title">${esc(cb.meeting_name)}</div>
-      <div class="bc-meeting-date">${esc(whenParts.join(' · '))}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="bc-meeting-date">${esc(whenParts.join(' · '))}</div>
+        <button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="editSharedBCMeeting('${cb.id}')">Edit</button>
+      </div>
     </div>
     <div class="bc-book-row">
       <span style="flex:1">
         <div style="font-weight:500;font-size:13px">${esc(cb.book_title)}</div>
         <div style="font-size:11px;color:var(--text2)">by ${esc(cb.book_author)}${cb.series?` · <span style="color:var(--series)">${esc(cb.series)}${cb.series_number?' #'+esc(cb.series_number):''}</span>`:''}</div>
+        ${ownedBadge?`<div style="margin-top:4px">${ownedBadge}</div>`:''}
       </span>
     </div>
     ${cb.discussion_notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);line-height:1.5">${esc(cb.discussion_notes)}</div>`:''}
@@ -3140,9 +3185,9 @@ function renderMeetingCard(cb,myId,featured){
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
-        <span style="font-size:11px;color:var(--text3)">Read by</span>
+        ${iHaveRead?`<span style="font-size:11px;color:var(--text3)">Read by</span>
         ${readerAvatars||'<span style="font-size:11px;color:var(--text3)">nobody yet</span>'}
-        ${avg?`<span style="font-size:11px;color:var(--text2);margin-left:auto">★ ${avg} avg (${rated.length})</span>`:''}
+        ${avg?`<span style="font-size:11px;color:var(--text2);margin-left:auto">★ ${avg} avg (${rated.length})</span>`:''}`:`<span style="font-size:11px;color:var(--text3)">Mark as read to see who else has read it and the club's rating</span>`}
       </div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <select class="fsel" style="font-size:11px;padding:3px 6px" onchange="setMyEngagement('${cb.id}',{status:this.value})">
@@ -3173,6 +3218,27 @@ async function setMyRsvp(clubBookId,status){
 function openSharedBCForm(){
   if(!sharedClubId){alert('Join or create a shared club first.');return;}
   ['shared-bc-name','shared-bc-date','shared-bc-time','shared-bc-location','shared-bc-book-title','shared-bc-book-author','shared-bc-series','shared-bc-series-num','shared-bc-notes'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('shared-bc-edit-id').value='';
+  document.getElementById('shared-bc-modal-title').textContent='Add Shared Club Meeting';
+  document.getElementById('shared-bc-modal-error').textContent='';
+  document.getElementById('shared-bc-ol-status').textContent='';
+  document.getElementById('shared-bc-ol-results').innerHTML='';
+  document.getElementById('shared-bc-modal').classList.add('open');
+}
+async function editSharedBCMeeting(id){
+  const{data:cb,error}=await sb.from('club_books').select('id,meeting_name,meeting_date,start_time,location,book_title,book_author,series,series_number,discussion_notes').eq('id',id).single();
+  if(error||!cb){alert('Failed to load meeting: '+(error&&error.message));return;}
+  document.getElementById('shared-bc-edit-id').value=cb.id;
+  document.getElementById('shared-bc-modal-title').textContent='Edit Shared Club Meeting';
+  document.getElementById('shared-bc-name').value=cb.meeting_name||'';
+  document.getElementById('shared-bc-date').value=cb.meeting_date||'';
+  document.getElementById('shared-bc-time').value=cb.start_time?cb.start_time.slice(0,5):'';
+  document.getElementById('shared-bc-location').value=cb.location||'';
+  document.getElementById('shared-bc-book-title').value=cb.book_title||'';
+  document.getElementById('shared-bc-book-author').value=cb.book_author||'';
+  document.getElementById('shared-bc-series').value=cb.series||'';
+  document.getElementById('shared-bc-series-num').value=cb.series_number||'';
+  document.getElementById('shared-bc-notes').value=cb.discussion_notes||'';
   document.getElementById('shared-bc-modal-error').textContent='';
   document.getElementById('shared-bc-ol-status').textContent='';
   document.getElementById('shared-bc-ol-results').innerHTML='';
@@ -3214,9 +3280,8 @@ async function saveSharedBCMeeting(){
   const bookAuthor=document.getElementById('shared-bc-book-author').value.trim();
   const errEl=document.getElementById('shared-bc-modal-error');
   if(!name||!bookTitle){errEl.textContent='Name and book title required.';return;}
-  const{data:{session}}=await sb.auth.getSession();
-  const{data:inserted,error}=await sb.from('club_books').insert({
-    club_id:sharedClubId,
+  const editId=document.getElementById('shared-bc-edit-id').value;
+  const fields={
     meeting_name:name,
     meeting_date:document.getElementById('shared-bc-date').value||null,
     start_time:document.getElementById('shared-bc-time').value||null,
@@ -3225,9 +3290,18 @@ async function saveSharedBCMeeting(){
     book_author:bookAuthor,
     series:document.getElementById('shared-bc-series').value.trim(),
     series_number:document.getElementById('shared-bc-series-num').value.trim(),
-    discussion_notes:document.getElementById('shared-bc-notes').value.trim(),
-    created_by:session.user.id
-  }).select('id').single();
+    discussion_notes:document.getElementById('shared-bc-notes').value.trim()
+  };
+  if(editId){
+    const{error}=await sb.from('club_books').update(fields).eq('id',editId);
+    if(error){errEl.textContent='Failed: '+error.message;return;}
+    closeSharedBCModal();
+    renderSharedClub();
+    renderDashBCUpcoming();
+    return;
+  }
+  const{data:{session}}=await sb.auth.getSession();
+  const{data:inserted,error}=await sb.from('club_books').insert({...fields,club_id:sharedClubId,created_by:session.user.id}).select('id').single();
   if(error){errEl.textContent='Failed: '+error.message;return;}
   if(pendingScheduledSuggestionId&&inserted){
     await sb.from('club_suggestions').update({scheduled_club_book_id:inserted.id}).eq('id',pendingScheduledSuggestionId);
@@ -3235,6 +3309,7 @@ async function saveSharedBCMeeting(){
   }
   closeSharedBCModal();
   renderSharedClub();
+  renderDashBCUpcoming();
 }
 
 function getUpcoming(){try{return JSON.parse(localStorage.getItem(UPK)||'[]');}catch(e){return[];}}
@@ -4002,6 +4077,7 @@ function seedBookClub(){
   toggleReadFormat('f-read-fmt-row','read');
   toggleReadFormat('m-read-fmt-row','read');
   subscribeRealtime();
+  handleJoinLinkIfPresent();
 })();
 </script>
 </body>
