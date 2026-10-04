@@ -6,15 +6,19 @@
 -- 1. New column for the "Manage club" cadence setting.
 alter table book_clubs add column if not exists meeting_cadence jsonb;
 
--- 2. Make sure every existing club has at least one admin: promote its
---    earliest-joined member if no admin exists yet. Skip if everyone
---    already has a role you're happy with.
+-- 2. Make sure every existing club has at least one admin. club_members
+--    has no join-timestamp column, so there's no way to pick the actual
+--    earliest joiner - this deterministically promotes one member (by
+--    user_id order) per club that currently has no admin at all. If you
+--    want a *specific* person to be admin instead, just run:
+--      update club_members set role = 'admin'
+--      where club_id = '<club id>' and user_id = '<their user id>';
 update club_members cm
 set role = 'admin'
 where (cm.club_id, cm.user_id) in (
   select distinct on (club_id) club_id, user_id
   from club_members
-  order by club_id, created_at asc nulls last
+  order by club_id, user_id
 )
 and not exists (
   select 1 from club_members cm2
