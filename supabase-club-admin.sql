@@ -84,3 +84,19 @@ using (exists (
   and club_members.user_id = auth.uid()
   and club_members.role = 'owner'
 ));
+
+-- 6. Owner can delete their own club. No UI button calls this yet (the
+--    app has no "Delete club" feature) - this just means you can clean
+--    up a club via the Supabase table editor without it silently
+--    no-op'ing under RLS, the way the leftover "QA Verify Club" test
+--    row did before this policy existed.
+drop policy if exists "club owners can delete their club" on book_clubs;
+create policy "club owners can delete their club"
+on book_clubs for delete
+to authenticated
+using (exists (
+  select 1 from club_members
+  where club_members.club_id = book_clubs.id
+  and club_members.user_id = auth.uid()
+  and club_members.role = 'owner'
+));
