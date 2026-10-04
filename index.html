@@ -3395,7 +3395,7 @@ async function renderClubMemberships(){
     const clubName=club.name||'Unknown club';
     return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule)">
       <span style="flex:1;font-size:13px">${esc(clubName)}</span>
-      <span class="badge ${m.role==='admin'?'b-owned':'b-want'}" style="font-size:10px">${m.role==='admin'?'Admin':'Member'}</span>
+      <span class="badge ${m.role==='owner'?'b-owned':'b-want'}" style="font-size:10px">${m.role==='owner'?'Admin':'Member'}</span>
       <button class="btn btn-outline btn-sm" onclick="leaveSharedClub('${m.club_id}','${esc(clubName).replace(/'/g,"\\'")}')">Leave club</button>
     </div>`;
   }).join('');
@@ -3404,7 +3404,7 @@ async function leaveSharedClub(clubId,clubName){
   if(!confirm(`Leave "${clubName}"? You'll need a new invite link to rejoin.`))return;
   const{data:{session}}=await sb.auth.getSession();
   const{data:members}=await sb.from('club_members').select('user_id,role').eq('club_id',clubId);
-  const admins=(members||[]).filter(m=>m.role==='admin');
+  const admins=(members||[]).filter(m=>m.role==='owner');
   const iAmAdmin=admins.some(m=>m.user_id===session.user.id);
   if(iAmAdmin&&admins.length===1&&(members||[]).length>1){
     if(!confirm("You're the only admin - leaving means nobody will be able to manage this club. Continue anyway?"))return;
@@ -3422,7 +3422,7 @@ async function createSharedClub(){
   const{data:{session}}=await sb.auth.getSession();
   const{data:club,error}=await sb.from('book_clubs').insert({name:name.trim(),invite_code:genInviteCode()}).select('id').single();
   if(error){alert('Failed to create club: '+error.message);return;}
-  const{error:memErr}=await sb.from('club_members').insert({club_id:club.id,user_id:session.user.id,role:'admin'});
+  const{error:memErr}=await sb.from('club_members').insert({club_id:club.id,user_id:session.user.id,role:'owner'});
   if(memErr){alert('Club created, but failed to add you as admin: '+memErr.message);return;}
   sharedClubId=club.id;
   renderClubMemberships();
@@ -3488,7 +3488,7 @@ async function renderSharedClub(){
   status.textContent='';
   loadSuggestions();
 
-  isClubAdmin=(members||[]).some(m=>m.user_id===myId&&m.role==='admin');
+  isClubAdmin=(members||[]).some(m=>m.user_id===myId&&m.role==='owner');
   const addBtn=document.getElementById('add-shared-meeting-btn');
   if(addBtn)addBtn.style.display=isClubAdmin?'':'none';
   const adminCard=document.getElementById('club-admin-card');
@@ -3762,7 +3762,7 @@ async function renderClubAdminCard(members,clubBooks){
     membersEl.innerHTML=(members||[]).map(m=>{
       const p=m.profiles||{};
       const name=(p.first_name||p.last_name)?`${p.first_name||''} ${p.last_name||''}`.trim():'(no name set)';
-      return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--rule)">${renderAvatarHTML(p.first_name,p.last_name,24)}<span style="flex:1;font-size:13px">${esc(name)}</span><span class="badge ${m.role==='admin'?'b-owned':'b-want'}" style="font-size:10px">${m.role==='admin'?'Admin':'Member'}</span></div>`;
+      return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--rule)">${renderAvatarHTML(p.first_name,p.last_name,24)}<span style="flex:1;font-size:13px">${esc(name)}</span><span class="badge ${m.role==='owner'?'b-owned':'b-want'}" style="font-size:10px">${m.role==='owner'?'Admin':'Member'}</span></div>`;
     }).join('');
   }
   const{data:club}=await sb.from('book_clubs').select('meeting_cadence').eq('id',sharedClubId).single();
