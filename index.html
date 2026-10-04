@@ -748,6 +748,28 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <button class="btn btn-primary btn-sm" id="add-shared-meeting-btn" style="margin-left:auto;display:none" onclick="openSharedBCForm()">+ Add Shared Meeting</button>
   </div>
   <div id="shared-club-roster" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
+  <div class="settings-card" id="club-admin-card" style="display:none;margin-bottom:16px">
+    <h2>Manage club</h2>
+    <div class="fg">
+      <label>Meeting cadence</label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:13px;color:var(--text2)">Monthly, last</span>
+        <select class="fsel" id="cadence-weekday-sel" onchange="saveCadence()" style="width:auto">
+          <option value="0">Sunday</option>
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+        </select>
+        <span style="font-size:13px;color:var(--text2)">of the month</span>
+      </div>
+    </div>
+    <div id="cadence-next-dates" style="font-size:12px;color:var(--text2);margin-bottom:14px"></div>
+    <label style="font-size:13px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px">Members</label>
+    <div id="club-admin-members"></div>
+  </div>
   <div id="shared-bc-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
   <div class="bc-grid" id="shared-bc-next" style="margin-bottom:18px"></div>
   <div id="shared-bc-upcoming-h" style="font-size:13px;font-weight:600;color:var(--text2);margin:0 0 8px">Upcoming</div>
@@ -3469,6 +3491,9 @@ async function renderSharedClub(){
   isClubAdmin=(members||[]).some(m=>m.user_id===myId&&m.role==='admin');
   const addBtn=document.getElementById('add-shared-meeting-btn');
   if(addBtn)addBtn.style.display=isClubAdmin?'':'none';
+  const adminCard=document.getElementById('club-admin-card');
+  if(adminCard)adminCard.style.display=isClubAdmin?'':'none';
+  if(isClubAdmin)renderClubAdminCard(members,clubBooks);
 
   document.getElementById('shared-club-roster').innerHTML=(members||[]).map(m=>{
     const p=m.profiles||{};
@@ -3667,6 +3692,11 @@ async function saveSharedBCMeeting(){
     await sb.from('club_suggestions').update({scheduled_club_book_id:inserted.id}).eq('id',pendingScheduledSuggestionId);
     pendingScheduledSuggestionId=null;
   }
+  if(pendingScheduledUpcomingId&&inserted){
+    saveUpcoming(getUpcoming().filter(u=>u.id!==pendingScheduledUpcomingId));
+    pendingScheduledUpcomingId=null;
+    renderUpcoming();
+  }
   closeSharedBCModal();
   renderSharedClub();
   renderDashBCUpcoming();
@@ -3691,13 +3721,80 @@ function seedUpcoming(){
 function bcClubSeriesSet(){const names=new Set();getAllBCMeetings().forEach(m=>{if(m.series)names.add(m.series);});return names;}
 function personalSeriesSet(){const names=new Set();books.forEach(b=>{if(b.series)names.add(b.series);});return names;}
 function bcSeriesList(){const names=bcClubSeriesSet();personalSeriesSet().forEach(s=>names.add(s));return names;}
-function renderUpcoming(containerId){
+let cadenceSuggestionCache=null;
+function lastWeekdayOf(year,monthIndex0,weekday){
+  const lastDay=new Date(year,monthIndex0+1,0);
+  const dow=lastDay.getDay();
+  const diff=(dow-weekday+7)%7;
+  lastDay.setDate(lastDay.getDate()-diff);
+  return lastDay;
+}
+function localDateStr(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function nextCadenceSlot(cadence,existingDates){
+  if(!cadence||cadence.type!=='monthly')return null;
+  const weekday=typeof cadence.weekday==='number'?cadence.weekday:3;
+  const todayStr=localDateStr(new Date());
+  const latestExisting=existingDates.length?existingDates.reduce((max,d)=>d>max?d:max):null;
+  const base=latestExisting&&latestExisting>todayStr?new Date(latestExisting+'T00:00:00'):new Date();
+  const cursor=new Date(base.getFullYear(),base.getMonth(),1);
+  cursor.setMonth(cursor.getMonth()+1);
+  for(let guard=0;guard<36;guard++){
+    const slot=lastWeekdayOf(cursor.getFullYear(),cursor.getMonth(),weekday);
+    const slotStr=localDateStr(slot);
+    if(slotStr>=todayStr&&!existingDates.includes(slotStr))return slotStr;
+    cursor.setMonth(cursor.getMonth()+1);
+  }
+  return null;
+}
+async function computeCadenceSuggestion(){
+  cadenceSuggestionCache=null;
+  if(!sharedClubId)return;
+  const{data:club}=await sb.from('book_clubs').select('meeting_cadence').eq('id',sharedClubId).single();
+  const cadence=club&&club.meeting_cadence;
+  if(!cadence)return;
+  const{data:meetings}=await sb.from('club_books').select('meeting_date').eq('club_id',sharedClubId);
+  const existingDates=(meetings||[]).map(m=>m.meeting_date).filter(Boolean);
+  cadenceSuggestionCache=nextCadenceSlot(cadence,existingDates);
+}
+async function renderClubAdminCard(members,clubBooks){
+  const membersEl=document.getElementById('club-admin-members');
+  if(membersEl){
+    membersEl.innerHTML=(members||[]).map(m=>{
+      const p=m.profiles||{};
+      const name=(p.first_name||p.last_name)?`${p.first_name||''} ${p.last_name||''}`.trim():'(no name set)';
+      return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--rule)">${renderAvatarHTML(p.first_name,p.last_name,24)}<span style="flex:1;font-size:13px">${esc(name)}</span><span class="badge ${m.role==='admin'?'b-owned':'b-want'}" style="font-size:10px">${m.role==='admin'?'Admin':'Member'}</span></div>`;
+    }).join('');
+  }
+  const{data:club}=await sb.from('book_clubs').select('meeting_cadence').eq('id',sharedClubId).single();
+  const cadence=(club&&club.meeting_cadence)||{type:'monthly',rule:'last-weekday',weekday:3};
+  const sel=document.getElementById('cadence-weekday-sel');
+  if(sel)sel.value=String(cadence.weekday!=null?cadence.weekday:3);
+  const existing=(clubBooks||[]).map(cb=>cb.meeting_date).filter(Boolean);
+  const taken=[...existing];
+  const dates=[];
+  for(let i=0;i<3;i++){
+    const slot=nextCadenceSlot(cadence,taken);
+    if(!slot)break;
+    dates.push(slot);taken.push(slot);
+  }
+  const el=document.getElementById('cadence-next-dates');
+  if(el)el.textContent=dates.length?`Next recommended dates: ${dates.map(fmtDateDMY).join(', ')}`:'No recommended dates yet.';
+}
+async function saveCadence(){
+  if(!sharedClubId||!isClubAdmin)return;
+  const weekday=parseInt(document.getElementById('cadence-weekday-sel').value,10);
+  const{error}=await sb.from('book_clubs').update({meeting_cadence:{type:'monthly',rule:'last-weekday',weekday}}).eq('id',sharedClubId);
+  if(error){alert('Failed to save cadence: '+error.message);return;}
+  renderSharedClub();
+}
+async function renderUpcoming(containerId){
   const grid=document.getElementById(containerId||'upcoming-grid');
   if(!grid)return;
   const clubSeries=bcClubSeriesSet();
   const ownSeries=personalSeriesSet();
   const list=getUpcoming().slice().sort((a,b)=>(a.releaseDate||'').localeCompare(b.releaseDate||''));
   if(!list.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">No upcoming releases tracked yet.</p></div>`;return;}
+  await computeCadenceSuggestion();
   const today=new Date().toISOString().slice(0,10);
   grid.innerHTML=list.map(u=>{
     const isClubSeries=clubSeries.has(u.series);
@@ -3706,7 +3803,6 @@ function renderUpcoming(containerId){
     return`<div class="bc-meeting">
       <div class="bc-meeting-header">
         <div class="bc-meeting-title">${esc(u.book)}</div>
-        <button class="btn btn-danger btn-sm" onclick="deleteUpcoming('${u.id}')">×</button>
       </div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:4px">by ${esc(u.author)} · <span style="color:var(--series)">${esc(u.series)}</span></div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
@@ -3715,6 +3811,7 @@ function renderUpcoming(containerId){
         ${isOwnSeries?`<span class="badge b-read" style="font-size:10px">You've read this series</span>`:''}
       </div>
       ${u.note?`<div style="font-size:11px;color:var(--text3);margin-top:6px">${esc(u.note)}</div>`:''}
+      ${isClubAdmin?`<div style="margin-top:8px">${cadenceSuggestionCache?`<div style="font-size:11px;color:var(--text2);margin-bottom:5px">Suggested: ${esc(fmtDateDMY(cadenceSuggestionCache))} (next available slot)</div>`:''}<button class="btn btn-series btn-sm" onclick="createEventFromUpcoming('${u.id}')">Create event</button></div>`:''}
     </div>`;
   }).join('');
 }
@@ -3782,8 +3879,20 @@ function saveUpcomingEntry(){
   list.push({id:genId(),series,book,author:document.getElementById('up-author').value.trim(),releaseDate:document.getElementById('up-date').value,note:document.getElementById('up-note').value.trim()});
   saveUpcoming(list);closeUpModal();renderUpcoming();
 }
-function deleteUpcoming(id){if(!confirm('Remove this release?'))return;saveUpcoming(getUpcoming().filter(u=>u.id!==id));renderUpcoming();}
 let pendingScheduledSuggestionId=null;
+let pendingScheduledUpcomingId=null;
+function createEventFromUpcoming(id){
+  if(!isClubAdmin){alert('Only a club admin can create events.');return;}
+  const u=getUpcoming().find(x=>x.id===id);
+  if(!u)return;
+  openSharedBCForm();
+  document.getElementById('shared-bc-name').value=u.series||u.book;
+  document.getElementById('shared-bc-date').value=cadenceSuggestionCache||'';
+  document.getElementById('shared-bc-book-title').value=u.book;
+  document.getElementById('shared-bc-book-author').value=u.author||'';
+  document.getElementById('shared-bc-series').value=u.series||'';
+  pendingScheduledUpcomingId=id;
+}
 function openBacklogForm(){
   if(!sharedClubId){alert('Join or create a shared club first (see the top of the Book Club tab).');return;}
   ['backlog-title','backlog-author','backlog-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -3841,10 +3950,6 @@ async function saveBacklogEntry(){
   closeBacklogModal();
   loadSuggestions();
 }
-function deleteSuggestion(id){
-  if(!confirm('Remove this suggestion?'))return;
-  sb.from('club_suggestions').delete().eq('id',id).then(({error})=>{if(error){alert('Failed: '+error.message);return;}loadSuggestions();});
-}
 async function useSuggestionForNextMeeting(id){
   const{data}=await sb.from('club_suggestions').select('title,author').eq('id',id).single();
   if(!data)return;
@@ -3866,11 +3971,10 @@ async function loadSuggestions(){
     return`<div class="bc-meeting">
       <div class="bc-meeting-header">
         <div class="bc-meeting-title">${esc(s.title)}${s.times_suggested>1?` <span style="font-size:11px;font-weight:400;color:var(--text3)">· suggested ${s.times_suggested}×</span>`:''}</div>
-        <button class="btn btn-danger btn-sm" onclick="deleteSuggestion('${s.id}')">×</button>
       </div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${s.author?'by '+esc(s.author):''}${suggester?` · suggested by ${esc(suggester)}`:''}</div>
       ${s.notes?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">${esc(s.notes)}</div>`:''}
-      <button class="btn btn-series btn-sm" onclick="useSuggestionForNextMeeting('${s.id}')">Use for next meeting</button>
+      ${isClubAdmin?`<button class="btn btn-series btn-sm" onclick="useSuggestionForNextMeeting('${s.id}')">Use for next meeting</button>`:''}
     </div>`;
   }).join('');
 }
