@@ -427,8 +427,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <input class="search-box" id="dash-global-search" type="search" style="width:100%" placeholder="Search your library or find a new book…" oninput="dashGlobalSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();dashGlobalSearchEnter();}">
       <div id="dash-global-search-results" class="dash-search-pop"></div>
     </div>
-    <button class="btn btn-primary" onclick="nav('add');openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan</button>
-    <button class="btn btn-outline" onclick="nav('add')">+ Add book</button>
+    <button class="btn btn-primary" onclick="openBookForm();openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan</button>
+    <button class="btn btn-outline" onclick="openBookForm()">+ Add book</button>
   </div>
 
   <!-- 2. Welcome sentence -->
@@ -540,7 +540,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div class="fbar">
     <div class="fbar-row">
       <input class="search-box" id="lib-search" type="search" placeholder="Search title, author, series…" oninput="renderLib()">
-      <button class="btn btn-primary btn-sm" onclick="nav('add')">+ Add Book</button>
+      <button class="btn btn-primary btn-sm" onclick="openBookForm()">+ Add Book</button>
       <select class="fsel" id="lib-sort" onchange="renderLib()">
         <option value="date-desc">Date added ↓</option>
         <option value="date-asc">Date added ↑</option>
@@ -666,18 +666,18 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div id="bp-title" style="font-family:var(--font-serif);font-size:28px;font-weight:600;line-height:1.2"></div>
       <div id="bp-author" style="font-size:15px;color:var(--accent);cursor:pointer;margin-top:6px;display:inline-block"></div>
       <div id="bp-meta" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
-      <button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="openModal(currentBookPageId)">Edit</button>
+      <button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="openBookForm(currentBookPageId)">Edit</button>
     </div>
   </div>
 
   <div style="margin-top:30px">
-    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Your take</h2>
-    <div id="bp-your-take" class="settings-card"></div>
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">My copies</h2>
+    <div id="bp-copies" class="settings-card"></div>
   </div>
 
   <div style="margin-top:30px">
-    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Copies</h2>
-    <div id="bp-copies" class="settings-card"></div>
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Reading history</h2>
+    <div id="bp-timeline"></div>
   </div>
 
   <div id="bp-club-section" style="margin-top:30px;display:none">
@@ -686,8 +686,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 
   <div style="margin-top:30px">
-    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Timeline</h2>
-    <div id="bp-timeline"></div>
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">My thoughts</h2>
+    <div id="bp-your-take" class="settings-card"></div>
+  </div>
+
+  <div style="margin-top:30px">
+    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Tags</h2>
+    <div id="bp-tags" class="settings-card"></div>
   </div>
 </div>
 
@@ -918,7 +923,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       <div class="fg"><label>Author *</label><input type="text" id="f-author" list="dl-authors" placeholder="Author name" onblur="autoFillFromLookup()"></div>
       <div class="lock-note" id="f-lock-note" style="display:none">Matched from Open Library. Can't find your edition? <a href="#" onclick="event.preventDefault();lockAutoFields('f',false)">Edit manually</a></div>
       <div class="frow">
-        <div class="fg"><label>Series Name</label><input type="text" id="f-series" list="dl-series" placeholder="e.g. Dungeon Crawler Carl"></div>
+        <div class="fg">
+          <label>Series Name</label>
+          <div style="display:flex;gap:5px;align-items:center">
+            <input type="text" id="f-series" list="dl-series" placeholder="e.g. Dungeon Crawler Carl" style="flex:1">
+            <button type="button" class="btn btn-series btn-sm" onclick="aiLookupSeriesInfo('f')" title="AI lookup series info"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg></button>
+          </div>
+        </div>
         <div class="fg"><label>Book # in Series</label><input type="text" id="f-series-num" placeholder="e.g. 3"></div>
       </div>
       <div class="frow">
@@ -1012,6 +1023,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
           <div class="fg"><label>GoodReads Rating</label><div style="padding-top:7px"><a href="#" onclick="event.preventDefault();openGoodreadsSearch('f')" style="color:var(--accent);font-size:13px">View on Goodreads ↗</a></div></div>
         </div>
         <div class="fg"><label>Notes</label><textarea id="f-notes" rows="2" placeholder="Personal notes…"></textarea></div>
+        <div class="fg"><label>Favorite quote</label><textarea id="f-favorite-quote" rows="2" placeholder="A line that stuck with you"></textarea></div>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
@@ -1020,10 +1032,11 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
           <label>Genre / Tags</label>
           <div class="tag-input-wrap" id="genre-wrap" onclick="document.getElementById('genre-inp').focus()">
             <span id="genre-tags"></span>
-            <input class="tag-inp" id="genre-inp" placeholder="Add genre, press Enter…" onkeydown="tagKeydown(event,false)" oninput="tagInput(event,false)">
+            <input class="tag-inp" id="genre-inp" placeholder="Add genre, press Enter…" onkeydown="tagKeydown(event)" oninput="tagInput(event)">
           </div>
           <span class="ai-suggest" onclick="suggestGenre()"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Suggest genre from AI</span>
         </div>
+        <div class="fg"><label>Mood / vibe tags <span style="font-weight:400;color:var(--text3);font-size:11px">- comma separated</span></label><input type="text" id="f-mood-tags" placeholder="e.g. cozy, slow-burn, found-family"></div>
       </div>
 
       <div class="form-actions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
@@ -1032,8 +1045,9 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--danger)">
         <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;margin-bottom:8px;color:var(--danger)">Danger zone</h3>
-        <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Discard everything entered on this form.</p>
-        <button class="btn btn-danger" onclick="clearForm()">Clear form</button>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:10px" id="f-danger-desc">Discard everything entered on this form.</p>
+        <button class="btn btn-danger" id="f-danger-clear-btn" onclick="clearForm()">Clear form</button>
+        <button class="btn btn-danger" id="f-danger-delete-btn" style="display:none" onclick="deleteBook(document.getElementById('f-id').value)">Delete this book</button>
       </div>
     </div>
   </div>
@@ -1205,121 +1219,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 </div>
 
 <!-- Edit Modal -->
-<div class="modal-ov" id="modal">
-  <div class="modal">
-    <h2 id="modal-h">Edit Book</h2>
-    <input type="hidden" id="m-cover">
-    <div class="fg" style="position:relative">
-      <label>Title</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <img id="m-cover-preview" style="display:none;width:34px;height:48px;object-fit:cover;border-radius:3px;flex-shrink:0;border:1px solid var(--border)">
-        <input type="text" id="m-title" style="flex:1">
-      </div>
-      <div class="dash-search-pop" id="m-title-pop"></div>
-    </div>
-    <div class="fg"><label>Author</label><input type="text" id="m-author"></div>
-    <div class="lock-note" id="m-lock-note" style="display:none">Matched from Open Library. Can't find your edition? <a href="#" onclick="event.preventDefault();lockAutoFields('m',false)">Edit manually</a></div>
-    <div class="frow">
-      <div class="fg"><label>Status</label>
-        <select id="m-status" onchange="toggleReadFormat('m-read-fmt-row',this.value);toggleRowIf('m-progress-row',this.value==='reading')">
-          <option value="read">Read</option><option value="reading">Reading</option>
-          <option value="tbr">TBR (To Be Read)</option><option value="wishlist">Wishlist (don't own yet)</option><option value="dnf">DNF</option>
-        </select>
-      </div>
-      <div class="fg" id="m-read-fmt-row">
-        <label>Read in format</label>
-        <select id="m-read-format">
-          <option value="">Unknown</option>
-          <option value="Ebook">Ebook</option>
-          <option value="Audiobook">Audiobook</option>
-          <option value="Hardcopy">Hardcopy</option>
-        </select>
-      </div>
-    </div>
-    <div class="fg" id="m-progress-row" style="display:none">
-      <label>Progress: <span id="m-progress-val">0</span>%</label>
-      <input type="range" id="m-progress" min="0" max="100" value="0" style="width:100%" oninput="document.getElementById('m-progress-val').textContent=this.value">
-    </div>
-    <div class="fg">
-      <label>Owned formats</label>
-      <div class="fmt-checks" id="m-fmt-checks">
-        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Ebook"><svg class="ico" viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg> Ebook</label>
-        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Audiobook"><svg class="ico" viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg> Audio</label>
-        <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Hardcopy"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg> Hard</label>
-      </div>
-    </div>
-    <div class="fg">
-      <label>Borrowed / KU formats</label>
-      <div class="fmt-checks" id="m-borrow-checks">
-        <label class="fmt-check borrowed" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Ebook"><svg class="ico" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg> Ebook</label>
-        <label class="fmt-check borrowed" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Audiobook"><svg class="ico" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg> Audio</label>
-      </div>
-    </div>
-    <div class="frow">
-      <div class="fg">
-        <label>Series</label>
-        <div style="display:flex;gap:5px;align-items:center">
-          <input type="text" id="m-series" style="flex:1">
-          <button class="btn btn-series btn-sm" onclick="aiLookupSeriesInfo()" title="AI lookup series info"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg></button>
-        </div>
-      </div>
-      <div class="fg"><label>Book #</label><input type="text" id="m-series-num"></div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label>Date Started</label><input type="month" id="m-date-started"></div>
-      <div class="fg"><label>Date Finished</label><input type="month" id="m-date-read"></div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label>Published</label><input type="text" id="m-published-date" placeholder="e.g. 2023"></div>
-    </div>
-    <div class="fg">
-      <label>Reading History <span style="font-weight:400;color:var(--text3);font-size:11px">- one row per format you've read this in</span></label>
-      <div id="m-read-records"></div>
-      <button type="button" class="btn btn-outline btn-sm" onclick="addReadRecordRow(true)">+ Add read record</button>
-    </div>
-    <div class="frow">
-      <div class="fg">
-        <label>My Rating</label>
-        <div class="star-row" id="mstar-row">
-          <button class="starb" data-v="1" onclick="handleStarClick(event,1,true)">★<span class="star-fg">★</span></button>
-          <button class="starb" data-v="2" onclick="handleStarClick(event,2,true)">★<span class="star-fg">★</span></button>
-          <button class="starb" data-v="3" onclick="handleStarClick(event,3,true)">★<span class="star-fg">★</span></button>
-          <button class="starb" data-v="4" onclick="handleStarClick(event,4,true)">★<span class="star-fg">★</span></button>
-          <button class="starb" data-v="5" onclick="handleStarClick(event,5,true)">★<span class="star-fg">★</span></button>
-        </div>
-        <div style="font-size:11px;color:var(--text3);margin-top:3px">Click the left half of a star for a half rating</div>
-        <input type="hidden" id="m-rating" value="0">
-      </div>
-    </div>
-    <div class="fg">
-      <label>Genre / Tags</label>
-      <div class="tag-input-wrap" id="m-genre-wrap" onclick="document.getElementById('m-genre-inp').focus()">
-        <span id="m-genre-tags"></span>
-        <input class="tag-inp" id="m-genre-inp" placeholder="Add genre…" onkeydown="tagKeydown(event,true)" oninput="tagInput(event,true)">
-      </div>
-    </div>
-    <div class="frow">
-      <div class="fg"><label>GoodReads Rating</label><div style="padding-top:7px"><a href="#" onclick="event.preventDefault();openGoodreadsSearch('m')" style="color:var(--accent);font-size:13px">View on Goodreads ↗</a></div></div>
-      <div class="fg"><label>Pages</label><input type="number" id="m-pages" min="0" placeholder="e.g. 320"></div>
-    </div>
-    <div class="fg"><label>ISBN / ASIN</label><input type="text" id="m-isbn"></div>
-    <div class="frow">
-      <div class="fg" style="align-self:center">
-        <label class="fmt-check" id="m-lendable-label" style="display:inline-flex" onclick="event.preventDefault();toggleFmtCheck(this)"><input type="checkbox" id="m-lendable"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12h7"/><path d="M7 8l-4 4 4 4"/><path d="M21 12h-7"/><path d="M17 8l4 4-4 4"/></svg> Willing to lend</label>
-      </div>
-      <div class="fg"><label>Lent to (if currently out)</label><input type="text" id="m-lent-to" placeholder="e.g. Jane"></div>
-    </div>
-    <div class="fg"><label>Notes</label><textarea id="m-notes" rows="2"></textarea></div>
-    <div class="fg"><label>Favorite quote</label><textarea id="m-favorite-quote" rows="2" placeholder="A line that stuck with you"></textarea></div>
-    <div class="fg"><label>Mood / vibe tags <span style="font-weight:400;color:var(--text3);font-size:11px">- comma separated</span></label><input type="text" id="m-mood-tags" placeholder="e.g. cozy, slow-burn, found-family"></div>
-    <div class="modal-actions">
-      <button class="btn btn-danger btn-sm" onclick="deleteBook(currentId)">Delete</button>
-      <button class="btn btn-outline btn-sm" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveModal()">Save</button>
-    </div>
-  </div>
-</div>
-
 <!-- Book Club Form Modal -->
 <div class="modal-ov" id="bc-modal">
   <div class="modal">
@@ -1391,7 +1290,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <script>
 // ═══════════ DATA MODEL ═══════════
 const SK='booktracker_v3', GK='booktracker_goal', SCK='booktracker_series_cache', BCK='booktracker_bookclub', UPK='booktracker_upcoming';
-let books=[], formGenres=[], modalGenres=[], currentId=null, currentAuthor=null, currentReportTab='summary', chartInst={}, allRecs=[], currentBCEdit=null;
+let books=[], formGenres=[], currentAuthor=null, currentReportTab='summary', chartInst={}, allRecs=[], currentBCEdit=null;
 
 const STATUS_PRI={read:5,reading:4,tbr:3,owned:3,want:3,wishlist:2,dnf:0};
 const STATUS_LABELS={read:'Read',tbr:'TBR',want:'TBR',owned:'TBR',wishlist:'Wishlist',reading:'Reading',dnf:'DNF'};
@@ -1871,7 +1770,7 @@ function acceptReviewSuggestion(id){
   clearReviewRow(id);
 }
 function keepReviewAsTyped(id){clearReviewRow(id);}
-function editReviewEntry(id){clearReviewRow(id);openModal(id);}
+function editReviewEntry(id){clearReviewRow(id);openBookForm(id);}
 
 // ═══════════ MERGE SIMILAR NAMES ═══════════
 let similarNamesOffset={};
@@ -1959,7 +1858,7 @@ function currentPanel(){const el=document.querySelector('.panel.active');return 
 const VALID_PANELS=['dashboard','library','series','authors','bookclub','discover','reports','add','settings'];
 let suppressHashUpdate=false;
 function nav(p){
-  closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
+  closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
   document.getElementById('sb-sub-library').classList.toggle('open',p==='library'||p==='series'||p==='authors');
@@ -2036,7 +1935,7 @@ function checkAddDuplicate(){
   const editId=document.getElementById('f-id').value;
   const existing=findExisting(title,author);
   if(existing&&existing.id!==editId){
-    st.innerHTML=`${ICON.warning} Already in your library (${STATUS_LABELS[existing.status]||existing.status}). <button type="button" class="btn btn-outline btn-sm" onclick="openModal('${existing.id}')">Edit existing instead</button>`;
+    st.innerHTML=`${ICON.warning} Already in your library (${STATUS_LABELS[existing.status]||existing.status}). <button type="button" class="btn btn-outline btn-sm" onclick="openBookForm('${existing.id}')">Edit existing instead</button>`;
   }
 }
 
@@ -2804,7 +2703,7 @@ async function renderDashWelcome(){
   if(!el)return;
   const name=(myProfile&&myProfile.first_name)||'';
   if(!books.length){
-    el.innerHTML=`Welcome${name?', '+esc(name):''} - your library's empty so far. <a href="#" onclick="event.preventDefault();nav('add');setAddTab('import')" style="color:var(--accent)">Import from Goodreads/Audible/Kindle</a>, or <a href="#" onclick="event.preventDefault();nav('add')" style="color:var(--accent)">add your first book</a>.`;
+    el.innerHTML=`Welcome${name?', '+esc(name):''} - your library's empty so far. <a href="#" onclick="event.preventDefault();nav('add');setAddTab('import')" style="color:var(--accent)">Import from Goodreads/Audible/Kindle</a>, or <a href="#" onclick="event.preventDefault();openBookForm()" style="color:var(--accent)">add your first book</a>.`;
     return;
   }
   const parts=[`Welcome back${name?', '+name:''}.`];
@@ -3366,7 +3265,7 @@ function renderBCMeetings(){
           <div style="font-size:11px;color:var(--text2)">by ${esc(displayAuthor)}${m.series?` · <span style="color:var(--series)">${esc(m.series)}${m.seriesNumber?' #'+esc(m.seriesNumber):''}</span>`:''}</div>
         </span>
         <div>${statusHtml}</div>
-        ${libBook?`<button class="btn btn-series btn-sm" onclick="openModal('${libBook.id}')">Edit</button>`:`<button class="btn btn-series btn-sm" onclick="addBCBookToLibrary('${m.id}')">+ Library</button>`}
+        ${libBook?`<button class="btn btn-series btn-sm" onclick="openBookForm('${libBook.id}')">Edit</button>`:`<button class="btn btn-series btn-sm" onclick="addBCBookToLibrary('${m.id}')">+ Library</button>`}
       </div>
       ${m.notes?`<div style="font-size:12px;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);line-height:1.5">${esc(m.notes)}</div>`:''}
     </div>`;
@@ -4383,13 +4282,12 @@ function getCheckedFormats(containerId){return[...document.querySelectorAll(`#${
 function setCheckedFormats(containerId,formats){document.querySelectorAll(`#${containerId} .fmt-check`).forEach(label=>{const cb=label.querySelector('input');cb.checked=(formats||[]).includes(cb.value);label.classList.toggle('checked',cb.checked);});}
 
 // ═══════════ TAGS / GENRE ═══════════
-function renderFormTags(){document.getElementById('genre-tags').innerHTML=formGenres.map((g,i)=>`<span class="tag">${esc(g)}<button class="tag-rm" onclick="removeTag(${i},false)">×</button></span>`).join('');}
-function renderModalTags(){document.getElementById('m-genre-tags').innerHTML=modalGenres.map((g,i)=>`<span class="tag">${esc(g)}<button class="tag-rm" onclick="removeTag(${i},true)">×</button></span>`).join('');}
-function removeTag(i,modal){if(modal){modalGenres.splice(i,1);renderModalTags();}else{formGenres.splice(i,1);renderFormTags();}}
-function addTag(val,modal){const tags=val.split(',').map(s=>s.trim()).filter(s=>s.length>0&&s.length<40);if(modal){tags.forEach(t=>{if(!modalGenres.includes(t))modalGenres.push(t)});renderModalTags();}else{tags.forEach(t=>{if(!formGenres.includes(t))formGenres.push(t)});renderFormTags();}}
-function tagKeydown(e,modal){if(e.key==='Enter'||e.key===','||e.key==='Tab'){e.preventDefault();const v=e.target.value.trim();if(v)addTag(v,modal);e.target.value='';}}
-function tagInput(e,modal){if(e.data===','){const v=e.target.value.replace(',','').trim();if(v)addTag(v,modal);e.target.value='';}}
-async function suggestGenre(){const title=document.getElementById('f-title').value.trim(),author=document.getElementById('f-author').value.trim();if(!title){alert('Enter a title first.');return;}const btn=document.querySelector('.ai-suggest');btn.innerHTML=`${ICON.clock} Suggesting…`;try{const raw=await askClaude(`What are 2-3 genre tags for "${title}"${author?' by '+author:''}? Return ONLY a comma-separated list, e.g.: Fantasy, Dark Fantasy, YA.`);addTag(aiStr(raw),false);}catch(e){alert('Could not suggest: '+(e.message||String(e)));}btn.innerHTML=`${ICON.sparkle} Suggest genre from AI`;}
+function renderFormTags(){document.getElementById('genre-tags').innerHTML=formGenres.map((g,i)=>`<span class="tag">${esc(g)}<button class="tag-rm" onclick="removeTag(${i})">×</button></span>`).join('');}
+function removeTag(i){formGenres.splice(i,1);renderFormTags();}
+function addTag(val){const tags=val.split(',').map(s=>s.trim()).filter(s=>s.length>0&&s.length<40);tags.forEach(t=>{if(!formGenres.includes(t))formGenres.push(t)});renderFormTags();}
+function tagKeydown(e){if(e.key==='Enter'||e.key===','||e.key==='Tab'){e.preventDefault();const v=e.target.value.trim();if(v)addTag(v);e.target.value='';}}
+function tagInput(e){if(e.data===','){const v=e.target.value.replace(',','').trim();if(v)addTag(v);e.target.value='';}}
+async function suggestGenre(){const title=document.getElementById('f-title').value.trim(),author=document.getElementById('f-author').value.trim();if(!title){alert('Enter a title first.');return;}const btn=document.querySelector('.ai-suggest');btn.innerHTML=`${ICON.clock} Suggesting…`;try{const raw=await askClaude(`What are 2-3 genre tags for "${title}"${author?' by '+author:''}? Return ONLY a comma-separated list, e.g.: Fantasy, Dark Fantasy, YA.`);addTag(aiStr(raw));}catch(e){alert('Could not suggest: '+(e.message||String(e)));}btn.innerHTML=`${ICON.sparkle} Suggest genre from AI`;}
 
 // ═══════════ BARCODE SCANNER ═══════════
 let html5QrScanner=null;
@@ -4534,7 +4432,6 @@ async function applyOLResultToForm(prefix,r){
   const preview=document.getElementById(prefix+'-cover-preview');
   if(preview){if(coverUrl){preview.src=coverUrl;preview.style.display='';}else preview.style.display='none';}
   const title=r.title||'',author=(r.author_name||[])[0]||'';
-  const isModal=prefix==='m';
   try{
     const raw=await askClaude(`For the book "${title}" by ${author}: what series does it belong to and what number is it? Reply ONLY with JSON: {"series":"series name or null","num":"book number or null"}. If not part of a series reply {"series":null,"num":null}.`);
     const clean=aiStr(raw).replace(/```(?:json)?\n?/g,'').replace(/```/g,'');
@@ -4543,7 +4440,7 @@ async function applyOLResultToForm(prefix,r){
   }catch(e){}
   try{
     const genreRaw=await askClaude(`What are 2-3 genre tags for "${title}"${author?' by '+author:''}? Return ONLY a comma-separated list, e.g.: Fantasy, Dark Fantasy, YA.`);
-    addTag(aiStr(genreRaw),isModal);
+    addTag(aiStr(genreRaw));
   }catch(e){}
   lockAutoFields(prefix,true);
 }
@@ -4642,7 +4539,55 @@ function lockLocationField(locked){
 }
 
 // ═══════════ FORM ═══════════
-function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-started','f-date-read','f-date-added','f-published-date','f-isbn','f-pages','f-notes','f-cover','f-lent-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';setRating(0,false);renderReadRecordRows(false,[]);document.getElementById('form-h').textContent='Add a Book';setCheckedFormats('f-fmt-checks',[]);setCheckedFormats('f-borrow-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');toggleRowIf('f-progress-row',false);document.getElementById('f-progress').value=0;document.getElementById('f-progress-val').textContent='0';const flCb=document.getElementById('f-lendable');flCb.checked=false;flCb.closest('.fmt-check').classList.remove('checked');const st=document.getElementById('scan-fill-status');if(st)st.textContent='';lockAutoFields('f',false);const cp=document.getElementById('f-cover-preview');if(cp)cp.style.display='none';}
+function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-started','f-date-read','f-date-added','f-published-date','f-isbn','f-pages','f-notes','f-favorite-quote','f-mood-tags','f-cover','f-lent-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';setRating(0,false);renderReadRecordRows(false,[]);setFormMode(false);setCheckedFormats('f-fmt-checks',[]);setCheckedFormats('f-borrow-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');toggleRowIf('f-progress-row',false);document.getElementById('f-progress').value=0;document.getElementById('f-progress-val').textContent='0';const flCb=document.getElementById('f-lendable');flCb.checked=false;flCb.closest('.fmt-check').classList.remove('checked');const st=document.getElementById('scan-fill-status');if(st)st.textContent='';lockAutoFields('f',false);const cp=document.getElementById('f-cover-preview');if(cp)cp.style.display='none';}
+function setFormMode(isEdit,title){
+  document.getElementById('form-h').textContent=isEdit?`Edit "${esc(title||'')}"`:'Add a Book';
+  document.getElementById('f-danger-desc').textContent=isEdit?"Permanently remove this book from your library. This can't be undone.":'Discard everything entered on this form.';
+  document.getElementById('f-danger-clear-btn').style.display=isEdit?'none':'';
+  document.getElementById('f-danger-delete-btn').style.display=isEdit?'':'none';
+}
+function openBookForm(id){
+  nav('add');
+  setAddTab('manual');
+  if(!id){clearForm();return;}
+  const b=books.find(x=>x.id===id);
+  if(!b)return;
+  document.getElementById('f-id').value=id;
+  document.getElementById('f-title').value=b.title;
+  document.getElementById('f-author').value=b.author;
+  document.getElementById('f-status').value=b.status;
+  document.getElementById('f-series').value=b.series||'';
+  document.getElementById('f-series-num').value=b.seriesNumber||'';
+  document.getElementById('f-date-started').value=b.dateStarted||'';
+  document.getElementById('f-date-read').value=b.dateRead||'';
+  document.getElementById('f-date-added').value=b.dateAdded||'';
+  document.getElementById('f-published-date').value=b.publishedDate||'';
+  renderReadRecordRows(false,b.readRecords||[]);
+  document.getElementById('f-isbn').value=b.isbn||'';
+  document.getElementById('f-cover').value=b.coverUrl||'';
+  const fcp=document.getElementById('f-cover-preview');
+  if(fcp){if(b.coverUrl){fcp.src=b.coverUrl;fcp.style.display='';}else fcp.style.display='none';}
+  lockAutoFields('f',false);
+  document.getElementById('f-pages').value=b.pages||'';
+  document.getElementById('f-notes').value=b.notes||'';
+  document.getElementById('f-favorite-quote').value=b.favoriteQuote||'';
+  document.getElementById('f-mood-tags').value=(b.moodTags||[]).join(', ');
+  document.getElementById('f-read-format').value=b.readFormat||'';
+  document.getElementById('f-progress').value=b.progress||0;
+  document.getElementById('f-progress-val').textContent=b.progress||0;
+  document.getElementById('f-lent-to').value=b.lentTo||'';
+  const flCb=document.getElementById('f-lendable');
+  flCb.checked=!!b.lendable;
+  flCb.closest('.fmt-check').classList.toggle('checked',!!b.lendable);
+  setRating(b.rating||0,false);
+  setCheckedFormats('f-fmt-checks',b.formats||[]);
+  setCheckedFormats('f-borrow-checks',b.borrowedFormats||[]);
+  formGenres=[...(b.genre||[])];
+  renderFormTags();
+  toggleReadFormat('f-read-fmt-row',b.status);
+  toggleRowIf('f-progress-row',b.status==='reading');
+  setFormMode(true,b.title);
+}
 function setRating(value,modal){
   value=Math.round((value||0)*2)/2;
   document.getElementById(modal?'m-rating':'f-rating').value=value;
@@ -4657,7 +4602,52 @@ function handleStarClick(e,n,modal){
   const frac=(e.clientX-rect.left)/rect.width;
   setRating(frac<0.5?n-0.5:n,modal);
 }
-function saveBook(){const title=document.getElementById('f-title').value.trim(),author=normalizeAuthorName(document.getElementById('f-author').value.trim());if(!title||!author){alert('Title and author are required.');return;}const finpGenre=document.getElementById('genre-inp').value.trim();if(finpGenre)addTag(finpGenre,false);const editId=document.getElementById('f-id').value;const readRecords=getReadRecordRows(false);const b={id:editId||genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateStarted:document.getElementById('f-date-started').value||'',dateRead:latestReadDate(readRecords,document.getElementById('f-date-read').value||''),dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),publishedDate:document.getElementById('f-published-date').value.trim(),rating:parseFloat(document.getElementById('f-rating').value)||0,grRating:editId?((books.find(x=>x.id===editId)||{}).grRating||0):0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,progress:parseInt(document.getElementById('f-progress').value)||0,lendable:document.getElementById('f-lendable').checked,lentTo:document.getElementById('f-lent-to').value.trim(),notes:document.getElementById('f-notes').value.trim(),genre:[...formGenres],coverUrl:document.getElementById('f-cover').value||'',readFormat:document.getElementById('f-read-format').value,readRecords};if(editId){const i=books.findIndex(x=>x.id===editId);if(i>=0)books[i]=b;}else books.push(b);save();clearForm();nav('library');}
+function saveBook(){
+  const title=document.getElementById('f-title').value.trim(),author=normalizeAuthorName(document.getElementById('f-author').value.trim());
+  if(!title||!author){alert('Title and author are required.');return;}
+  const finpGenre=document.getElementById('genre-inp').value.trim();if(finpGenre)addTag(finpGenre);
+  const editId=document.getElementById('f-id').value;
+  const readRecords=getReadRecordRows(false);
+  const moodTags=document.getElementById('f-mood-tags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(editId){
+    const b=books.find(x=>x.id===editId);
+    if(!b)return;
+    b.title=title;b.author=author;
+    b.status=document.getElementById('f-status').value;
+    b.formats=getCheckedFormats('f-fmt-checks');
+    b.borrowedFormats=getCheckedFormats('f-borrow-checks');
+    b.series=document.getElementById('f-series').value.trim();
+    b.seriesNumber=document.getElementById('f-series-num').value.trim();
+    b.dateStarted=document.getElementById('f-date-started').value||'';
+    b.readRecords=readRecords;
+    b.dateRead=latestReadDate(readRecords,document.getElementById('f-date-read').value||'');
+    b.dateAdded=document.getElementById('f-date-added').value||b.dateAdded;
+    b.publishedDate=document.getElementById('f-published-date').value.trim();
+    b.isbn=document.getElementById('f-isbn').value.trim();
+    const fCoverVal=document.getElementById('f-cover').value;
+    if(fCoverVal)b.coverUrl=fCoverVal;
+    const newPages=parseInt(document.getElementById('f-pages').value)||0;
+    if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}
+    b.progress=parseInt(document.getElementById('f-progress').value)||0;
+    b.lendable=document.getElementById('f-lendable').checked;
+    b.lentTo=document.getElementById('f-lent-to').value.trim();
+    b.notes=document.getElementById('f-notes').value.trim();
+    b.favoriteQuote=document.getElementById('f-favorite-quote').value.trim();
+    b.moodTags=moodTags;
+    b.rating=parseFloat(document.getElementById('f-rating').value)||0;
+    b.genre=[...formGenres];
+    b.readFormat=document.getElementById('f-read-format').value;
+    delete b.needsReview;
+    save();
+    openBookPage(editId);
+    return;
+  }
+  const b={id:genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateStarted:document.getElementById('f-date-started').value||'',dateRead:latestReadDate(readRecords,document.getElementById('f-date-read').value||''),dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),publishedDate:document.getElementById('f-published-date').value.trim(),rating:parseFloat(document.getElementById('f-rating').value)||0,grRating:0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,progress:parseInt(document.getElementById('f-progress').value)||0,lendable:document.getElementById('f-lendable').checked,lentTo:document.getElementById('f-lent-to').value.trim(),notes:document.getElementById('f-notes').value.trim(),favoriteQuote:document.getElementById('f-favorite-quote').value.trim(),moodTags,genre:[...formGenres],coverUrl:document.getElementById('f-cover').value||'',readFormat:document.getElementById('f-read-format').value,readRecords};
+  books.push(b);
+  save();
+  clearForm();
+  nav('library');
+}
 
 // ═══════════ BOOK PAGE (read-only) ═══════════
 let currentBookPageId=null;
@@ -4683,7 +4673,7 @@ function fmtMonthYear(ym){
 function openBookPage(id){
   const b=books.find(x=>x.id===id);
   if(!b)return;
-  closeModal();closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
+  closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
   const current=currentPanel();
   if(current!=='book-detail')bookPageReturnTo=current;
   currentBookPageId=id;
@@ -4707,8 +4697,13 @@ async function renderBookPage(b){
     <div style="margin-bottom:10px">${stars}</div>
     ${b.favoriteQuote?`<div style="font-style:italic;font-size:14px;color:var(--text2);border-left:3px solid var(--accent);padding-left:12px;margin-bottom:10px">"${esc(b.favoriteQuote)}"</div>`:''}
     ${b.notes?`<p style="font-size:13px;color:var(--text2);line-height:1.6">${esc(b.notes)}</p>`:''}
-    ${(b.moodTags||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${b.moodTags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
-    ${!b.rating&&!b.favoriteQuote&&!b.notes&&!(b.moodTags||[]).length?'<p style="font-size:13px;color:var(--text3)">Nothing recorded yet - add a rating, note or quote from Edit.</p>':''}
+    ${!b.rating&&!b.favoriteQuote&&!b.notes?'<p style="font-size:13px;color:var(--text3)">Nothing recorded yet - add a rating, note or quote from Edit.</p>':''}
+  `;
+
+  document.getElementById('bp-tags').innerHTML=`
+    ${(b.genre||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${(b.moodTags||[]).length?'10px':'0'}">${b.genre.map(g=>`<span class="badge b-genre">${esc(g)}</span>`).join('')}</div>`:''}
+    ${(b.moodTags||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap">${b.moodTags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+    ${!(b.genre||[]).length&&!(b.moodTags||[]).length?'<p style="font-size:13px;color:var(--text3)">No genres or mood tags yet.</p>':''}
   `;
 
   document.getElementById('bp-copies').innerHTML=`<div style="margin-bottom:8px">${formatIconRow(b)}</div>${b.lentTo?`<div style="font-size:12px;color:var(--borrowed)">${ICON.lend} Currently lent to ${esc(b.lentTo)}</div>`:''}`;
@@ -4731,23 +4726,20 @@ async function renderBookPage(b){
   }
 }
 
-// ═══════════ MODAL ═══════════
-function openModal(id){const b=books.find(x=>x.id===id);if(!b)return;currentId=id;document.getElementById('modal-h').textContent=b.title;document.getElementById('m-title').value=b.title;document.getElementById('m-author').value=b.author;document.getElementById('m-status').value=b.status;document.getElementById('m-series').value=b.series||'';document.getElementById('m-series-num').value=b.seriesNumber||'';document.getElementById('m-date-started').value=b.dateStarted||'';document.getElementById('m-date-read').value=b.dateRead||'';document.getElementById('m-published-date').value=b.publishedDate||'';renderReadRecordRows(true,b.readRecords||[]);document.getElementById('m-isbn').value=b.isbn||'';document.getElementById('m-cover').value=b.coverUrl||'';const mcp=document.getElementById('m-cover-preview');if(mcp){if(b.coverUrl){mcp.src=b.coverUrl;mcp.style.display='';}else mcp.style.display='none';}lockAutoFields('m',false);document.getElementById('m-pages').value=b.pages||'';document.getElementById('m-notes').value=b.notes||'';document.getElementById('m-favorite-quote').value=b.favoriteQuote||'';document.getElementById('m-mood-tags').value=(b.moodTags||[]).join(', ');document.getElementById('m-read-format').value=b.readFormat||'';document.getElementById('m-progress').value=b.progress||0;document.getElementById('m-progress-val').textContent=b.progress||0;document.getElementById('m-lent-to').value=b.lentTo||'';const mlCb=document.getElementById('m-lendable');mlCb.checked=!!b.lendable;mlCb.closest('.fmt-check').classList.toggle('checked',!!b.lendable);setRating(b.rating||0,true);setCheckedFormats('m-fmt-checks',b.formats||[]);setCheckedFormats('m-borrow-checks',b.borrowedFormats||[]);modalGenres=[...(b.genre||[])];renderModalTags();toggleReadFormat('m-read-fmt-row',b.status);toggleRowIf('m-progress-row',b.status==='reading');document.getElementById('modal').classList.add('open');}
-
-async function aiLookupSeriesInfo(){
-  const title=document.getElementById('m-title').value.trim();
-  const author=document.getElementById('m-author').value.trim();
+async function aiLookupSeriesInfo(prefix){
+  prefix=prefix||'f';
+  const title=document.getElementById(`${prefix}-title`).value.trim();
+  const author=document.getElementById(`${prefix}-author`).value.trim();
   if(!title||!author){alert('Save a title and author first.');return;}
   const btn=event.target.closest('button');const origHtml=btn.innerHTML;btn.innerHTML=ICON.clock;btn.disabled=true;
   try{
     const raw=await askClaude(`For the book "${title}" by ${author}: what series does it belong to and what number is it? Reply ONLY with JSON: {"series":"series name or null","num":"book number or null"}. If not part of a series reply {"series":null,"num":null}.`);
     const clean=aiStr(raw).replace(/\`\`\`(?:json)?\n?/g,'').replace(/\`\`\`/g,'');
     const m=clean.match(/\{[\s\S]*?\}/);
-    if(m){const d=JSON.parse(m[0]);if(d.series&&d.series!=='null'){document.getElementById('m-series').value=d.series;if(d.num&&d.num!=='null')document.getElementById('m-series-num').value=d.num;}}
+    if(m){const d=JSON.parse(m[0]);if(d.series&&d.series!=='null'){document.getElementById(`${prefix}-series`).value=d.series;if(d.num&&d.num!=='null')document.getElementById(`${prefix}-series-num`).value=d.num;}}
   }catch(e){alert('Could not look up: '+e.message);}
   btn.innerHTML=origHtml;btn.disabled=false;
 }
-function closeModal(){document.getElementById('modal').classList.remove('open');currentId=null;}
 function openFeedbackModal(){document.getElementById('feedback-text').value='';document.getElementById('feedback-status').textContent='';document.getElementById('feedback-modal').classList.add('open');}
 function closeFeedbackModal(){document.getElementById('feedback-modal').classList.remove('open');}
 async function submitFeedback(){
@@ -4761,14 +4753,12 @@ async function submitFeedback(){
   closeFeedbackModal();
   alert('Thanks - that\'s been sent!');
 }
-document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 document.getElementById('bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('bc-modal'))closeBCModal();});
 document.getElementById('up-modal').addEventListener('click',e=>{if(e.target===document.getElementById('up-modal'))closeUpModal();});
 document.getElementById('backlog-modal').addEventListener('click',e=>{if(e.target===document.getElementById('backlog-modal'))closeBacklogModal();});
 document.getElementById('shared-bc-modal').addEventListener('click',e=>{if(e.target===document.getElementById('shared-bc-modal'))closeSharedBCModal();});
 document.getElementById('feedback-modal').addEventListener('click',e=>{if(e.target===document.getElementById('feedback-modal'))closeFeedbackModal();});
-function saveModal(){const b=books.find(x=>x.id===currentId);if(!b)return;const minpGenre=document.getElementById('m-genre-inp').value.trim();if(minpGenre)addTag(minpGenre,true);b.title=document.getElementById('m-title').value.trim();b.author=normalizeAuthorName(document.getElementById('m-author').value.trim());b.status=document.getElementById('m-status').value;b.formats=getCheckedFormats('m-fmt-checks');b.borrowedFormats=getCheckedFormats('m-borrow-checks');b.series=document.getElementById('m-series').value.trim();b.seriesNumber=document.getElementById('m-series-num').value.trim();b.dateStarted=document.getElementById('m-date-started').value||'';b.readRecords=getReadRecordRows(true);b.dateRead=latestReadDate(b.readRecords,document.getElementById('m-date-read').value||'');b.publishedDate=document.getElementById('m-published-date').value.trim();b.isbn=document.getElementById('m-isbn').value.trim();const mCoverVal=document.getElementById('m-cover').value;if(mCoverVal)b.coverUrl=mCoverVal;const newPages=parseInt(document.getElementById('m-pages').value)||0;if(newPages!==b.pages){b.pages=newPages;b.pagesEstimated=false;}b.notes=document.getElementById('m-notes').value.trim();b.favoriteQuote=document.getElementById('m-favorite-quote').value.trim();b.moodTags=document.getElementById('m-mood-tags').value.split(',').map(s=>s.trim()).filter(Boolean);b.rating=parseFloat(document.getElementById('m-rating').value)||0;b.genre=[...modalGenres];b.readFormat=document.getElementById('m-read-format').value;b.progress=parseInt(document.getElementById('m-progress').value)||0;b.lendable=document.getElementById('m-lendable').checked;b.lentTo=document.getElementById('m-lent-to').value.trim();delete b.needsReview;save();closeModal();renderLib();}
-function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();closeModal();renderLib();}
+function deleteBook(id){if(!confirm('Delete this book?'))return;books=books.filter(b=>b.id!==id);save();clearForm();nav('library');}
 
 // ═══════════ IMPORTS ═══════════
 function dzo(e,id){e.preventDefault();document.getElementById(id).classList.add('dv');}
@@ -4876,9 +4866,7 @@ function seedBookClub(){
   updateGenreFilters();
   renderDashboard();
   toggleReadFormat('f-read-fmt-row','read');
-  toggleReadFormat('m-read-fmt-row','read');
   wireTitleTypeahead('f');
-  wireTitleTypeahead('m');
   wireSharedBCBookTypeahead();
   wireLocationTypeahead();
   subscribeRealtime();
