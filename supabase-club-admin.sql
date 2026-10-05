@@ -104,3 +104,68 @@ using (exists (
   and club_members.user_id = auth.uid()
   and club_members.role = 'owner'
 ));
+
+-- 7. New columns for the Manage Club page: join type (invite-only vs
+--    public, so the "Join" list only ever shows clubs an admin has
+--    explicitly opened up - every existing club defaults to invite-only,
+--    nothing becomes publicly joinable on its own) and genre tags.
+alter table book_clubs add column if not exists join_type text default 'invite';
+alter table book_clubs drop constraint if exists book_clubs_join_type_check;
+alter table book_clubs add constraint book_clubs_join_type_check check (join_type in ('invite','public'));
+alter table book_clubs add column if not exists genres text[] default '{}';
+
+-- 8. New join-timestamp column for club_members, used for the "Join
+--    date" column on the Manage Club page. Existing rows have no real
+--    historical join date to backfill, so they'll show today's date
+--    the first time this runs; new joins get a real timestamp from
+--    here on.
+alter table club_members add column if not exists joined_at timestamptz default now();
+
+-- 9. Let a club owner remove ANOTHER member from the club (distinct
+--    from the existing self-service "leave club" delete, which every
+--    member already has regardless of RLS). Needed for the Manage
+--    Club page's per-member remove button.
+drop policy if exists "club admins can remove members" on club_members;
+create policy "club admins can remove members"
+on club_members for delete
+to authenticated
+using (exists (
+  select 1 from club_members cm2
+  where cm2.club_id = club_members.club_id
+  and cm2.user_id = auth.uid()
+  and cm2.role = 'owner'
+));
+
+-- 10. Marketing preference columns for Settings → Preferences. All
+--     default false (opt-in, GDPR-style) - nothing sends emails yet,
+--     this just saves the preference for when that's built.
+alter table profiles add column if not exists marketing_product_updates boolean default false;
+alter table profiles add column if not exists marketing_content_alerts boolean default false;
+alter table profiles add column if not exists marketing_activity_reminders boolean default false;
+
+-- 11. One-off: a standalone test club so you can see the member (not
+--     admin) experience without touching your existing No Shelf
+--     Control admin membership. Safe to re-run - the WHERE NOT EXISTS
+--     guards skip it if it's already there.
+do $$
+declare
+  v_club_id uuid;
+  v_user_id uuid;
+begin
+  select id into v_user_id from auth.users where email = 'thelanhams2570@gmail.com';
+  if v_user_id is null then
+    raise notice 'No auth user found for that email - skipping test club setup.';
+    return;
+  end if;
+  select id into v_club_id from book_clubs where name = 'Test Club (Member)';
+  if v_club_id is null then
+    insert into book_clubs (name, invite_code, join_type)
+    values ('Test Club (Member)', substr(md5(random()::text), 1, 10), 'invite')
+    returning id into v_club_id;
+  end if;
+  if not exists (
+    select 1 from club_members where club_id = v_club_id and user_id = v_user_id
+  ) then
+    insert into club_members (club_id, user_id, role) values (v_club_id, v_user_id, 'member');
+  end if;
+end $$;

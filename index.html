@@ -759,14 +759,14 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     </div>
   </div>
 
-  <div id="shared-club-join-row" style="margin-bottom:12px"></div>
+  <div id="discover-clubs-section" style="margin-bottom:16px;display:none">
+    <h3 style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px">Discover public clubs</h3>
+    <div id="shared-club-join-row"></div>
+  </div>
   <div class="settings-card" id="club-header" style="margin-bottom:16px;display:none">
     <h2 id="club-header-name" style="margin-bottom:4px"></h2>
     <div style="font-size:12px;color:var(--text2);margin-bottom:10px" id="club-header-meta"></div>
-    <div class="fg" style="margin-bottom:0">
-      <label>About this club</label>
-      <textarea id="club-header-desc" rows="2" placeholder="What's this club about? Free to join, or invite only..." onchange="saveClubDescription()"></textarea>
-    </div>
+    <p id="club-header-desc" style="font-size:13px;color:var(--text2);line-height:1.5;margin:0"></p>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
     <select class="fsel" id="shared-club-sel" onchange="switchSharedClub(this.value);renderInviteLinkBtn()" style="min-width:160px"></select>
@@ -774,49 +774,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <button class="btn btn-primary btn-sm" id="add-shared-meeting-btn" style="margin-left:auto;display:none" onclick="openSharedBCForm()">+ Add Shared Meeting</button>
   </div>
   <div id="shared-club-roster" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
-  <div class="settings-card" id="club-admin-card" style="display:none;margin-bottom:16px">
-    <h2>Manage club</h2>
-    <div class="fg">
-      <label>Meeting cadence</label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
-        <span style="font-size:13px;color:var(--text2)">Repeat every</span>
-        <input type="number" class="fsel" id="cadence-interval" min="1" max="52" value="1" style="width:60px" onchange="saveCadence()">
-        <select class="fsel" id="cadence-freq" style="width:auto" onchange="updateCadenceUI();saveCadence()">
-          <option value="week">week(s)</option>
-          <option value="month">month(s)</option>
-        </select>
-      </div>
-      <div id="cadence-weekly-row" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:13px;color:var(--text2)">on</span>
-        <select class="fsel" id="cadence-weekly-weekday" style="width:auto" onchange="saveCadence()">
-          <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option>
-          <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
-        </select>
-      </div>
-      <div id="cadence-monthly-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <select class="fsel" id="cadence-monthly-type" style="width:auto" onchange="updateCadenceUI();saveCadence()">
-          <option value="weekday-occurrence">On the</option>
-          <option value="day-of-month">On day</option>
-        </select>
-        <span id="cadence-occurrence-group" style="display:flex;gap:6px;align-items:center">
-          <select class="fsel" id="cadence-occurrence" style="width:auto" onchange="saveCadence()">
-            <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option><option value="-1">Last</option>
-          </select>
-          <select class="fsel" id="cadence-monthly-weekday" style="width:auto" onchange="saveCadence()">
-            <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option>
-            <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
-          </select>
-        </span>
-        <span id="cadence-dayofmonth-group" style="display:none;align-items:center;gap:6px">
-          <input type="number" class="fsel" id="cadence-dayofmonth" min="1" max="31" value="1" style="width:60px" onchange="saveCadence()">
-          <span style="font-size:13px;color:var(--text2)">of the month</span>
-        </span>
-      </div>
-    </div>
-    <div id="cadence-next-dates" style="font-size:12px;color:var(--text2);margin-bottom:14px"></div>
-    <label style="font-size:13px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px">Members</label>
-    <div id="club-admin-members"></div>
-  </div>
   <div id="shared-bc-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
   <div class="bc-grid" id="shared-bc-next" style="margin-bottom:18px"></div>
   <div id="shared-bc-upcoming-h" style="font-size:13px;font-weight:600;color:var(--text2);margin:0 0 8px">Upcoming</div>
@@ -1117,8 +1074,8 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div style="grid-column:1/-1">
     <div class="report-tabs" id="settings-tabs">
       <button class="rtab active" onclick="setSettingsTab('account',this)">Account</button>
-      <button class="rtab" onclick="setSettingsTab('clubs',this)">Book Clubs</button>
-      <button class="rtab" onclick="setSettingsTab('data',this)">Data tools</button>
+      <button class="rtab" onclick="setSettingsTab('clubs',this)">Clubs</button>
+      <button class="rtab" onclick="setSettingsTab('data',this)">Data</button>
       <button class="rtab" onclick="setSettingsTab('prefs',this)">Preferences</button>
     </div>
   </div>
@@ -1221,6 +1178,22 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
       </div>
       <div id="goal-progress-detail" style="font-size:13px;color:var(--text2);margin-top:8px"></div>
       <div id="goal-history" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
+    </div>
+    <div class="settings-card" style="max-width:640px;margin-top:16px">
+      <h2>Communication preferences</h2>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:14px">These are all opt-in and off by default. Essentials like club invites and event changes aren't listed here because they're part of how the product works, not marketing. Note: nothing sends emails yet - these preferences are saved now, ready for when that's built.</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--rule)">
+        <div><div style="font-size:13px">Product updates</div><div style="font-size:11px;color:var(--text3)">Let me know when new features are available</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="pref-product-updates" onchange="saveMarketingPref('marketing_product_updates',this.checked)"><span class="slider"></span></label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--rule)">
+        <div><div style="font-size:13px">Content alerts</div><div style="font-size:11px;color:var(--text3)">New releases or series updates matched to books you already track</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="pref-content-alerts" onchange="saveMarketingPref('marketing_content_alerts',this.checked)"><span class="slider"></span></label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--rule)">
+        <div><div style="font-size:13px">Activity reminders</div><div style="font-size:11px;color:var(--text3)">Nudges like "it's been a month since your last book"</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="pref-activity-reminders" onchange="saveMarketingPref('marketing_activity_reminders',this.checked)"><span class="slider"></span></label>
+      </div>
     </div>
   </div>
 </div>
@@ -1589,13 +1562,23 @@ function renderAvatarHTML(first,last,size=32){
   return`<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size*0.4)}px;background:${avatarColor(name)}">${esc(initials(first,last))}</div>`;
 }
 async function loadProfile(session){
-  const{data}=await sb.from('profiles').select('first_name,last_name,avatar_url').eq('id',session.user.id).single();
+  const{data}=await sb.from('profiles').select('first_name,last_name,avatar_url,marketing_product_updates,marketing_content_alerts,marketing_activity_reminders').eq('id',session.user.id).single();
   myProfile=data||{};
   const fEl=document.getElementById('acc-first-name'),lEl=document.getElementById('acc-last-name'),pEl=document.getElementById('acc-avatar-preview');
   if(fEl)fEl.value=myProfile.first_name||'';
   if(lEl)lEl.value=myProfile.last_name||'';
   if(pEl)pEl.innerHTML=renderAvatarHTML(myProfile.first_name,myProfile.last_name);
+  const puEl=document.getElementById('pref-product-updates'),caEl=document.getElementById('pref-content-alerts'),arEl=document.getElementById('pref-activity-reminders');
+  if(puEl)puEl.checked=!!myProfile.marketing_product_updates;
+  if(caEl)caEl.checked=!!myProfile.marketing_content_alerts;
+  if(arEl)arEl.checked=!!myProfile.marketing_activity_reminders;
   renderDashWelcome();
+}
+async function saveMarketingPref(key,val){
+  const{data:{session}}=await sb.auth.getSession();
+  const{error}=await sb.from('profiles').update({[key]:val}).eq('id',session.user.id);
+  if(error){alert('Failed to save preference: '+error.message);return;}
+  myProfile={...myProfile,[key]:val};
 }
 async function updateProfileName(){
   const first=document.getElementById('acc-first-name').value.trim();
@@ -3391,12 +3374,14 @@ async function loadSharedClubs(){
   const{data:{session}}=await sb.auth.getSession();
   const[{data:myMemberships},{data:allClubs}]=await Promise.all([
     sb.from('club_members').select('club_id,book_clubs(id,name)').eq('user_id',session.user.id),
-    sb.from('book_clubs').select('id,name').order('name')
+    sb.from('book_clubs').select('id,name').eq('join_type','public').order('name')
   ]);
   const joinedIds=new Set((myMemberships||[]).map(m=>m.club_id));
   const joined=(myMemberships||[]).map(m=>m.book_clubs).filter(Boolean);
   const unjoined=(allClubs||[]).filter(c=>!joinedIds.has(c.id));
 
+  const discoverSection=document.getElementById('discover-clubs-section');
+  if(discoverSection)discoverSection.style.display=unjoined.length?'':'none';
   const joinRow=document.getElementById('shared-club-join-row');
   joinRow.innerHTML=unjoined.map(c=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-radius:var(--r);margin-bottom:6px"><span style="flex:1;font-size:13px">${esc(c.name)}</span><button class="btn btn-series btn-sm" onclick="joinSharedClub('${c.id}')">Join</button></div>`).join('');
 
@@ -3442,6 +3427,7 @@ async function renderClubMemberships(){
       <span style="flex:1;font-size:13px">${esc(clubName)}</span>
       <span class="badge ${m.role==='owner'?'b-owned':'b-want'}" style="font-size:10px">${m.role==='owner'?'Admin':'Member'}</span>
       <button class="btn btn-outline btn-sm" onclick="leaveSharedClub('${m.club_id}','${esc(clubName).replace(/'/g,"\\'")}')">Leave club</button>
+      ${m.role==='owner'?`<button class="btn btn-outline btn-sm" onclick="openManageClub('${m.club_id}')">Manage</button>`:''}
     </div>`;
   }).join('');
 }
@@ -3534,7 +3520,7 @@ async function renderSharedClub(){
   const[{data:members,error:mErr},{data:clubBooks,error:bErr},{data:clubRow}]=await Promise.all([
     sb.from('club_members').select('user_id,role,profiles(first_name,last_name)').eq('club_id',sharedClubId),
     sb.from('club_books').select('id,meeting_name,meeting_date,start_time,location,book_title,book_author,series,series_number,discussion_notes,club_book_engagement(user_id,status,rating,notes,date_read,profiles(first_name,last_name)),club_meeting_rsvp(user_id,status,profiles(first_name,last_name)),book_clubs(name)').eq('club_id',sharedClubId).order('meeting_date',{ascending:false}),
-    sb.from('book_clubs').select('name,description,meeting_cadence').eq('id',sharedClubId).single()
+    sb.from('book_clubs').select('name,description,meeting_cadence,join_type').eq('id',sharedClubId).single()
   ]);
   if(mErr||bErr){status.textContent='Failed to load: '+((mErr||bErr).message);return;}
   status.textContent='';
@@ -3546,10 +3532,7 @@ async function renderSharedClub(){
   isClubAdmin=(members||[]).some(m=>m.user_id===myId&&m.role==='owner');
   const addBtn=document.getElementById('add-shared-meeting-btn');
   if(addBtn)addBtn.style.display=isClubAdmin?'':'none';
-  const adminCard=document.getElementById('club-admin-card');
-  if(adminCard)adminCard.style.display=isClubAdmin?'':'none';
   renderInviteLinkBtn();
-  if(isClubAdmin)renderClubAdminCard(members,clubBooks);
 
   const club=clubRow||{};
   const header=document.getElementById('club-header');
@@ -3558,11 +3541,9 @@ async function renderSharedClub(){
     document.getElementById('club-header-name').textContent=club.name||'';
     const memberCount=(members||[]).length;
     const cadenceText=cadenceSummary(club.meeting_cadence)||'No regular schedule set yet';
-    document.getElementById('club-header-meta').textContent=`${memberCount} member${memberCount===1?'':'s'} · ${cadenceText} · Invite-only - admins can share an invite link above`;
-    const descEl=document.getElementById('club-header-desc');
-    descEl.value=club.description||'';
-    descEl.disabled=!isClubAdmin;
-    descEl.placeholder=isClubAdmin?"What's this club about? Free to join, or invite only…":'No description set yet.';
+    const joinText=club.join_type==='public'?'Public - anyone can join':'Invite-only - admins can share an invite link above';
+    document.getElementById('club-header-meta').textContent=`${memberCount} member${memberCount===1?'':'s'} · ${cadenceText} · ${joinText}`;
+    document.getElementById('club-header-desc').textContent=club.description||(isClubAdmin?'No description set yet - add one from Settings → Clubs → Manage.':'');
   }
 
   document.getElementById('shared-club-roster').innerHTML=(members||[]).map(m=>{
