@@ -3580,6 +3580,7 @@ async function openManageClub(clubId){
   document.getElementById('panel-manage-club').classList.add('active');
   closeMobileMenu();
   await renderManageClub(clubId);
+  if(currentPanel()!=='manage-club')return;
   if(!suppressHashUpdate&&location.hash.slice(1)!=='manage-club/'+clubId)location.hash='manage-club/'+clubId;
 }
 function closeManageClub(){nav('settings');}
