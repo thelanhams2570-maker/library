@@ -831,6 +831,93 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div id="series-read-grid" class="bc-grid"></div>
 </div>
 
+<!-- MANAGE CLUB -->
+<div id="panel-manage-club" class="panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-outline btn-sm" onclick="closeManageClub()">← Back</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="openSharedBCForm()">+ Add Shared Meeting</button>
+      <button class="btn btn-primary btn-sm" onclick="saveClubSettings()">Save</button>
+    </div>
+  </div>
+  <h1 style="font-family:var(--font-serif);font-size:24px;font-weight:600;margin:16px 0 14px">Manage Book Club</h1>
+
+  <div class="settings-card" style="max-width:680px;margin-bottom:16px">
+    <div class="fg"><label>Club name</label><input type="text" id="mc-name"></div>
+    <div class="fg"><label>Description</label><textarea id="mc-description" rows="3" placeholder="What's this club about? How often you meet, is it open to join or invite only…"></textarea></div>
+    <div class="frow">
+      <div class="fg">
+        <label>Join type</label>
+        <select class="fsel" id="mc-join-type">
+          <option value="invite">Invite-only (private)</option>
+          <option value="public">Public</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Book genre</label>
+        <div class="tag-input-wrap" id="mc-genre-wrap" onclick="document.getElementById('mc-genre-inp').focus()">
+          <span id="mc-genre-tags"></span>
+          <input class="tag-inp" id="mc-genre-inp" placeholder="Add genre…" onkeydown="mcTagKeydown(event)" oninput="mcTagInput(event)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-card" style="max-width:680px;margin-bottom:16px">
+    <h2>Meeting frequency</h2>
+    <div class="fg">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+        <span style="font-size:13px;color:var(--text2)">Repeat every</span>
+        <input type="number" class="fsel" id="cadence-interval" min="1" max="52" value="1" style="width:60px" onchange="saveCadence()">
+        <select class="fsel" id="cadence-freq" style="width:auto" onchange="updateCadenceUI();saveCadence()">
+          <option value="week">week(s)</option>
+          <option value="month">month(s)</option>
+        </select>
+      </div>
+      <div id="cadence-weekly-row" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:13px;color:var(--text2)">on</span>
+        <select class="fsel" id="cadence-weekly-weekday" style="width:auto" onchange="saveCadence()">
+          <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option>
+          <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+        </select>
+      </div>
+      <div id="cadence-monthly-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <select class="fsel" id="cadence-monthly-type" style="width:auto" onchange="updateCadenceUI();saveCadence()">
+          <option value="weekday-occurrence">On the</option>
+          <option value="day-of-month">On day</option>
+        </select>
+        <span id="cadence-occurrence-group" style="display:flex;gap:6px;align-items:center">
+          <select class="fsel" id="cadence-occurrence" style="width:auto" onchange="saveCadence()">
+            <option value="1">1st</option><option value="2">2nd</option><option value="3">3rd</option><option value="4">4th</option><option value="-1">Last</option>
+          </select>
+          <select class="fsel" id="cadence-monthly-weekday" style="width:auto" onchange="saveCadence()">
+            <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option>
+            <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+          </select>
+        </span>
+        <span id="cadence-dayofmonth-group" style="display:none;align-items:center;gap:6px">
+          <input type="number" class="fsel" id="cadence-dayofmonth" min="1" max="31" value="1" style="width:60px" onchange="saveCadence()">
+          <span style="font-size:13px;color:var(--text2)">of the month</span>
+        </span>
+      </div>
+    </div>
+    <div id="cadence-next-dates" style="font-size:12px;color:var(--text2)"></div>
+  </div>
+
+  <div class="settings-card" style="max-width:680px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+      <h2 style="margin-bottom:0">Manage users</h2>
+      <button class="btn btn-outline btn-sm" id="mc-invite-btn" onclick="mcInviteUsers()">Invite users</button>
+    </div>
+    <div class="table-wrap">
+      <table class="rtable">
+        <thead><tr><th>Name</th><th>Join date</th><th>Role</th><th>Remove user from club</th></tr></thead>
+        <tbody id="mc-members-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- Upcoming Release Form Modal -->
 <div class="modal-ov" id="up-modal">
   <div class="modal">
@@ -1890,6 +1977,7 @@ window.addEventListener('hashchange',()=>{
   const raw=location.hash.slice(1);
   suppressHashUpdate=true;
   if(raw.startsWith('book/'))openBookPage(raw.slice(5));
+  else if(raw.startsWith('manage-club/'))openManageClub(raw.slice(12));
   else if(VALID_PANELS.includes(raw))nav(raw);
   suppressHashUpdate=false;
 });
@@ -3469,11 +3557,82 @@ async function joinSharedClub(clubId){
 }
 
 function switchSharedClub(clubId){sharedClubId=clubId;renderSharedClub();}
-async function saveClubDescription(){
+
+// ═══════════ MANAGE CLUB ═══════════
+let mcGenres=[];
+function renderMcGenreTags(){document.getElementById('mc-genre-tags').innerHTML=mcGenres.map((g,i)=>`<span class="tag">${esc(g)}<button class="tag-rm" onclick="removeMcGenre(${i})">×</button></span>`).join('');}
+function removeMcGenre(i){mcGenres.splice(i,1);renderMcGenreTags();}
+function addMcGenre(val){const tags=val.split(',').map(s=>s.trim()).filter(s=>s.length>0&&s.length<40);tags.forEach(t=>{if(!mcGenres.includes(t))mcGenres.push(t)});renderMcGenreTags();}
+function mcTagKeydown(e){if(e.key==='Enter'||e.key===','||e.key==='Tab'){e.preventDefault();const v=e.target.value.trim();if(v)addMcGenre(v);e.target.value='';}}
+function mcTagInput(e){if(e.data===','){const v=e.target.value.replace(',','').trim();if(v)addMcGenre(v);e.target.value='';}}
+
+async function openManageClub(clubId){
+  closeBCModal();closeUpModal();closeBacklogModal();closeSharedBCModal();closeFeedbackModal();
+  sharedClubId=clubId;
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('panel-manage-club').classList.add('active');
+  closeMobileMenu();
+  await renderManageClub(clubId);
+  if(!suppressHashUpdate&&location.hash.slice(1)!=='manage-club/'+clubId)location.hash='manage-club/'+clubId;
+}
+function closeManageClub(){nav('settings');}
+async function renderManageClub(clubId){
+  const{data:{session}}=await sb.auth.getSession();
+  const myId=session.user.id;
+  const[{data:club,error:cErr},{data:members,error:mErr},{data:clubBooks}]=await Promise.all([
+    sb.from('book_clubs').select('name,description,join_type,genres,meeting_cadence').eq('id',clubId).single(),
+    sb.from('club_members').select('user_id,role,joined_at,profiles(first_name,last_name)').eq('club_id',clubId).order('joined_at',{ascending:true}),
+    sb.from('club_books').select('meeting_date').eq('club_id',clubId)
+  ]);
+  if(cErr||mErr){alert('Failed to load club: '+((cErr||mErr).message));closeManageClub();return;}
+  isClubAdmin=(members||[]).some(m=>m.user_id===myId&&m.role==='owner');
+  if(!isClubAdmin){alert('Only a club admin can manage this club.');closeManageClub();return;}
+
+  document.getElementById('mc-name').value=club.name||'';
+  document.getElementById('mc-description').value=club.description||'';
+  document.getElementById('mc-join-type').value=club.join_type||'invite';
+  mcGenres=[...(club.genres||[])];
+  renderMcGenreTags();
+
+  document.getElementById('mc-members-tbody').innerHTML=(members||[]).map(m=>{
+    const p=m.profiles||{};
+    const name=(p.first_name||p.last_name)?`${p.first_name||''} ${p.last_name||''}`.trim():'(no name set)';
+    const joinDate=m.joined_at?fmtDateDMY(String(m.joined_at).slice(0,10)):'-';
+    const removeBtn=m.role!=='owner'?`<button class="btn btn-danger btn-sm" onclick="removeClubMember('${clubId}','${m.user_id}','${esc(name).replace(/'/g,"\\'")}')">×</button>`:'';
+    return`<tr><td>${esc(name)}${m.user_id===myId?' (you)':''}</td><td>${joinDate}</td><td>${m.role==='owner'?'Admin':'User'}</td><td>${removeBtn}</td></tr>`;
+  }).join('');
+
+  renderClubAdminCard(members,clubBooks);
+}
+async function removeClubMember(clubId,userId,name){
+  if(!confirm(`Remove ${name} from this club?`))return;
+  const{error}=await sb.from('club_members').delete().eq('club_id',clubId).eq('user_id',userId);
+  if(error){alert('Failed to remove: '+error.message);return;}
+  renderManageClub(clubId);
+}
+async function saveClubSettings(){
   if(!sharedClubId||!isClubAdmin)return;
-  const val=document.getElementById('club-header-desc').value.trim();
-  const{error}=await sb.from('book_clubs').update({description:val}).eq('id',sharedClubId);
-  if(error)alert('Failed to save description: '+error.message);
+  const name=document.getElementById('mc-name').value.trim();
+  if(!name){alert('Club name is required.');return;}
+  const description=document.getElementById('mc-description').value.trim();
+  const joinType=document.getElementById('mc-join-type').value;
+  const{error}=await sb.from('book_clubs').update({name,description,join_type:joinType,genres:mcGenres}).eq('id',sharedClubId);
+  if(error){alert('Failed to save: '+error.message);return;}
+  const btn=event&&event.target;
+  if(btn){const orig=btn.textContent;btn.textContent='Saved!';setTimeout(()=>{btn.textContent=orig;},1500);}
+  renderClubMemberships();
+}
+async function mcInviteUsers(){
+  if(!sharedClubId)return;
+  const{data}=await sb.from('book_clubs').select('invite_code').eq('id',sharedClubId).single();
+  const code=data&&data.invite_code;
+  if(!code){alert('No invite code found for this club yet.');return;}
+  const url=`${location.origin}${location.pathname}?join=${code}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=document.getElementById('mc-invite-btn');
+    const orig=btn.textContent;btn.textContent='Copied!';
+    setTimeout(()=>{btn.textContent=orig;},1500);
+  }).catch(()=>alert('Could not copy - here is the link:\n'+url));
 }
 
 async function renderInviteLinkBtn(){
