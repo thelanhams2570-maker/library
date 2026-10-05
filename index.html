@@ -921,7 +921,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- Upcoming Release Form Modal -->
 <div class="modal-ov" id="up-modal">
   <div class="modal">
-    <h2>Add Upcoming Release</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <h2 style="margin-bottom:0">Add Upcoming Release</h2>
+      <button class="btn btn-primary btn-sm" onclick="saveUpcomingEntry()">Save</button>
+    </div>
     <div class="fg"><label>Series</label><input type="text" id="up-series" placeholder="e.g. Crowns of Nyaxia"></div>
     <div class="fg"><label>Book Title</label><input type="text" id="up-book" placeholder="Upcoming book title"></div>
     <div class="fg"><label>Author</label><input type="text" id="up-author" placeholder="Author"></div>
@@ -929,7 +932,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="fg"><label>Note</label><textarea id="up-note" rows="2" placeholder="e.g. Final book in the trilogy"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeUpModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveUpcomingEntry()">Save</button>
     </div>
   </div>
 </div>
@@ -937,7 +939,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- Suggestion Backlog Form Modal -->
 <div class="modal-ov" id="backlog-modal">
   <div class="modal">
-    <h2>Add Suggestion</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <h2 style="margin-bottom:0">Add Suggestion</h2>
+      <button class="btn btn-primary btn-sm" onclick="saveBacklogEntry()">Save</button>
+    </div>
     <div class="fg"><label>Book Title</label><input type="text" id="backlog-title" placeholder="Book title"></div>
     <div class="fg"><label>Author</label><input type="text" id="backlog-author" placeholder="Author"></div>
     <button type="button" class="btn btn-outline btn-sm" onclick="searchOLForSuggestion()">Search Open Library to auto-fill</button>
@@ -947,7 +952,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div id="backlog-modal-error" style="color:var(--danger);font-size:12px;margin-bottom:8px"></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeBacklogModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveBacklogEntry()">Save</button>
     </div>
   </div>
 </div>
@@ -963,9 +967,12 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div id="add-tab-manual-panel">
   <div class="form-wrap">
     <div class="form-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap">
         <h2 id="form-h" style="margin-bottom:0">Add a Book</h2>
-        <button type="button" class="btn btn-series" onclick="openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan barcode</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn btn-series" onclick="openScanner()"><svg class="ico" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></svg> Scan barcode</button>
+          <button class="btn btn-primary" onclick="saveBook()">Save</button>
+        </div>
       </div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Type a title to search Open Library and pick the right edition - matched fields lock automatically. Can't find it? Just keep typing and fill everything in by hand.</p>
       <input type="hidden" id="f-id">
@@ -1002,26 +1009,15 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <div class="fg"><label>Published</label><input type="text" id="f-published-date" placeholder="e.g. 2023"></div>
       </div>
       <div id="scan-fill-status" style="font-size:12px;color:var(--text2);margin:-6px 0 10px"></div>
-      <div class="frow">
-        <div class="fg">
-          <label>Status</label>
-          <select id="f-status" onchange="toggleReadFormat('f-read-fmt-row',this.value);toggleRowIf('f-progress-row',this.value==='reading')">
-            <option value="read">Read</option>
-            <option value="reading">Currently Reading</option>
-            <option value="tbr">TBR (To Be Read)</option>
-            <option value="wishlist">Wishlist (don't own yet)</option>
-            <option value="dnf">DNF (Did Not Finish)</option>
-          </select>
-        </div>
-        <div class="fg" id="f-read-fmt-row">
-          <label>Read in format</label>
-          <select id="f-read-format">
-            <option value="">Unknown</option>
-            <option value="Ebook">Ebook</option>
-            <option value="Audiobook">Audiobook</option>
-            <option value="Hardcopy">Hardcopy</option>
-          </select>
-        </div>
+      <div class="fg">
+        <label>Status</label>
+        <select id="f-status" onchange="toggleReadFormat('f-read-fmt-row',this.value);toggleRowIf('f-progress-row',this.value==='reading')">
+          <option value="read">Read</option>
+          <option value="reading">Currently Reading</option>
+          <option value="tbr">TBR (To Be Read)</option>
+          <option value="wishlist">Wishlist (don't own yet)</option>
+          <option value="dnf">DNF (Did Not Finish)</option>
+        </select>
       </div>
       <div class="fg" id="f-progress-row" style="display:none">
         <label>Progress: <span id="f-progress-val">0</span>%</label>
@@ -1051,6 +1047,15 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
         <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;margin-bottom:12px">Reading history</h3>
+        <div class="fg" id="f-read-fmt-row">
+          <label>Read in format</label>
+          <select id="f-read-format">
+            <option value="">Unknown</option>
+            <option value="Ebook">Ebook</option>
+            <option value="Audiobook">Audiobook</option>
+            <option value="Hardcopy">Hardcopy</option>
+          </select>
+        </div>
         <div class="frow">
           <div class="fg"><label>Date Started</label><input type="month" id="f-date-started"></div>
           <div class="fg"><label>Date Finished</label><input type="month" id="f-date-read"></div>
@@ -1094,10 +1099,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
           <span class="ai-suggest" onclick="suggestGenre()"><svg class="ico" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Suggest genre from AI</span>
         </div>
         <div class="fg"><label>Mood / vibe tags <span style="font-weight:400;color:var(--text3);font-size:11px">- comma separated</span></label><input type="text" id="f-mood-tags" placeholder="e.g. cozy, slow-burn, found-family"></div>
-      </div>
-
-      <div class="form-actions" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
-        <button class="btn btn-primary" onclick="saveBook()">Save</button>
       </div>
 
       <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--danger)">
@@ -1294,13 +1295,15 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- Feedback Modal -->
 <div class="modal-ov" id="feedback-modal">
   <div class="modal">
-    <h2>Send feedback</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <h2 style="margin-bottom:0">Send feedback</h2>
+      <button class="btn btn-primary btn-sm" onclick="submitFeedback()">Send</button>
+    </div>
     <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Found a bug, or something that'd make this better? Goes straight to Taria.</p>
     <div class="fg"><textarea id="feedback-text" rows="4" placeholder="What's on your mind…"></textarea></div>
     <div id="feedback-status" style="font-size:12px;color:var(--text2);margin-bottom:8px"></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeFeedbackModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="submitFeedback()">Send</button>
     </div>
   </div>
 </div>
@@ -1309,7 +1312,10 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 <!-- Book Club Form Modal -->
 <div class="modal-ov" id="bc-modal">
   <div class="modal">
-    <h2 id="bc-modal-h">Add Book Club Meeting</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <h2 id="bc-modal-h" style="margin-bottom:0">Add Book Club Meeting</h2>
+      <button class="btn btn-primary btn-sm" onclick="saveBCMeeting()">Save</button>
+    </div>
     <div class="fg"><label>Meeting Name / Month</label><input type="text" id="bc-name" placeholder="e.g. June 2026"></div>
     <div class="fg"><label>Date</label><input type="date" id="bc-date"></div>
     <div class="fg"><label>Book Title</label><input type="text" id="bc-book-title" placeholder="Book discussed"></div>
@@ -1321,14 +1327,16 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div class="fg"><label>Notes</label><textarea id="bc-notes" rows="2" placeholder="Discussion notes…"></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeBCModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveBCMeeting()">Save</button>
     </div>
   </div>
 </div>
 
 <div class="modal-ov" id="shared-bc-modal">
   <div class="modal">
-    <h2 id="shared-bc-modal-title">Add Shared Club Meeting</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <h2 id="shared-bc-modal-title" style="margin-bottom:0">Add Shared Club Meeting</h2>
+      <button class="btn btn-primary btn-sm" onclick="saveSharedBCMeeting()">Save</button>
+    </div>
     <input type="hidden" id="shared-bc-edit-id">
     <div class="fg"><label>Meeting Name / Month</label><input type="text" id="shared-bc-name" placeholder="e.g. June 2026"></div>
     <div class="frow">
@@ -1356,7 +1364,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     <div id="shared-bc-modal-error" style="color:var(--danger);font-size:12px;margin-bottom:8px"></div>
     <div class="modal-actions">
       <button class="btn btn-outline btn-sm" onclick="closeSharedBCModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveSharedBCMeeting()">Save</button>
     </div>
   </div>
 </div>
