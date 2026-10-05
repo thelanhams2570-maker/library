@@ -266,7 +266,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .proposed-meta{font-size:11px;color:var(--text2)}
 /* Form */
 .form-wrap{max-width:680px;margin:0 auto}
-.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow)}
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:26px;box-shadow:var(--shadow)}
 .form-card h2{font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:14px}
 .fg{margin-bottom:12px}
 .fg label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:4px}
@@ -315,7 +315,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 .dedup-card p{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:10px}
 #panel-settings{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:start}
 #panel-settings.active{display:grid}
-.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-5);box-shadow:var(--shadow)}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:26px;box-shadow:var(--shadow)}
 .toggle-switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
 .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
 .toggle-switch .slider{position:absolute;inset:0;background:var(--border);border-radius:var(--r-full);transition:background .15s;cursor:pointer}
@@ -440,16 +440,16 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 
   <!-- 2. Welcome sentence -->
-  <div id="dash-welcome" style="font-family:var(--font-serif);font-size:17px;line-height:1.55;margin-bottom:var(--sp-5)"></div>
+  <div id="dash-welcome" style="font-family:var(--font-serif);font-size:17px;line-height:1.55;margin-bottom:26px"></div>
 
   <!-- 3. Book club hero -->
-  <div id="dash-bc-section" style="margin-bottom:var(--sp-5)">
+  <div id="dash-bc-section" style="margin-bottom:26px">
     <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Book Club</div>
     <div id="dash-bc-grid" class="bc-grid"></div>
   </div>
 
   <!-- 4. Continue reading -->
-  <div style="margin-bottom:var(--sp-5)">
+  <div style="margin-bottom:26px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
       <div style="font-family:var(--font-serif);font-size:19px;font-weight:600">Continue reading</div>
       <a href="#" id="dash-reading-nudge" style="display:none;margin-left:auto;font-size:12px;color:var(--accent)" onclick="event.preventDefault();nav('library');document.getElementById('lib-search').focus();"></a>
@@ -458,13 +458,13 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 
   <!-- 5. Up next -->
-  <div style="margin-bottom:var(--sp-5)">
+  <div style="margin-bottom:26px">
     <div style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Up next</div>
     <div id="dash-upnext-grid" class="bc-grid"></div>
   </div>
 
   <!-- 6. Find your next read -->
-  <div style="margin-bottom:var(--sp-5)">
+  <div style="margin-bottom:26px">
     <div style="display:flex;align-items:center;gap:6px;font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:3px"><svg class="ico" style="color:var(--reading-color)" viewBox="0 0 24 24"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Find your next read <span class="badge b-tbr" style="font-size:10px;font-weight:500">AI-powered</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
       <button class="btn btn-outline btn-sm" onclick="dashRecsChip('continuation')">Next in a series I've started</button>
@@ -684,22 +684,22 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
     </div>
   </div>
 
-  <div style="margin-top:30px">
+  <div style="margin-top:20px">
     <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">My copies</h2>
     <div id="bp-copies" class="settings-card"></div>
   </div>
 
-  <div style="margin-top:30px">
+  <div style="margin-top:20px">
     <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Reading history</h2>
     <div id="bp-timeline"></div>
   </div>
 
-  <div id="bp-club-section" style="margin-top:30px;display:none">
+  <div id="bp-club-section" style="margin-top:20px;display:none">
     <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Book Club</h2>
     <div id="bp-club" class="settings-card"></div>
   </div>
 
-  <div style="margin-top:30px">
+  <div style="margin-top:20px">
     <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">My thoughts</h2>
     <div id="bp-your-take" class="settings-card"></div>
   </div>
@@ -1024,7 +1024,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <input type="range" id="f-progress" min="0" max="100" value="0" style="width:100%" oninput="document.getElementById('f-progress-val').textContent=this.value">
       </div>
 
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)">
         <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;margin-bottom:12px">My copies</h3>
         <div class="fg">
           <label>Owned formats</label>
@@ -1045,7 +1045,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         </div>
       </div>
 
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)">
         <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;margin-bottom:12px">Reading history</h3>
         <div class="fg" id="f-read-fmt-row">
           <label>Read in format</label>
@@ -1067,7 +1067,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         </div>
       </div>
 
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)">
         <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;margin-bottom:12px">My thoughts</h3>
         <div class="frow">
           <div class="fg">
@@ -1088,7 +1088,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <div class="fg"><label>Favorite quote</label><textarea id="f-favorite-quote" rows="2" placeholder="A line that stuck with you"></textarea></div>
       </div>
 
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--rule)">
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)">
         <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;margin-bottom:12px">Tags</h3>
         <div class="fg">
           <label>Genre / Tags</label>
@@ -1101,7 +1101,7 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
         <div class="fg"><label>Mood / vibe tags <span style="font-weight:400;color:var(--text3);font-size:11px">- comma separated</span></label><input type="text" id="f-mood-tags" placeholder="e.g. cozy, slow-burn, found-family"></div>
       </div>
 
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--danger)">
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--danger)">
         <h3 style="font-family:var(--font-serif);font-size:17px;font-weight:600;margin-bottom:8px;color:var(--danger)">Danger zone</h3>
         <p style="font-size:12px;color:var(--text2);margin-bottom:10px" id="f-danger-desc">Discard everything entered on this form.</p>
         <button class="btn btn-danger" id="f-danger-clear-btn" onclick="clearForm()">Clear form</button>
