@@ -759,6 +759,14 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 
   <div id="shared-club-join-row" style="margin-bottom:12px"></div>
+  <div class="settings-card" id="club-header" style="margin-bottom:16px;display:none">
+    <h2 id="club-header-name" style="margin-bottom:4px"></h2>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px" id="club-header-meta"></div>
+    <div class="fg" style="margin-bottom:0">
+      <label>About this club</label>
+      <textarea id="club-header-desc" rows="2" placeholder="What's this club about? Free to join, or invite only..." onchange="saveClubDescription()"></textarea>
+    </div>
+  </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
     <select class="fsel" id="shared-club-sel" onchange="switchSharedClub(this.value);renderInviteLinkBtn()" style="min-width:160px"></select>
     <button class="btn btn-outline btn-sm" id="copy-invite-btn" onclick="copyInviteLink()">Copy invite link</button>
@@ -1420,6 +1428,7 @@ function load(){
       b.readRecords=b.dateRead?[{format:b.readFormat||(b.formats&&b.formats[0])||'Unknown',date:b.dateRead}]:[];
     }
     if(!Array.isArray(b.moodTags)) b.moodTags=[];
+    if(!Array.isArray(b.clubPicks)) b.clubPicks=[];
     if(b.favoriteQuote===undefined) b.favoriteQuote='';
     if(b.status==='dnf'&&!b.dnfDate) b.dnfDate='';
     // Parse series from old notes
@@ -1875,6 +1884,7 @@ function renderPanel(p){
   if(p==='bookclub'){renderBCClubSwitcher();renderBCMeetings();renderUpcoming();renderSeriesRead();renderProposedCalendar();loadSharedClubs();}
   if(p==='settings')renderSettings();
   if(p==='add')checkDuplicates();
+  if(p==='dashboard'||p==='bookclub')syncClubPicksToLibrary();
 }
 function currentPanel(){const el=document.querySelector('.panel.active');return el?el.id.replace('panel-',''):'dashboard';}
 const VALID_PANELS=['dashboard','library','series','authors','bookclub','discover','reports','add','settings'];
@@ -1992,7 +2002,43 @@ async function autoFillFromLookup(){
   const dupMsg=st&&st.innerHTML.includes('Already in your library');
   if(st&&!dupMsg)st.textContent=foundAny?'Auto-filled what we could find - double-check before saving.':'';
 }
-function bookInBookClub(b){return getAllBCMeetings().some(m=>m.bookId===b.id||(m.bookTitle&&titlesMatch(m.bookTitle,b.title)&&(m.bookAuthor||'').trim().toLowerCase()===(b.author||'').trim().toLowerCase()));}
+function bookInBookClub(b){return (b.clubPicks||[]).length>0;}
+let clubPicksSynced=false;
+async function syncClubPicksToLibrary(){
+  if(clubPicksSynced)return;
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session)return;
+    const{data:memberships}=await sb.from('club_members').select('club_id,book_clubs(name)').eq('user_id',session.user.id);
+    if(!memberships||!memberships.length){clubPicksSynced=true;return;}
+    const clubIds=memberships.map(m=>m.club_id);
+    const clubNameById={};
+    memberships.forEach(m=>{clubNameById[m.club_id]=m.book_clubs?.name||'Book Club';});
+    const{data:picks}=await sb.from('club_books').select('book_title,book_author,club_id').in('club_id',clubIds);
+    clubPicksSynced=true;
+    if(!picks||!picks.length)return;
+    let changed=false;
+    picks.forEach(p=>{
+      if(!p.book_title||!p.book_author)return;
+      const clubName=clubNameById[p.club_id]||'Book Club';
+      const existing=findExisting(p.book_title,p.book_author);
+      if(existing){
+        if(!Array.isArray(existing.clubPicks))existing.clubPicks=[];
+        if(!existing.clubPicks.includes(clubName)){existing.clubPicks.push(clubName);changed=true;}
+      }else{
+        books.push({id:genId(),title:p.book_title,author:normalizeAuthorName(p.book_author),status:'tbr',formats:[],borrowedFormats:[],series:'',seriesNumber:'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,progress:0,lendable:false,lentTo:'',notes:'',favoriteQuote:'',moodTags:[],genre:[],coverUrl:'',readFormat:'',readRecords:[],clubPicks:[clubName]});
+        changed=true;
+      }
+    });
+    if(changed){
+      save();
+      const cp=currentPanel();
+      if(cp==='dashboard')renderDashboard();
+      else if(cp==='library')renderLib();
+      else if(cp==='bookclub'){renderBCMeetings();renderUpcoming();}
+    }
+  }catch(e){}
+}
 
 function toggleReadFormat(rowId,status){const row=document.getElementById(rowId);if(row)row.style.display=(status==='read'||status==='dnf')?'':'none';}
 function toggleRowIf(rowId,show){const row=document.getElementById(rowId);if(row)row.style.display=show?'':'none';}
@@ -2127,7 +2173,7 @@ function formatIconRow(b){
 
 function coverHtml(b){
   const img=b.coverUrl?`<img src="${esc(b.coverUrl)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="cover-placeholder" style="display:none">${ICON.bookStack}</div>`:`<div class="cover-placeholder">${ICON.bookStack}</div>`;
-  const ribbon=bookInBookClub(b)?`<div class="bcard-ribbon">${ICON.bookmark} Book Club</div>`:'';
+  const ribbon=(b.clubPicks||[]).length?`<div class="bcard-ribbon">${ICON.bookmark} ${esc(b.clubPicks.join(', '))}</div>`:'';
   const review=b.needsReview?`<div class="bcard-ribbon" style="background:var(--danger)">${ICON.warning} Needs review</div>`:'';
   return`<div class="bcard-cover">${img}${ribbon}${review}</div>`;
 }
@@ -2383,7 +2429,7 @@ function renderLibKanban(filtered){
       ${colBooks.map(b=>`<div class="kanban-card" ${draggable?`draggable="true" ondragstart="kanbanDragStart(event,'${b.id}')" ondragend="kanbanDragEnd(event)"`:''} onclick="openBookPage('${b.id}')">
         <div class="kanban-card-title">${esc(b.title)}</div>
         <div class="kanban-card-author">${esc(b.author)}</div>
-        ${bookInBookClub(b)?`<div style="font-size:10px;color:var(--series);margin-top:3px">${ICON.bookmark} Book club</div>`:''}
+        ${(b.clubPicks||[]).length?`<div style="font-size:10px;color:var(--series);margin-top:3px">${ICON.bookmark} ${esc(b.clubPicks.join(', '))}</div>`:''}
       </div>`).join('')}
     </div>`;
   }).join('');
@@ -2765,7 +2811,43 @@ function renderDashStreak(){
   if(!current){el.innerHTML=`<div style="font-size:13px;color:var(--text2)">Finish a book this month to start a streak.</div>`;return;}
   el.innerHTML=`<div style="font-size:32px;font-weight:600;color:var(--accent);line-height:1">${current}</div><div style="font-size:12px;color:var(--text2);margin-top:4px">month${current===1?'':'s'} in a row with a finished book${longest>current?` · best: ${longest}`:''}</div>`;
 }
-function renderDashUpNext(){
+let myAdminClubsCache=null;
+async function getMyAdminClubs(){
+  if(myAdminClubsCache)return myAdminClubsCache;
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session)return myAdminClubsCache=[];
+    const{data}=await sb.from('club_members').select('club_id,book_clubs(name)').eq('user_id',session.user.id).eq('role','owner');
+    myAdminClubsCache=(data||[]).map(m=>({id:m.club_id,name:m.book_clubs?.name||'Book Club'}));
+  }catch(e){myAdminClubsCache=[];}
+  return myAdminClubsCache;
+}
+function setUpNextToTBR(title,author){
+  const existing=findExisting(title,author);
+  if(existing){
+    if(existing.status==='tbr'){alert('Already on your TBR.');return;}
+    existing.status='tbr';
+  }else{
+    books.push({id:genId(),title,author:normalizeAuthorName(author),status:'tbr',formats:[],borrowedFormats:[],series:'',seriesNumber:'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,progress:0,lendable:false,lentTo:'',notes:'',favoriteQuote:'',moodTags:[],genre:[],coverUrl:'',readFormat:'',readRecords:[],clubPicks:[]});
+  }
+  save();
+  renderDashboard();
+}
+async function addUpNextToClub(i,title,author){
+  const sel=document.getElementById('upnext-club-sel-'+i);
+  if(!sel)return;
+  const clubId=sel.value;
+  nav('bookclub');
+  await loadSharedClubs();
+  sharedClubId=clubId;
+  await renderSharedClub();
+  const selEl=document.getElementById('shared-club-sel');
+  if(selEl)selEl.value=clubId;
+  openSharedBCForm();
+  document.getElementById('shared-bc-book-title').value=title;
+  document.getElementById('shared-bc-book-author').value=author;
+}
+async function renderDashUpNext(){
   const grid=document.getElementById('dash-upnext-grid');
   if(!grid)return;
   const continuations=buildContinuationRecs().slice(0,2);
@@ -2776,12 +2858,22 @@ function renderDashUpNext(){
     ...releases.map(u=>({title:u.book,author:u.author,tag:`${ICON.bookmark} Upcoming release`,sub:u.releaseDate?`Releases ${fmtDateDMY(u.releaseDate)}`:''}))
   ];
   if(!items.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><p style="font-size:12px;color:var(--text3)">Nothing queued up yet - rate some books or track an upcoming release.</p></div>`;return;}
-  grid.innerHTML=items.map(it=>`<div class="bc-meeting">
+  const adminClubs=await getMyAdminClubs();
+  grid.innerHTML=items.map((it,i)=>{
+    const titleEsc=esc(it.title).replace(/'/g,"\\'"),authorEsc=esc(it.author).replace(/'/g,"\\'");
+    const clubPicker=adminClubs.length?`<div style="display:flex;gap:4px;margin-top:6px">
+      <select class="fsel" id="upnext-club-sel-${i}" style="font-size:11px;padding:2px 4px;flex:1">${adminClubs.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+      <button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="addUpNextToClub(${i},'${titleEsc}','${authorEsc}')">+ Club</button>
+    </div>`:'';
+    return`<div class="bc-meeting">
     <div style="font-size:11px;color:var(--series);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:4px">${it.tag}</div>
     <div style="font-weight:500;font-size:13px">${esc(it.title)}</div>
     <div style="font-size:11px;color:var(--text2)">by ${esc(it.author)}</div>
     ${it.sub?`<div style="font-size:11px;color:var(--text3);margin-top:4px">${esc(it.sub)}</div>`:''}
-  </div>`).join('');
+    <div style="margin-top:8px"><button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="setUpNextToTBR('${titleEsc}','${authorEsc}')">Set to TBR</button></div>
+    ${clubPicker}
+  </div>`;
+  }).join('');
 }
 function dashGlobalSearch(q){
   const pop=document.getElementById('dash-global-search-results');
@@ -2957,11 +3049,12 @@ function downloadMeetingICS(m){
 }
 function compactMeetingCardHTML(m){
   meetingCache[m.id]=m;
+  const myBook=findExisting(m.book_title,m.book_author);
   return`<div class="bc-meeting">
     ${meetingTopHtml((m.book_clubs||{}).name,m.meeting_date,m.start_time,m.location,m.book_title,m.book_author)}
     <div class="bc-meeting-title">${esc(m.meeting_name)}</div>
-    <div style="font-size:13px"><strong>${esc(m.book_title)}</strong></div>
-    <div style="font-size:11px;color:var(--text2)">by ${esc(m.book_author)}</div>
+    <div style="font-size:13px"><strong${myBook?` style="cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="openBookPage('${myBook.id}')"`:''}>${esc(m.book_title)}</strong></div>
+    <div style="font-size:11px;color:var(--text2)">by <span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="navToAuthor('${esc(m.book_author).replace(/'/g,"\\'")}')">${esc(m.book_author)}</span></div>
     <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="downloadMeetingICS(meetingCache['${m.id}'])">Add to calendar</button>
   </div>`;
 }
@@ -3318,6 +3411,7 @@ async function loadSharedClubs(){
   const sel=document.getElementById('shared-club-sel');
   if(!joined.length){
     sel.innerHTML='<option value="">No shared clubs joined yet</option>';
+    document.getElementById('club-header').style.display='none';
     document.getElementById('shared-club-roster').innerHTML='';
     document.getElementById('shared-bc-next').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">${ICON.bookmark}</div><p>Join a shared club above to see its meetings.</p><p style="font-size:12px;margin-top:6px">Coming from Goodreads? <a href="#" onclick="event.preventDefault();nav('add');setAddTab('import')" style="color:var(--accent)">Import your library</a> so club picks show what you already own.</p></div>`;
     document.getElementById('shared-bc-upcoming-h').style.display='none';
@@ -3397,6 +3491,12 @@ async function joinSharedClub(clubId){
 }
 
 function switchSharedClub(clubId){sharedClubId=clubId;renderSharedClub();}
+async function saveClubDescription(){
+  if(!sharedClubId||!isClubAdmin)return;
+  const val=document.getElementById('club-header-desc').value.trim();
+  const{error}=await sb.from('book_clubs').update({description:val}).eq('id',sharedClubId);
+  if(error)alert('Failed to save description: '+error.message);
+}
 
 async function renderInviteLinkBtn(){
   const btn=document.getElementById('copy-invite-btn');
@@ -3439,9 +3539,10 @@ async function renderSharedClub(){
   const{data:{session}}=await sb.auth.getSession();
   const myId=session.user.id;
 
-  const[{data:members,error:mErr},{data:clubBooks,error:bErr}]=await Promise.all([
+  const[{data:members,error:mErr},{data:clubBooks,error:bErr},{data:clubRow}]=await Promise.all([
     sb.from('club_members').select('user_id,role,profiles(first_name,last_name)').eq('club_id',sharedClubId),
-    sb.from('club_books').select('id,meeting_name,meeting_date,start_time,location,book_title,book_author,series,series_number,discussion_notes,club_book_engagement(user_id,status,rating,notes,date_read,profiles(first_name,last_name)),club_meeting_rsvp(user_id,status,profiles(first_name,last_name)),book_clubs(name)').eq('club_id',sharedClubId).order('meeting_date',{ascending:false})
+    sb.from('club_books').select('id,meeting_name,meeting_date,start_time,location,book_title,book_author,series,series_number,discussion_notes,club_book_engagement(user_id,status,rating,notes,date_read,profiles(first_name,last_name)),club_meeting_rsvp(user_id,status,profiles(first_name,last_name)),book_clubs(name)').eq('club_id',sharedClubId).order('meeting_date',{ascending:false}),
+    sb.from('book_clubs').select('name,description,meeting_cadence').eq('id',sharedClubId).single()
   ]);
   if(mErr||bErr){status.textContent='Failed to load: '+((mErr||bErr).message);return;}
   status.textContent='';
@@ -3457,6 +3558,20 @@ async function renderSharedClub(){
   if(adminCard)adminCard.style.display=isClubAdmin?'':'none';
   renderInviteLinkBtn();
   if(isClubAdmin)renderClubAdminCard(members,clubBooks);
+
+  const club=clubRow||{};
+  const header=document.getElementById('club-header');
+  if(header){
+    header.style.display='';
+    document.getElementById('club-header-name').textContent=club.name||'';
+    const memberCount=(members||[]).length;
+    const cadenceText=cadenceSummary(club.meeting_cadence)||'No regular schedule set yet';
+    document.getElementById('club-header-meta').textContent=`${memberCount} member${memberCount===1?'':'s'} · ${cadenceText} · Invite-only - admins can share an invite link above`;
+    const descEl=document.getElementById('club-header-desc');
+    descEl.value=club.description||'';
+    descEl.disabled=!isClubAdmin;
+    descEl.placeholder=isClubAdmin?"What's this club about? Free to join, or invite only…":'No description set yet.';
+  }
 
   document.getElementById('shared-club-roster').innerHTML=(members||[]).map(m=>{
     const p=m.profiles||{};
@@ -3516,8 +3631,8 @@ function renderMeetingCard(cb,myId,featured){
     </div>
     <div class="bc-book-row">
       <span style="flex:1">
-        <div style="font-weight:500;font-size:13px">${esc(cb.book_title)}</div>
-        <div style="font-size:11px;color:var(--text2)">by ${esc(cb.book_author)}${cb.series?` · <span style="color:var(--series)">${esc(cb.series)}${cb.series_number?' #'+esc(cb.series_number):''}</span>`:''}</div>
+        <div style="font-weight:500;font-size:13px${myBook?';cursor:pointer;text-decoration:underline;text-underline-offset:2px':''}"${myBook?` onclick="openBookPage('${myBook.id}')"`:''}>${esc(cb.book_title)}</div>
+        <div style="font-size:11px;color:var(--text2)">by <span style="cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="navToAuthor('${esc(cb.book_author).replace(/'/g,"\\'")}')">${esc(cb.book_author)}</span>${cb.series?` · <span style="color:var(--series)">${esc(cb.series)}${cb.series_number?' #'+esc(cb.series_number):''}</span>`:''}</div>
         ${ownedBadge?`<div style="margin-top:4px">${ownedBadge}</div>`:''}
       </span>
     </div>

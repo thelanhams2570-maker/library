@@ -10,6 +10,10 @@
 -- 1. New column for the "Manage club" cadence setting.
 alter table book_clubs add column if not exists meeting_cadence jsonb;
 
+-- 1b. New column for the club's "About this club" landing-page text
+--     (free text, admin-editable - what the club is, how to join, etc).
+alter table book_clubs add column if not exists description text;
+
 -- 2. Make sure every existing club has at least one admin ('owner').
 --    club_members has no join-timestamp column, so there's no way to
 --    pick the actual earliest joiner - this deterministically promotes
