@@ -148,7 +148,7 @@ table.lib-table tbody tr:hover{background:var(--surface2)}
 .fmt-icon{color:var(--rule)}
 .fmt-icon.fmt-owned{color:var(--accent2)}
 .fmt-icon.fmt-read{color:var(--accent)}
-.bcard-series-inline{font-weight:400;font-style:italic;font-size:11px;color:var(--text3)}
+.bcard-series-inline{display:block;font-weight:400;font-style:italic;font-size:11px;color:var(--text3);margin-bottom:2px}
 .bcard-read-row{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text3);margin-top:2px}
 .bcard-read-row .ico{width:12px;height:12px;color:var(--accent)}
 .bcard-read-row .read-del{cursor:pointer;color:var(--text3);font-weight:600}
@@ -667,14 +667,19 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
 
 <!-- BOOK PAGE -->
 <div id="panel-book-detail" class="panel">
-  <button class="btn btn-outline btn-sm" onclick="closeBookPage()">← Back</button>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+    <button class="btn btn-outline btn-sm" onclick="closeBookPage()">← Back</button>
+    <button class="btn btn-primary btn-sm" onclick="openBookForm(currentBookPageId)">Edit</button>
+  </div>
   <div style="display:flex;gap:24px;margin-top:16px;flex-wrap:wrap">
     <div id="bp-cover" style="width:150px;flex-shrink:0"></div>
     <div style="flex:1;min-width:260px">
       <div id="bp-title" style="font-family:var(--font-serif);font-size:28px;font-weight:600;line-height:1.2"></div>
+      <div id="bp-series" style="font-weight:400;font-style:italic;font-size:15px;color:var(--text3);margin-top:4px"></div>
       <div id="bp-author" style="font-size:15px;color:var(--accent);cursor:pointer;margin-top:6px;display:inline-block"></div>
+      <div id="bp-published" style="font-size:13px;color:var(--text2);margin-top:6px"></div>
+      <div id="bp-pages" style="font-size:13px;color:var(--text2);margin-top:2px"></div>
       <div id="bp-meta" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div>
-      <button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="openBookForm(currentBookPageId)">Edit</button>
     </div>
   </div>
 
@@ -696,11 +701,6 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
   <div style="margin-top:30px">
     <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">My thoughts</h2>
     <div id="bp-your-take" class="settings-card"></div>
-  </div>
-
-  <div style="margin-top:30px">
-    <h2 style="font-family:var(--font-serif);font-size:19px;font-weight:600;margin-bottom:10px">Tags</h2>
-    <div id="bp-tags" class="settings-card"></div>
   </div>
 </div>
 
@@ -993,18 +993,14 @@ table.rtable{width:100%;border-collapse:collapse;font-size:12px}
             <label class="fmt-check" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Hardcopy"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></svg> Hard</label>
           </div>
         </div>
-        <div class="fg">
-          <label>Borrowed / KU formats</label>
-          <div class="fmt-checks" id="f-borrow-checks">
-            <label class="fmt-check borrowed" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Ebook"><svg class="ico" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg> Ebook</label>
-            <label class="fmt-check borrowed" onclick="toggleFmtCheck(this)"><input type="checkbox" value="Audiobook"><svg class="ico" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg> Audio</label>
-          </div>
-        </div>
         <div class="frow">
           <div class="fg" style="align-self:center">
             <label class="fmt-check" style="display:inline-flex" onclick="event.preventDefault();toggleFmtCheck(this)"><input type="checkbox" id="f-lendable"><svg class="ico" viewBox="0 0 24 24"><path d="M3 12h7"/><path d="M7 8l-4 4 4 4"/><path d="M21 12h-7"/><path d="M17 8l4 4-4 4"/></svg> Willing to lend</label>
           </div>
+        </div>
+        <div class="frow">
           <div class="fg"><label>Lent to (if currently out)</label><input type="text" id="f-lent-to" placeholder="e.g. Jane"></div>
+          <div class="fg"><label>Date lent</label><input type="date" id="f-lent-date"></div>
         </div>
       </div>
 
@@ -1409,9 +1405,6 @@ function load(){
     b.formats=[...new Set(b.formats)];
     // Migrate old statuses to tbr (wishlist kept as its own status)
     if(['owned','want'].includes(b.status)) b.status='tbr';
-    if(!b.borrowedFormats) b.borrowedFormats=[];
-    b.borrowedFormats=b.borrowedFormats.map(f=>f==='Kindle'?'Ebook':f);
-    b.borrowedFormats=[...new Set(b.borrowedFormats)];
     if(!b.genre) b.genre=[];
     if(!b.series) b.series='';
     if(!b.seriesNumber) b.seriesNumber='';
@@ -1422,11 +1415,21 @@ function load(){
     if(b.progress===undefined) b.progress=0;
     if(b.lendable===undefined) b.lendable=false;
     if(b.lentTo===undefined) b.lentTo='';
+    if(b.lentDate===undefined) b.lentDate='';
     if(b.dateStarted===undefined) b.dateStarted='';
     if(b.publishedDate===undefined) b.publishedDate='';
     if(!Array.isArray(b.readRecords)){
-      b.readRecords=b.dateRead?[{format:b.readFormat||(b.formats&&b.formats[0])||'Unknown',date:b.dateRead}]:[];
+      b.readRecords=b.dateRead?[{format:b.readFormat||(b.formats&&b.formats[0])||'Unknown',dateStarted:b.dateStarted||'',dateFinished:b.dateRead}]:[];
     }
+    b.readRecords.forEach(r=>{
+      if(r.date!==undefined&&r.dateFinished===undefined){r.dateFinished=r.date;delete r.date;}
+      if(r.dateStarted===undefined)r.dateStarted='';
+    });
+    if(!Array.isArray(b.formats))b.formats=[];
+    if(Array.isArray(b.borrowedFormats)&&b.borrowedFormats.length){
+      b.formats=[...new Set([...b.formats,...b.borrowedFormats])];
+    }
+    delete b.borrowedFormats;
     if(!Array.isArray(b.moodTags)) b.moodTags=[];
     if(!Array.isArray(b.clubPicks)) b.clubPicks=[];
     if(b.favoriteQuote===undefined) b.favoriteQuote='';
@@ -1680,7 +1683,7 @@ function aiStr(raw){if(typeof raw==='string')return raw;if(raw&&typeof raw==='ob
 // ═══════════ DEDUP ═══════════
 function findDuplicates(){const groups=[],used=new Set();for(let i=0;i<books.length;i++){if(used.has(books[i].id))continue;const group=[books[i]];used.add(books[i].id);for(let j=i+1;j<books.length;j++){if(used.has(books[j].id))continue;if(books[i].author.trim().toLowerCase()===books[j].author.trim().toLowerCase()&&titlesMatch(books[i].title,books[j].title)){group.push(books[j]);used.add(books[j].id);}}if(group.length>1)groups.push(group);}return groups;}
 function checkDuplicates(){const dups=findDuplicates();const banner=document.getElementById('dedup-banner');if(!banner)return;if(dups.length>0){const total=dups.reduce((s,a)=>s+a.length,0);document.getElementById('dedup-msg').textContent=`Found ${dups.length} book${dups.length>1?'s':''} with multiple records (${total} total records).`;banner.style.display='';}else{banner.style.display='none';}}
-function runDedup(){const dups=findDuplicates();if(!dups.length){document.getElementById('dedup-status').textContent='No duplicates found!';return;}let merged=0;dups.forEach(group=>{group.sort((a,b)=>(STATUS_PRI[b.status]||0)-(STATUS_PRI[a.status]||0));const keeper=group[0];group.forEach(b=>{keeper.title=canonTitle(keeper.title,b.title);});group.slice(1).forEach(dup=>{(dup.formats||[]).forEach(f=>{if(!keeper.formats.includes(f))keeper.formats.push(f);});(dup.borrowedFormats||[]).forEach(f=>{if(!keeper.borrowedFormats.includes(f))keeper.borrowedFormats.push(f);});if(dup.rating&&(!keeper.rating||dup.rating>keeper.rating))keeper.rating=dup.rating;if(dup.grRating&&(!keeper.grRating||dup.grRating>keeper.grRating))keeper.grRating=dup.grRating;if(dup.dateRead&&(!keeper.dateRead||dup.dateRead<keeper.dateRead))keeper.dateRead=dup.dateRead;if(dup.dateAdded&&!keeper.dateAdded)keeper.dateAdded=dup.dateAdded;(dup.genre||[]).forEach(g=>{if(!(keeper.genre||[]).includes(g)){if(!keeper.genre)keeper.genre=[];keeper.genre.push(g);}});if(!keeper.series&&dup.series)keeper.series=dup.series;if(!keeper.seriesNumber&&dup.seriesNumber)keeper.seriesNumber=dup.seriesNumber;if(!keeper.coverUrl&&dup.coverUrl)keeper.coverUrl=dup.coverUrl;});const toRemove=new Set(group.slice(1).map(b=>b.id));books=books.filter(b=>!toRemove.has(b.id));merged+=group.length-1;});save();renderLib();const s=document.getElementById('dedup-status');if(s)s.textContent=`Merged ${merged} duplicate record${merged>1?'s':''}.`;setTimeout(()=>{if(s)s.textContent='';},4000);}
+function runDedup(){const dups=findDuplicates();if(!dups.length){document.getElementById('dedup-status').textContent='No duplicates found!';return;}let merged=0;dups.forEach(group=>{group.sort((a,b)=>(STATUS_PRI[b.status]||0)-(STATUS_PRI[a.status]||0));const keeper=group[0];group.forEach(b=>{keeper.title=canonTitle(keeper.title,b.title);});group.slice(1).forEach(dup=>{(dup.formats||[]).forEach(f=>{if(!keeper.formats.includes(f))keeper.formats.push(f);});if(dup.rating&&(!keeper.rating||dup.rating>keeper.rating))keeper.rating=dup.rating;if(dup.grRating&&(!keeper.grRating||dup.grRating>keeper.grRating))keeper.grRating=dup.grRating;if(dup.dateRead&&(!keeper.dateRead||dup.dateRead<keeper.dateRead))keeper.dateRead=dup.dateRead;if(dup.dateAdded&&!keeper.dateAdded)keeper.dateAdded=dup.dateAdded;(dup.genre||[]).forEach(g=>{if(!(keeper.genre||[]).includes(g)){if(!keeper.genre)keeper.genre=[];keeper.genre.push(g);}});if(!keeper.series&&dup.series)keeper.series=dup.series;if(!keeper.seriesNumber&&dup.seriesNumber)keeper.seriesNumber=dup.seriesNumber;if(!keeper.coverUrl&&dup.coverUrl)keeper.coverUrl=dup.coverUrl;});const toRemove=new Set(group.slice(1).map(b=>b.id));books=books.filter(b=>!toRemove.has(b.id));merged+=group.length-1;});save();renderLib();const s=document.getElementById('dedup-status');if(s)s.textContent=`Merged ${merged} duplicate record${merged>1?'s':''}.`;setTimeout(()=>{if(s)s.textContent='';},4000);}
 function findExisting(title,author){const an=author.trim().toLowerCase();return books.find(b=>b.author.trim().toLowerCase()===an&&titlesMatch(b.title,title));}
 
 // ═══════════ IMPORT REVIEW QUEUE ═══════════
@@ -2026,7 +2029,7 @@ async function syncClubPicksToLibrary(){
         if(!Array.isArray(existing.clubPicks))existing.clubPicks=[];
         if(!existing.clubPicks.includes(clubName)){existing.clubPicks.push(clubName);changed=true;}
       }else{
-        books.push({id:genId(),title:p.book_title,author:normalizeAuthorName(p.book_author),status:'tbr',formats:[],borrowedFormats:[],series:'',seriesNumber:'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,progress:0,lendable:false,lentTo:'',notes:'',favoriteQuote:'',moodTags:[],genre:[],coverUrl:'',readFormat:'',readRecords:[],clubPicks:[clubName]});
+        books.push({id:genId(),title:p.book_title,author:normalizeAuthorName(p.book_author),status:'tbr',formats:[],series:'',seriesNumber:'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,progress:0,lendable:false,lentTo:'',lentDate:'',notes:'',favoriteQuote:'',moodTags:[],genre:[],coverUrl:'',readFormat:'',readRecords:[],clubPicks:[clubName]});
         changed=true;
       }
     });
@@ -2048,7 +2051,6 @@ const MSEL_FACETS=[
   {id:'status',label:'Status',icon:ICON.bookmark,options:()=>[['read','Read'],['reading','Reading'],['tbr','TBR'],['wishlist','Wishlist'],['dnf','DNF']]},
   {id:'formatOwned',label:'Format owned',icon:ICON.ebook,options:()=>[['Ebook','Ebook'],['Audiobook','Audiobook'],['Hardcopy','Hardcopy']]},
   {id:'formatRead',label:'Format read',icon:ICON.ebook,options:()=>[['Ebook','Ebook'],['Audiobook','Audiobook'],['Hardcopy','Hardcopy']]},
-  {id:'ownership',label:'Ownership',icon:ICON.checkSquare,options:()=>[['owned','Owned'],['borrowed','Borrowed']]},
   {id:'length',label:'Length',icon:ICON.ruler,options:()=>[['short','Short (<250pg)'],['medium','Medium (250-450pg)'],['long','Long (450pg+)']]},
   {id:'genre',label:'Genre',icon:ICON.tag,searchable:true,options:()=>[...new Set(books.flatMap(b=>b.genre||[]))].sort((a,b)=>a.localeCompare(b)).map(g=>[g,g])},
   {id:'author',label:'Author',icon:ICON.person,searchable:true,options:()=>[...new Set(books.map(b=>b.author).filter(Boolean))].sort((a,b)=>a.localeCompare(b)).map(a=>[a,a])},
@@ -2125,12 +2127,6 @@ function filterBooks(){
       const readFmts=[...(b.readRecords||[]).map(r=>r.format),...(b.readFormat?[b.readFormat]:[])];
       if(![...F.formatRead].some(fv=>readFmts.includes(fv)))return false;
     }
-    if(F.ownership.size){
-      let match=false;
-      if(F.ownership.has('owned')&&(b.formats||[]).length)match=true;
-      if(F.ownership.has('borrowed')&&(b.borrowedFormats||[]).length)match=true;
-      if(!match)return false;
-    }
     if(F.genre.size&&!(b.genre||[]).some(g=>F.genre.has(g)))return false;
     if(F.author.size&&!F.author.has(b.author))return false;
     if(F.series.size&&!F.series.has(b.series))return false;
@@ -2157,9 +2153,7 @@ function filterBooks(){
 function sortBooks(arr){const s=document.getElementById('lib-sort')?.value||'date-desc';return[...arr].sort((a,b)=>{if(s==='date-desc')return(b.dateAdded||'').localeCompare(a.dateAdded||'');if(s==='date-asc')return(a.dateAdded||'').localeCompare(b.dateAdded||'');if(s==='read-desc')return(b.dateRead||'').localeCompare(a.dateRead||'');if(s==='rating-desc')return(b.rating||0)-(a.rating||0);if(s==='title-asc')return a.title.localeCompare(b.title);if(s==='author-asc')return a.author.localeCompare(b.author);if(s==='pages-asc')return(a.pages||99999)-(b.pages||99999);if(s==='pages-desc')return(b.pages||0)-(a.pages||0);return 0;});}
 
 function fmtBadges(b){
-  const owned=(b.formats||[]).map(f=>`<span class="badge b-fmt">${FMT_ICO[f]||ICON.bookStack} ${esc(f)}</span>`).join('');
-  const borrowed=(b.borrowedFormats||[]).map(f=>`<span class="badge b-borrowed">${ICON.repeat} ${esc(f)}</span>`).join('');
-  return owned+borrowed;
+  return(b.formats||[]).map(f=>`<span class="badge b-fmt">${FMT_ICO[f]||ICON.bookStack} ${esc(f)}</span>`).join('');
 }
 function formatIconRow(b){
   return`<div class="fmt-icon-row">${FMT_ALL.map(f=>{
@@ -2203,27 +2197,26 @@ function renderLibGrid(filtered){
   grid.innerHTML=filtered.map(b=>{
     const stars=b.rating?starDisplayHTML(b.rating):'';
     const genres=(b.genre||[]).slice(0,2).map(g=>`<span class="badge b-genre">${esc(g)}</span>`).join('');
-    const borrowedBadges=(b.borrowedFormats||[]).filter(f=>!(b.formats||[]).includes(f)).map(f=>`<span class="badge b-borrowed">${ICON.repeat} ${esc(f)}</span>`).join('');
     const progressHtml=(b.status==='reading'&&b.progress)?`<div class="pct-bar" style="margin-top:4px"><div class="pct-fill" style="width:${b.progress}%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px">${b.progress}% done</div>`:'';
-    const lentHtml=b.lentTo?`<div style="font-size:11px;color:var(--borrowed);margin-top:3px">${ICON.lend} Lent to ${esc(b.lentTo)}</div>`:'';
+    const lentHtml=b.lentTo?`<div style="font-size:11px;color:var(--borrowed);margin-top:3px">${ICON.lend} Lent to ${esc(b.lentTo)}${b.lentDate?' on '+esc(fmtDateDMY(b.lentDate)):''}</div>`:'';
     const checkbox=selectMode?`<input type="checkbox" style="position:absolute;top:8px;left:8px;width:18px;height:18px;z-index:2;accent-color:var(--accent)" ${selectedIds.has(b.id)?'checked':''} onclick="event.stopPropagation();toggleSelect('${b.id}')">`:'';
     const dateParts=[];
     if(b.dateAdded)dateParts.push(`Added ${b.dateAdded.slice(0,7)}`);
     if(b.dateRead)dateParts.push(`Read ${b.dateRead}`);
     if(b.publishedDate)dateParts.push(`Pub ${esc(b.publishedDate)}`);
-    const readRows=(b.readRecords||[]).map((r,i)=>`<div class="bcard-read-row">${FMT_ICO[r.format]||''}<span>${esc(r.format)} · ${esc(r.date)}</span><span class="read-del" onclick="event.stopPropagation();removeReadRecord('${b.id}',${i})" title="Remove this read record">×</span></div>`).join('');
+    const readRows=(b.readRecords||[]).map((r,i)=>`<div class="bcard-read-row">${FMT_ICO[r.format]||''}<span>${esc(r.format)} · ${esc(r.dateFinished)}</span><span class="read-del" onclick="event.stopPropagation();removeReadRecord('${b.id}',${i})" title="Remove this read record">×</span></div>`).join('');
     return`<div class="bcard" style="position:relative" onclick="${selectMode?`toggleSelect('${b.id}')`:`openBookPage('${b.id}')`}">
       ${checkbox}
       ${coverHtml(b)}
       <div class="bcard-body">
-        <div class="bcard-title">${esc(b.title)}${b.series?`<span class="bcard-series-inline"> · <span onclick="event.stopPropagation();navToSeries('${esc(b.series).replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span></span>`:''}</div>
+        <div class="bcard-title">${esc(b.title)}</div>
+        ${b.series?`<div class="bcard-series-inline" onclick="event.stopPropagation();navToSeries('${esc(b.series).replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</div>`:''}
         <div class="bcard-author" onclick="event.stopPropagation();navToAuthor('${esc(b.author)}')">${esc(b.author)}</div>
         <div class="bcard-meta">
           <span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span>
           ${genres}
         </div>
         ${formatIconRow(b)}
-        ${borrowedBadges}
         ${readRows}
         ${stars?`<div class="bcard-stars">${stars}</div>`:''}
         ${b.pages?`<div style="font-size:11px;color:var(--text3)">${b.pagesEstimated?'~':''}${b.pages}pg</div>`:''}
@@ -2574,14 +2567,13 @@ function renderSeries(){
     const booksHtml=s.books.map(b=>{
       const ic=STATUS_ICO[b.status]||ICON.question;
       const ownedFmts=(b.formats||[]).map(f=>FMT_ICO[f]||'').join('');
-      const borrowedFmts=(b.borrowedFormats||[]).map(f=>ICON.repeat+FMT_ICO[f]).join('');
       const readFmt=b.readFormat?`<span style="font-size:10px;color:var(--text3)">read:${FMT_ICO[b.readFormat]||b.readFormat}</span>`:'';
       const thumb=b.coverUrl?`<img src="${esc(b.coverUrl)}" style="width:20px;height:28px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:'';
       return`<div class="sc-book-row">
         ${thumb}
         <span class="sc-book-num">${b.seriesNumber?'#'+b.seriesNumber:''}</span>
         <span class="sc-book-title" onclick="openBookPage('${b.id}')">${esc(b.title)}</span>
-        <span style="font-size:12px">${ownedFmts}${borrowedFmts}</span>
+        <span style="font-size:12px">${ownedFmts}</span>
         ${readFmt}
         <span>${ic}</span>
       </div>`;
@@ -2673,7 +2665,7 @@ async function lookupSeriesAI(seriesName,authorName,sid){
 function addMissingBook(title,author,series,seriesNumber,btn){
   const existing=findExisting(title,author);
   if(existing){btn.textContent='✓ Exists';btn.disabled=true;return;}
-  books.push({id:genId(),title,author,status:'wishlist',formats:[],borrowedFormats:[],series,seriesNumber:String(seriesNumber),dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,notes:'',genre:[],coverUrl:'',readFormat:'',readRecords:[]});
+  books.push({id:genId(),title,author,status:'wishlist',formats:[],series,seriesNumber:String(seriesNumber),dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,notes:'',genre:[],coverUrl:'',readFormat:'',readRecords:[],lentTo:'',lentDate:''});
   save();btn.textContent='✓ Added';btn.style.background='var(--accent-bg)';btn.style.borderColor='var(--accent)';btn.style.color='var(--accent)';btn.disabled=true;
 }
 
@@ -2681,7 +2673,7 @@ function addMissingBook(title,author,series,seriesNumber,btn){
 function avatarColorFor(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))>>>0;return AVATAR_COLORS[h%AVATAR_COLORS.length];}
 function initialsFor(name){const parts=name.trim().split(/\s+/).filter(Boolean);if(!parts.length)return'?';if(parts.length===1)return parts[0][0].toUpperCase();return(parts[0][0]+parts[parts.length-1][0]).toUpperCase();}
 
-function buildAuthorMap(){const map={};books.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),borrowedFormats:new Set(),series:new Set(),books:[]};if(b.status==='read')map[a].read++;else if(b.status==='reading')map[a].owned++;else if(['tbr','owned','want','wishlist'].includes(b.status))map[a].want++;else if(b.status==='dnf')map[a].dnf++;(b.formats||[]).forEach(f=>map[a].formats.add(f));(b.borrowedFormats||[]).forEach(f=>map[a].borrowedFormats.add(f));if(b.series)map[a].series.add(b.series);map[a].books.push(b);});return map;}
+function buildAuthorMap(){const map={};books.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),series:new Set(),books:[]};if(b.status==='read')map[a].read++;else if(b.status==='reading')map[a].owned++;else if(['tbr','owned','want','wishlist'].includes(b.status))map[a].want++;else if(b.status==='dnf')map[a].dnf++;(b.formats||[]).forEach(f=>map[a].formats.add(f));if(b.series)map[a].series.add(b.series);map[a].books.push(b);});return map;}
 
 function renderAuthors(){const map=buildAuthorMap();const q=(document.getElementById('author-search')?.value||'').toLowerCase();const lenF=document.getElementById('author-length')?.value||'';const list=document.getElementById('author-list');const entries=Object.values(map).filter(a=>{if(q&&!a.name.toLowerCase().includes(q))return false;if(lenF&&!a.books.some(b=>{const p=b.pages||0;if(!p)return false;if(lenF==='short')return p<250;if(lenF==='medium')return p>=250&&p<=450;if(lenF==='long')return p>450;return false;}))return false;return true;}).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));if(!entries.length){list.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></div><p>No authors found.</p></div>`;return;}list.innerHTML=entries.map(a=>{const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');const ser=[...a.series].slice(0,2).join(', ')+(a.series.size>2?'…':'');return`<div class="author-card" onclick="openAuthorDetail('${esc(a.name)}')"><div class="ac-avatar" style="background:${avatarColorFor(a.name)}">${esc(initialsFor(a.name))}</div><div class="ac-body"><div class="ac-name">${esc(a.name)}</div><div class="ac-stats">${a.read} read · ${a.owned} owned · ${a.want} want${a.dnf?` · ${a.dnf} DNF`:''}<br>${fmts?fmts+'<br>':''}${ser?`<span style="color:var(--series)">${esc(ser)}</span>`:''}</div></div></div>`;}).join('');}
 
@@ -2709,7 +2701,7 @@ function openAuthorDetail(name){
         ${b.coverUrl?`<img src="${esc(b.coverUrl)}" style="width:20px;height:28px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:''}
         <span class="ad-book-icons">${STATUS_ICO[b.status]||ICON.question}</span>
         <span class="ad-book-title">${esc(b.title)}${b.seriesNumber?` <span style="color:var(--text3)">#${esc(b.seriesNumber)}</span>`:''}</span>
-        <span style="font-size:12px">${(b.formats||[]).map(f=>FMT_ICO[f]||'').join('')}${(b.borrowedFormats||[]).map(f=>ICON.repeat+FMT_ICO[f]).join('')}</span>
+        <span style="font-size:12px">${(b.formats||[]).map(f=>FMT_ICO[f]||'').join('')}</span>
         ${b.readFormat?`<span style="font-size:10px;color:var(--text3)">${FMT_ICO[b.readFormat]}</span>`:''}
       </div>`).join('')}
     </div>`;
@@ -2722,7 +2714,7 @@ function openAuthorDetail(name){
         ${b.coverUrl?`<img src="${esc(b.coverUrl)}" style="width:20px;height:28px;object-fit:cover;border-radius:var(--r);flex-shrink:0" onerror="this.style.display='none'">`:''}
         <span class="ad-book-icons">${STATUS_ICO[b.status]||ICON.question}</span>
         <span class="ad-book-title">${esc(b.title)}</span>
-        <span style="font-size:12px">${(b.formats||[]).map(f=>FMT_ICO[f]||'').join('')}${(b.borrowedFormats||[]).map(f=>ICON.repeat+FMT_ICO[f]).join('')}</span>
+        <span style="font-size:12px">${(b.formats||[]).map(f=>FMT_ICO[f]||'').join('')}</span>
       </div>`).join('')}
     </div>`;
   }
@@ -2748,7 +2740,7 @@ function getReportBooks(){
   const dateFilterActive=yearFrom>0||yearTo<9999;
   return books.filter(b=>{
     if(status&&b.status!==status)return false;
-    if(fmt){const allFmts=[...(b.formats||[]),...(b.borrowedFormats||[])];if(!allFmts.includes(fmt))return false;}
+    if(fmt&&!(b.formats||[]).includes(fmt))return false;
     if(genre&&!(b.genre||[]).includes(genre))return false;
     if(lengthFilter){const p=b.pages||0;if(!p)return false;if(lengthFilter==='short'&&p>=250)return false;if(lengthFilter==='medium'&&(p<250||p>450))return false;if(lengthFilter==='long'&&p<450)return false;}
     if(minRating&&(b.rating||0)<minRating)return false;
@@ -2828,7 +2820,7 @@ function setUpNextToTBR(title,author){
     if(existing.status==='tbr'){alert('Already on your TBR.');return;}
     existing.status='tbr';
   }else{
-    books.push({id:genId(),title,author:normalizeAuthorName(author),status:'tbr',formats:[],borrowedFormats:[],series:'',seriesNumber:'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,progress:0,lendable:false,lentTo:'',notes:'',favoriteQuote:'',moodTags:[],genre:[],coverUrl:'',readFormat:'',readRecords:[],clubPicks:[]});
+    books.push({id:genId(),title,author:normalizeAuthorName(author),status:'tbr',formats:[],series:'',seriesNumber:'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:0,pagesEstimated:false,progress:0,lendable:false,lentTo:'',lentDate:'',notes:'',favoriteQuote:'',moodTags:[],genre:[],coverUrl:'',readFormat:'',readRecords:[],clubPicks:[]});
   }
   save();
   renderDashboard();
@@ -2970,7 +2962,8 @@ function renderDashReading(){
     return`<div class="bcard" onclick="openBookPage('${b.id}')">
       ${coverHtml(b)}
       <div class="bcard-body">
-        <div class="bcard-title">${esc(b.title)}${b.series?`<span class="bcard-series-inline"> · <span onclick="event.stopPropagation();navToSeries('${esc(b.series).replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</span></span>`:''}</div>
+        <div class="bcard-title">${esc(b.title)}</div>
+        ${b.series?`<div class="bcard-series-inline" onclick="event.stopPropagation();navToSeries('${esc(b.series).replace(/'/g,"\\'")}')" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</div>`:''}
         <div class="bcard-author">${esc(b.author)}</div>
         ${progressHtml}
       </div>
@@ -3146,23 +3139,22 @@ function renderReportSummary(){
   },50);
 }
 
-function renderReportAuthor(){const rb=getReportBooks();const map={};rb.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),totalRating:0,ratedN:0};if(b.status==='read'){map[a].read++;if(b.rating){map[a].totalRating+=b.rating;map[a].ratedN++;}}if(['owned','reading'].includes(b.status))map[a].owned++;if(['tbr','want','wishlist'].includes(b.status))map[a].want++;if(b.status==='dnf')map[a].dnf++;[...(b.formats||[]),...(b.borrowedFormats||[])].forEach(f=>map[a].formats.add(f));});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-author');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.person}</div><p>No data.</p></div>`;return;}el.innerHTML=`<div class="table-wrap"><table class="rtable"><thead><tr><th>Author</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Avg ★</th><th>Formats</th></tr></thead><tbody>${rows.map(a=>{const avg=a.ratedN?(a.totalRating/a.ratedN).toFixed(1):'-';const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');return`<tr><td style="cursor:pointer;color:var(--accent)" onclick="navToAuthor('${esc(a.name)}')">${esc(a.name)}</td><td class="num">${a.read}</td><td class="num">${a.owned}</td><td class="num">${a.want}</td><td class="num">${a.dnf||0}</td><td class="num">${avg}</td><td>${fmts}</td></tr>`;}).join('')}</tbody></table></div>`;}
+function renderReportAuthor(){const rb=getReportBooks();const map={};rb.forEach(b=>{const a=b.author||'Unknown';if(!map[a])map[a]={name:a,read:0,owned:0,want:0,dnf:0,formats:new Set(),totalRating:0,ratedN:0};if(b.status==='read'){map[a].read++;if(b.rating){map[a].totalRating+=b.rating;map[a].ratedN++;}}if(['owned','reading'].includes(b.status))map[a].owned++;if(['tbr','want','wishlist'].includes(b.status))map[a].want++;if(b.status==='dnf')map[a].dnf++;(b.formats||[]).forEach(f=>map[a].formats.add(f));});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-author');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.person}</div><p>No data.</p></div>`;return;}el.innerHTML=`<div class="table-wrap"><table class="rtable"><thead><tr><th>Author</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Avg ★</th><th>Formats</th></tr></thead><tbody>${rows.map(a=>{const avg=a.ratedN?(a.totalRating/a.ratedN).toFixed(1):'-';const fmts=[...a.formats].map(f=>FMT_ICO[f]||f).join(' ');return`<tr><td style="cursor:pointer;color:var(--accent)" onclick="navToAuthor('${esc(a.name)}')">${esc(a.name)}</td><td class="num">${a.read}</td><td class="num">${a.owned}</td><td class="num">${a.want}</td><td class="num">${a.dnf||0}</td><td class="num">${avg}</td><td>${fmts}</td></tr>`;}).join('')}</tbody></table></div>`;}
 
 function renderReportSeries(){
   const rb=getReportBooks();const map={};
-  rb.forEach(b=>{const s=(b.series||'').trim();if(!s)return;if(!map[s])map[s]={name:s,books:[],read:0,owned:0,dnf:0,formats:{Ebook:0,Audiobook:0,Hardcopy:0},borrowedFormats:{Ebook:0,Audiobook:0}};map[s].books.push(b);if(b.status==='read')map[s].read++;else if(['owned','reading','tbr'].includes(b.status)&&(b.formats||[]).length>0)map[s].owned++;if(b.status==='dnf')map[s].dnf++;(b.formats||[]).forEach(f=>{if(map[s].formats[f]!==undefined)map[s].formats[f]++;});(b.borrowedFormats||[]).forEach(f=>{if(map[s].borrowedFormats[f]!==undefined)map[s].borrowedFormats[f]++;});});
+  rb.forEach(b=>{const s=(b.series||'').trim();if(!s)return;if(!map[s])map[s]={name:s,books:[],read:0,owned:0,dnf:0,formats:{Ebook:0,Audiobook:0,Hardcopy:0}};map[s].books.push(b);if(b.status==='read')map[s].read++;else if(['owned','reading','tbr'].includes(b.status)&&(b.formats||[]).length>0)map[s].owned++;if(b.status==='dnf')map[s].dnf++;(b.formats||[]).forEach(f=>{if(map[s].formats[f]!==undefined)map[s].formats[f]++;});});
   Object.values(map).forEach(s=>{const nums=s.books.map(b=>parseFloat(b.seriesNumber||0)).filter(n=>n>0);s.knownTotal=nums.length?Math.max(...nums):s.books.length;s.missing=Math.max(0,s.knownTotal-(s.read+s.owned+s.dnf));});
   const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));
   const el=document.getElementById('rpanel-series');
   if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.bookStack}</div><p>No series data.</p></div>`;return;}
   el.innerHTML=`<div class="table-wrap"><table class="rtable">
-    <thead><tr><th>Series</th><th>Read</th><th>Owned</th><th>Missing*</th><th>% Read</th><th>% Owned</th><th>Formats owned</th><th>Borrowed</th></tr></thead>
+    <thead><tr><th>Series</th><th>Read</th><th>Owned</th><th>Missing*</th><th>% Read</th><th>% Owned</th><th>Formats owned</th></tr></thead>
     <tbody>${rows.map(s=>{
       const total=s.read+s.owned+s.missing;
       const readPct=total?Math.round(s.read/total*100):0;
       const ownedPct=total?Math.round(s.owned/total*100):0;
       const fmtPills=Object.entries(s.formats).filter(([,n])=>n>0).map(([f,n])=>`<span class="series-pct-pill">${FMT_ICO[f]||f} ${n}</span>`).join('');
-      const borrowPills=Object.entries(s.borrowedFormats).filter(([,n])=>n>0).map(([f,n])=>`<span class="series-pct-pill">${ICON.repeat}${FMT_ICO[f]||f} ${n}</span>`).join('');
       return`<tr>
         <td style="cursor:pointer;color:var(--series);font-weight:500" onclick="navToSeries('${esc(s.name)}')">${esc(s.name)}</td>
         <td class="num">${s.read}</td>
@@ -3171,7 +3163,6 @@ function renderReportSeries(){
         <td><div>${readPct}%</div><div class="pct-bar"><div class="pct-fill" style="width:${readPct}%"></div></div></td>
         <td><div>${ownedPct}%</div><div class="pct-bar"><div class="pct-fill" style="width:${ownedPct}%;background:var(--owned)"></div></div></td>
         <td><div class="series-pct-row">${fmtPills||'-'}</div></td>
-        <td><div class="series-pct-row">${borrowPills||'-'}</div></td>
       </tr>`;
     }).join('')}</tbody>
   </table>
@@ -3180,7 +3171,7 @@ function renderReportSeries(){
 
 function renderReportGenre(){const rb=getReportBooks();const map={};rb.forEach(b=>{(b.genre||[]).forEach(g=>{if(!map[g])map[g]={name:g,read:0,owned:0,want:0,dnf:0};if(b.status==='read')map[g].read++;else if(b.status==='reading')map[g].owned++;else if(b.status==='dnf')map[g].dnf++;else map[g].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read||a.name.localeCompare(b.name));const el=document.getElementById('rpanel-genre');if(!rows.length){el.innerHTML=`<div class="empty"><div class="ei">${ICON.tag}</div><p>No genre data. Add genres when editing books.</p></div>`;return;}el.innerHTML=`<div class="reports-grid"><div class="rcrd" style="grid-column:1/-1"><h3>Genre breakdown</h3><div class="chart-wrap" style="height:${Math.max(180,rows.length*28)}px"><canvas id="ch-genre"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Genre</th><th>Read</th><th>Owned</th><th>Want</th><th>DNF</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.dnf||0}</td><td class="num">${r.read+r.owned+r.want+r.dnf}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{if(currentPanel()!=='reports')return;const ctx=document.getElementById('ch-genre');if(ctx){const ex=Chart.getChart(ctx);if(ex)ex.destroy();chartInst.genre=new Chart(ctx,{type:'bar',data:{labels:rows.map(r=>r.name),datasets:[{label:'Read',data:rows.map(r=>r.read),backgroundColor:BRAND.forest},{label:'Owned',data:rows.map(r=>r.owned),backgroundColor:BRAND.terracottaText},{label:'Want',data:rows.map(r=>r.want),backgroundColor:BRAND.muted}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{stacked:true,ticks:{precision:0}},y:{stacked:true}}}});}},50);}
 
-function renderReportFormat(){const rb=getReportBooks();const map={};rb.forEach(b=>{const allFmts=[...(b.formats||[]).map(f=>({f,type:'owned'})),...(b.borrowedFormats||[]).map(f=>({f,type:'borrowed'}))];(allFmts.length?allFmts:[{f:'Unknown',type:'owned'}]).forEach(({f,type})=>{if(!map[f])map[f]={name:f,read:0,owned:0,want:0,borrowed:0};if(b.status==='read')map[f].read++;else if(b.status==='reading')map[f].owned++;else map[f].want++;if(type==='borrowed')map[f].borrowed++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read);const el=document.getElementById('rpanel-format');el.innerHTML=`<div class="reports-grid"><div class="rcrd"><h3>Format - books read</h3><div class="chart-wrap"><canvas id="ch-fmt-read"></canvas></div></div><div class="rcrd"><h3>Format - all books</h3><div class="chart-wrap"><canvas id="ch-fmt-all"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Format</th><th>Read</th><th>Owned Unread</th><th>Want</th><th>Borrowed</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${FMT_ICO[r.name]||''} ${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.borrowed}</td><td class="num">${r.read+r.owned+r.want}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const mk=(id,data)=>{const ctx=document.getElementById(id);if(!ctx)return;return new Chart(ctx,{type:'doughnut',data:{labels:data.map(r=>r.name),datasets:[{data:data.map(r=>r.n),backgroundColor:data.map(r=>FMT_C[r.name]||BRAND.muted),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});};chartInst.fr=mk('ch-fmt-read',rows.map(r=>({name:r.name,n:r.read})));chartInst.fa=mk('ch-fmt-all',rows.map(r=>({name:r.name,n:r.read+r.owned+r.want})));},50);}
+function renderReportFormat(){const rb=getReportBooks();const map={};rb.forEach(b=>{const fmts=(b.formats||[]).length?b.formats:['Unknown'];fmts.forEach(f=>{if(!map[f])map[f]={name:f,read:0,owned:0,want:0};if(b.status==='read')map[f].read++;else if(b.status==='reading')map[f].owned++;else map[f].want++;});});const rows=Object.values(map).sort((a,b)=>b.read-a.read);const el=document.getElementById('rpanel-format');el.innerHTML=`<div class="reports-grid"><div class="rcrd"><h3>Format - books read</h3><div class="chart-wrap"><canvas id="ch-fmt-read"></canvas></div></div><div class="rcrd"><h3>Format - all books</h3><div class="chart-wrap"><canvas id="ch-fmt-all"></canvas></div></div><div class="rcrd" style="grid-column:1/-1"><h3>Detail</h3><div class="table-wrap"><table class="rtable"><thead><tr><th>Format</th><th>Read</th><th>Owned Unread</th><th>Want</th><th>Total</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${FMT_ICO[r.name]||''} ${esc(r.name)}</td><td class="num">${r.read}</td><td class="num">${r.owned}</td><td class="num">${r.want}</td><td class="num">${r.read+r.owned+r.want}</td></tr>`).join('')}</tbody></table></div></div></div>`;setTimeout(()=>{const mk=(id,data)=>{const ctx=document.getElementById(id);if(!ctx)return;return new Chart(ctx,{type:'doughnut',data:{labels:data.map(r=>r.name),datasets:[{data:data.map(r=>r.n),backgroundColor:data.map(r=>FMT_C[r.name]||BRAND.muted),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});};chartInst.fr=mk('ch-fmt-read',rows.map(r=>({name:r.name,n:r.read})));chartInst.fa=mk('ch-fmt-all',rows.map(r=>({name:r.name,n:r.read+r.owned+r.want})));},50);}
 
 // ═══════════ COVER LOOKUP (shared) ═══════════
 async function lookupCoverUrl(title,author){
@@ -3343,7 +3334,7 @@ function filterRecs(){
   }).join('')}</div>`;
 }
 
-function addRecToWishlist(title,author,series,seriesNumber,coverUrl,pages,btn){const existing=findExisting(title,author);if(existing){btn.textContent='✓ Already added';btn.disabled=true;return;}books.push({id:genId(),title,author,status:'wishlist',formats:[],borrowedFormats:[],series:series||'',seriesNumber:seriesNumber||'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:pages||0,pagesEstimated:!!pages,notes:'',genre:[],coverUrl:coverUrl||'',readFormat:'',readRecords:[]});save();btn.textContent='✓ Added!';btn.style.background='var(--accent-bg)';btn.style.color='var(--accent)';btn.disabled=true;}
+function addRecToWishlist(title,author,series,seriesNumber,coverUrl,pages,btn){const existing=findExisting(title,author);if(existing){btn.textContent='✓ Already added';btn.disabled=true;return;}books.push({id:genId(),title,author,status:'wishlist',formats:[],series:series||'',seriesNumber:seriesNumber||'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',pages:pages||0,pagesEstimated:!!pages,notes:'',genre:[],coverUrl:coverUrl||'',readFormat:'',readRecords:[],lentTo:'',lentDate:''});save();btn.textContent='✓ Added!';btn.style.background='var(--accent-bg)';btn.style.color='var(--accent)';btn.disabled=true;}
 
 // ═══════════ BOOK CLUB ═══════════
 function getLinkedBook(m){
@@ -3619,7 +3610,7 @@ function renderMeetingCard(cb,myId,featured){
   const goingAvatars=going.map(r=>renderAvatarHTML((r.profiles||{}).first_name,(r.profiles||{}).last_name,20)).join('');
   const myBook=findExisting(cb.book_title,cb.book_author);
   const ownedBadge=myBook&&(myBook.formats||[]).length?`<span class="badge b-owned" style="font-size:10px">You own it in ${myBook.formats.map(esc).join(', ')}</span>`:'';
-  return`<div class="bc-meeting"${featured?' style="grid-column:1/-1"':''}>
+  return`<div class="bc-meeting">
     ${meetingTopHtml((cb.book_clubs||{}).name,cb.meeting_date,cb.start_time,cb.location,cb.book_title,cb.book_author)}
     <div class="bc-meeting-header">
       <div class="bc-meeting-title">${esc(cb.meeting_name)}</div>
@@ -4263,7 +4254,7 @@ function addBCBookToLibrary(meetingId){
   const meetings=getBCMeetings();
   const m=meetings.find(x=>x.id===meetingId);
   if(!m)return;
-  const newBook={id:genId(),title:m.bookTitle,author:m.bookAuthor,status:'tbr',formats:[],borrowedFormats:[],series:m.series||'',seriesNumber:m.seriesNumber||'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',notes:'Book club read',genre:[],coverUrl:'',readFormat:'',readRecords:[]};
+  const newBook={id:genId(),title:m.bookTitle,author:m.bookAuthor,status:'tbr',formats:[],series:m.series||'',seriesNumber:m.seriesNumber||'',dateStarted:'',dateRead:'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:'',rating:0,grRating:0,isbn:'',notes:'Book club read',genre:[],coverUrl:'',readFormat:'',readRecords:[],lentTo:'',lentDate:''};
   books.push(newBook);
   m.bookId=newBook.id;
   save();
@@ -4495,16 +4486,26 @@ async function lookupISBNAndFillForm(rawCode){
 
 // ═══════════ READING HISTORY (per-format read records) ═══════════
 function readRecordRowHTML(rec){
-  rec=rec||{format:'',date:''};
-  return`<div class="frow read-record-row" style="margin-bottom:6px">
-    <select class="fsel read-record-format">
-      <option value="">Format…</option>
-      ${FMT_ALL.map(f=>`<option value="${f}"${rec.format===f?' selected':''}>${f}</option>`).join('')}
-    </select>
-    <div style="display:flex;gap:6px;align-items:center">
-      <input type="month" class="read-record-date" value="${esc(rec.date||'')}" style="flex:1;padding:var(--sp-2) var(--sp-3);border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);color:var(--text)">
-      <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.read-record-row').remove()">×</button>
+  rec=rec||{format:'',dateStarted:'',dateFinished:''};
+  return`<div class="read-record-row" style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--rule)">
+    <div class="frow" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="fg">
+        <label style="font-size:11px">Format</label>
+        <select class="fsel read-record-format" style="width:100%">
+          <option value="">Format…</option>
+          ${FMT_ALL.map(f=>`<option value="${f}"${rec.format===f?' selected':''}>${f}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg">
+        <label style="font-size:11px">Date started</label>
+        <input type="month" class="read-record-date-started" value="${esc(rec.dateStarted||'')}">
+      </div>
+      <div class="fg">
+        <label style="font-size:11px">Date finished</label>
+        <input type="month" class="read-record-date-finished" value="${esc(rec.dateFinished||'')}">
+      </div>
     </div>
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.read-record-row').remove()">Remove record</button>
   </div>`;
 }
 function addReadRecordRow(modal,rec){
@@ -4519,12 +4520,13 @@ function getReadRecordRows(modal){
   const container=document.getElementById(modal?'m-read-records':'f-read-records');
   return[...container.querySelectorAll('.read-record-row')].map(row=>({
     format:row.querySelector('.read-record-format').value,
-    date:row.querySelector('.read-record-date').value
-  })).filter(r=>r.format&&r.date);
+    dateStarted:row.querySelector('.read-record-date-started').value,
+    dateFinished:row.querySelector('.read-record-date-finished').value
+  })).filter(r=>r.format&&r.dateFinished);
 }
 function latestReadDate(records,fallback){
   if(!records||!records.length)return fallback||'';
-  return records.reduce((max,r)=>r.date>max?r.date:max,'');
+  return records.reduce((max,r)=>r.dateFinished>max?r.dateFinished:max,'');
 }
 
 // ═══════════ LIVE TYPEAHEAD (book + address) ═══════════
@@ -4679,7 +4681,7 @@ function lockLocationField(locked){
 }
 
 // ═══════════ FORM ═══════════
-function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-started','f-date-read','f-date-added','f-published-date','f-isbn','f-pages','f-notes','f-favorite-quote','f-mood-tags','f-cover','f-lent-to'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';setRating(0,false);renderReadRecordRows(false,[]);setFormMode(false);setCheckedFormats('f-fmt-checks',[]);setCheckedFormats('f-borrow-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');toggleRowIf('f-progress-row',false);document.getElementById('f-progress').value=0;document.getElementById('f-progress-val').textContent='0';const flCb=document.getElementById('f-lendable');flCb.checked=false;flCb.closest('.fmt-check').classList.remove('checked');const st=document.getElementById('scan-fill-status');if(st)st.textContent='';lockAutoFields('f',false);const cp=document.getElementById('f-cover-preview');if(cp)cp.style.display='none';}
+function clearForm(){['f-title','f-author','f-series','f-series-num','f-date-started','f-date-read','f-published-date','f-isbn','f-pages','f-notes','f-favorite-quote','f-mood-tags','f-cover','f-lent-to','f-lent-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});document.getElementById('f-id').value='';document.getElementById('f-date-added').value=new Date().toISOString().slice(0,10);document.getElementById('f-status').value='read';document.getElementById('f-read-format').value='';setRating(0,false);renderReadRecordRows(false,[]);setFormMode(false);setCheckedFormats('f-fmt-checks',[]);formGenres=[];renderFormTags();document.getElementById('genre-inp').value='';toggleReadFormat('f-read-fmt-row','read');toggleRowIf('f-progress-row',false);document.getElementById('f-progress').value=0;document.getElementById('f-progress-val').textContent='0';const flCb=document.getElementById('f-lendable');flCb.checked=false;flCb.closest('.fmt-check').classList.remove('checked');const st=document.getElementById('scan-fill-status');if(st)st.textContent='';lockAutoFields('f',false);const cp=document.getElementById('f-cover-preview');if(cp)cp.style.display='none';}
 function setFormMode(isEdit,title){
   document.getElementById('form-h').textContent=isEdit?`Edit "${esc(title||'')}"`:'Add a Book';
   document.getElementById('f-danger-desc').textContent=isEdit?"Permanently remove this book from your library. This can't be undone.":'Discard everything entered on this form.';
@@ -4716,12 +4718,12 @@ function openBookForm(id){
   document.getElementById('f-progress').value=b.progress||0;
   document.getElementById('f-progress-val').textContent=b.progress||0;
   document.getElementById('f-lent-to').value=b.lentTo||'';
+  document.getElementById('f-lent-date').value=b.lentDate||'';
   const flCb=document.getElementById('f-lendable');
   flCb.checked=!!b.lendable;
   flCb.closest('.fmt-check').classList.toggle('checked',!!b.lendable);
   setRating(b.rating||0,false);
   setCheckedFormats('f-fmt-checks',b.formats||[]);
-  setCheckedFormats('f-borrow-checks',b.borrowedFormats||[]);
   formGenres=[...(b.genre||[])];
   renderFormTags();
   toggleReadFormat('f-read-fmt-row',b.status);
@@ -4755,7 +4757,6 @@ function saveBook(){
     b.title=title;b.author=author;
     b.status=document.getElementById('f-status').value;
     b.formats=getCheckedFormats('f-fmt-checks');
-    b.borrowedFormats=getCheckedFormats('f-borrow-checks');
     b.series=document.getElementById('f-series').value.trim();
     b.seriesNumber=document.getElementById('f-series-num').value.trim();
     b.dateStarted=document.getElementById('f-date-started').value||'';
@@ -4771,6 +4772,7 @@ function saveBook(){
     b.progress=parseInt(document.getElementById('f-progress').value)||0;
     b.lendable=document.getElementById('f-lendable').checked;
     b.lentTo=document.getElementById('f-lent-to').value.trim();
+    b.lentDate=document.getElementById('f-lent-date').value||'';
     b.notes=document.getElementById('f-notes').value.trim();
     b.favoriteQuote=document.getElementById('f-favorite-quote').value.trim();
     b.moodTags=moodTags;
@@ -4782,7 +4784,7 @@ function saveBook(){
     openBookPage(editId);
     return;
   }
-  const b={id:genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),borrowedFormats:getCheckedFormats('f-borrow-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateStarted:document.getElementById('f-date-started').value||'',dateRead:latestReadDate(readRecords,document.getElementById('f-date-read').value||''),dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),publishedDate:document.getElementById('f-published-date').value.trim(),rating:parseFloat(document.getElementById('f-rating').value)||0,grRating:0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,progress:parseInt(document.getElementById('f-progress').value)||0,lendable:document.getElementById('f-lendable').checked,lentTo:document.getElementById('f-lent-to').value.trim(),notes:document.getElementById('f-notes').value.trim(),favoriteQuote:document.getElementById('f-favorite-quote').value.trim(),moodTags,genre:[...formGenres],coverUrl:document.getElementById('f-cover').value||'',readFormat:document.getElementById('f-read-format').value,readRecords};
+  const b={id:genId(),title,author,status:document.getElementById('f-status').value,formats:getCheckedFormats('f-fmt-checks'),series:document.getElementById('f-series').value.trim(),seriesNumber:document.getElementById('f-series-num').value.trim(),dateStarted:document.getElementById('f-date-started').value||'',dateRead:latestReadDate(readRecords,document.getElementById('f-date-read').value||''),dateAdded:document.getElementById('f-date-added').value||new Date().toISOString().slice(0,10),publishedDate:document.getElementById('f-published-date').value.trim(),rating:parseFloat(document.getElementById('f-rating').value)||0,grRating:0,isbn:document.getElementById('f-isbn').value.trim(),pages:parseInt(document.getElementById('f-pages').value)||0,pagesEstimated:false,progress:parseInt(document.getElementById('f-progress').value)||0,lendable:document.getElementById('f-lendable').checked,lentTo:document.getElementById('f-lent-to').value.trim(),lentDate:document.getElementById('f-lent-date').value||'',notes:document.getElementById('f-notes').value.trim(),favoriteQuote:document.getElementById('f-favorite-quote').value.trim(),moodTags,genre:[...formGenres],coverUrl:document.getElementById('f-cover').value||'',readFormat:document.getElementById('f-read-format').value,readRecords};
   books.push(b);
   save();
   clearForm();
@@ -4826,32 +4828,45 @@ function openBookPage(id){
 function closeBookPage(){nav(bookPageReturnTo||'dashboard');}
 async function renderBookPage(b){
   document.getElementById('bp-cover').innerHTML=coverHtml(b);
-  document.getElementById('bp-title').innerHTML=esc(b.title)+(b.series?`<div style="font-weight:400;font-style:italic;font-size:15px;color:var(--text3);margin-top:4px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;display:inline-block" onclick="navToSeries('${esc(b.series).replace(/'/g,"\\'")}')">${esc(b.series)}${b.seriesNumber?' #'+esc(b.seriesNumber):''}</div>`:'');
+  document.getElementById('bp-title').textContent=b.title;
+  const seriesEl=document.getElementById('bp-series');
+  if(b.series){
+    seriesEl.style.display='';
+    seriesEl.style.cursor='pointer';
+    seriesEl.style.textDecoration='underline';
+    seriesEl.style.textUnderlineOffset='3px';
+    seriesEl.textContent=b.series+(b.seriesNumber?' #'+b.seriesNumber:'');
+    seriesEl.onclick=()=>navToSeries(b.series);
+  }else{
+    seriesEl.style.display='none';
+  }
   const authorEl=document.getElementById('bp-author');
   authorEl.textContent=b.author;
   authorEl.onclick=()=>navToAuthor(b.author);
-  document.getElementById('bp-meta').innerHTML=`<span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span>${(b.genre||[]).slice(0,3).map(g=>`<span class="badge b-genre">${esc(g)}</span>`).join('')}${b.pages?`<span style="font-size:12px;color:var(--text3)">${b.pagesEstimated?'~':''}${b.pages}pg</span>`:''}`;
+  const publishedEl=document.getElementById('bp-published');
+  publishedEl.textContent=b.publishedDate?`Published ${b.publishedDate}`:'';
+  const pagesEl=document.getElementById('bp-pages');
+  pagesEl.textContent=b.pages?`${b.pagesEstimated?'~':''}${b.pages} pages`:'';
+  document.getElementById('bp-meta').innerHTML=`<span class="badge ${STATUS_BADGE[b.status]||'b-owned'}">${STATUS_LABELS[b.status]||b.status}</span>${(b.genre||[]).slice(0,3).map(g=>`<span class="badge b-genre">${esc(g)}</span>`).join('')}`;
 
   const stars=b.rating?starDisplayHTML(b.rating):'<span style="font-size:13px;color:var(--text3)">Not rated yet</span>';
   document.getElementById('bp-your-take').innerHTML=`
     <div style="margin-bottom:10px">${stars}</div>
     ${b.favoriteQuote?`<div style="font-style:italic;font-size:14px;color:var(--text2);border-left:3px solid var(--accent);padding-left:12px;margin-bottom:10px">"${esc(b.favoriteQuote)}"</div>`:''}
     ${b.notes?`<p style="font-size:13px;color:var(--text2);line-height:1.6">${esc(b.notes)}</p>`:''}
-    ${!b.rating&&!b.favoriteQuote&&!b.notes?'<p style="font-size:13px;color:var(--text3)">Nothing recorded yet - add a rating, note or quote from Edit.</p>':''}
+    ${(b.moodTags||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${b.moodTags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
+    ${!b.rating&&!b.favoriteQuote&&!b.notes&&!(b.moodTags||[]).length?'<p style="font-size:13px;color:var(--text3)">Nothing recorded yet - add a rating, note or quote from Edit.</p>':''}
   `;
 
-  document.getElementById('bp-tags').innerHTML=`
-    ${(b.genre||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${(b.moodTags||[]).length?'10px':'0'}">${b.genre.map(g=>`<span class="badge b-genre">${esc(g)}</span>`).join('')}</div>`:''}
-    ${(b.moodTags||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap">${b.moodTags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`:''}
-    ${!(b.genre||[]).length&&!(b.moodTags||[]).length?'<p style="font-size:13px;color:var(--text3)">No genres or mood tags yet.</p>':''}
-  `;
-
-  document.getElementById('bp-copies').innerHTML=`<div style="margin-bottom:8px">${formatIconRow(b)}</div>${b.lentTo?`<div style="font-size:12px;color:var(--borrowed)">${ICON.lend} Currently lent to ${esc(b.lentTo)}</div>`:''}`;
+  document.getElementById('bp-copies').innerHTML=`<div style="margin-bottom:8px">${formatIconRow(b)}</div>${b.lentTo?`<div style="font-size:12px;color:var(--borrowed)">${ICON.lend} Currently lent to ${esc(b.lentTo)}${b.lentDate?' on '+esc(fmtDateDMY(b.lentDate)):''}</div>`:''}`;
 
   const timelineEvents=[];
   if(b.dateAdded)timelineEvents.push({date:b.dateAdded,label:`Added to library`});
   if(b.dateStarted)timelineEvents.push({date:b.dateStarted+'-01',label:`Started reading`,display:fmtMonthYear(b.dateStarted)});
-  (b.readRecords||[]).forEach(r=>timelineEvents.push({date:r.date+'-01',label:`Finished reading (${esc(r.format)})`,display:fmtMonthYear(r.date)}));
+  (b.readRecords||[]).forEach(r=>{
+    if(r.dateStarted)timelineEvents.push({date:r.dateStarted+'-01',label:`Started reading (${esc(r.format)})`,display:fmtMonthYear(r.dateStarted)});
+    if(r.dateFinished)timelineEvents.push({date:r.dateFinished+'-01',label:`Finished reading (${esc(r.format)})`,display:fmtMonthYear(r.dateFinished)});
+  });
   if(b.status==='dnf')timelineEvents.push({date:b.dnfDate||b.dateAdded||'',label:'Did not finish'});
   timelineEvents.sort((a,b2)=>(a.date||'').localeCompare(b2.date||''));
   document.getElementById('bp-timeline').innerHTML=timelineEvents.length?timelineEvents.map(e=>`<div style="display:flex;gap:10px;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--rule);font-size:13px"><span style="color:var(--text3);min-width:90px">${esc(e.display||fmtDateDMY(e.date))}</span><span>${e.label}</span></div>`).join(''):'<p style="font-size:13px;color:var(--text3)">No history recorded yet.</p>';
@@ -4927,16 +4942,15 @@ function upsertBook(title,author,status,format,extra={}){
     (extra.genre||[]).forEach(g=>{if(!(ex.genre||[]).includes(g)){if(!ex.genre)ex.genre=[];ex.genre.push(g);changed=true;}});
     if(!ex.isbn&&extra.isbn){ex.isbn=extra.isbn;changed=true;}
     if(!ex.pages&&extra.pages){ex.pages=extra.pages;ex.pagesEstimated=false;changed=true;}
-    if(!ex.borrowedFormats)ex.borrowedFormats=[];
     return{status:changed?'updated':'unchanged',id:ex.id};
   }else{
     const id=genId();
-    books.push({id,title,author,status,formats:format&&format!=='Unknown'?[format]:[],borrowedFormats:[],series:extra.series||'',seriesNumber:extra.seriesNumber||'',dateStarted:'',dateRead:extra.dateRead||'',dateAdded:extra.dateAdded||new Date().toISOString().slice(0,10),publishedDate:extra.publishedDate||'',rating:extra.rating||0,grRating:extra.grRating||0,isbn:extra.isbn||'',pages:extra.pages||0,pagesEstimated:false,notes:extra.notes||'',genre:extra.genre||[],coverUrl:'',readFormat:'',readRecords:[]});
+    books.push({id,title,author,status,formats:format&&format!=='Unknown'?[format]:[],series:extra.series||'',seriesNumber:extra.seriesNumber||'',dateStarted:'',dateRead:extra.dateRead||'',dateAdded:new Date().toISOString().slice(0,10),publishedDate:extra.publishedDate||'',rating:extra.rating||0,grRating:extra.grRating||0,isbn:extra.isbn||'',pages:extra.pages||0,pagesEstimated:false,notes:extra.notes||'',genre:extra.genre||[],coverUrl:'',readFormat:'',readRecords:[],lentTo:'',lentDate:''});
     return{status:'added',id};
   }
 }
 
-function processGR(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]);const col=h=>hdr.findIndex(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,'')===h.toLowerCase().replace(/[^a-z0-9]/g,''));const iT=col('title'),iA=col('author'),iR=col('myrating'),iGR=col('averagerating'),iB=col('binding'),iDR=col('dateread'),iDA=col('dateadded'),iS=col('exclusiveshelf'),iISBN=col('isbn'),iRev=col('myreview'),iPages=col('numberofpages');if(iT<0||iA<0)throw new Error('Could not find title/author columns.');let added=0,updated=0;const touched=[];for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);if(row.length<3)continue;const rawTitle=(row[iT]||'').trim(),author=(row[iA]||'').trim();if(!rawTitle||!author)continue;const shelf=(row[iS]||'').trim().toLowerCase();const status=shelf==='read'?'read':shelf==='currently-reading'?'reading':'tbr';const binding=(row[iB]||'').trim();let format='Unknown';if(/kindle/i.test(binding))format='Ebook';else if(/audio/i.test(binding))format='Audiobook';else if(/hardcover|hardback|paperback|mass market/i.test(binding))format='Hardcopy';else if(/ebook|digital/i.test(binding))format='Ebook';let dateRead=(row[iDR]||'').trim();if(dateRead&&dateRead!=='0000-00-00')dateRead=dateRead.slice(0,7);else dateRead='';let series='',seriesNumber='';const sm=rawTitle.match(/\(([^,]+),\s*#?([0-9.]+)\)\s*$/);if(sm){series=sm[1].trim();seriesNumber=sm[2];}const title=rawTitle.replace(/\s*\([^)]+\)\s*$/,'').trim();const r=upsertBook(title,author,status,format,{series,seriesNumber,dateRead,dateAdded:(row[iDA]||'').trim().slice(0,10),rating:parseInt(row[iR])||0,grRating:parseFloat(row[iGR])||0,isbn:(iISBN>=0?row[iISBN]:'').replace(/[="']/g,'').trim(),pages:iPages>=0?(parseInt(row[iPages])||0):0,notes:(iRev>=0?row[iRev]:'').trim()});if(!r)continue;if(r.status==='added'){added++;touched.push(r.id);}else if(r.status==='updated'){updated++;touched.push(r.id);}}save();renderLib();document.getElementById('gr-result').innerHTML=`<div class="iresult ok">${added} new books added, ${updated} existing records updated.</div>`;flagImportedForReview(touched);}catch(err){document.getElementById('gr-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
+function processGR(file){const reader=new FileReader();reader.onload=e=>{try{const lines=e.target.result.split('\n');const hdr=parseCSVLine(lines[0]);const col=h=>hdr.findIndex(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,'')===h.toLowerCase().replace(/[^a-z0-9]/g,''));const iT=col('title'),iA=col('author'),iR=col('myrating'),iGR=col('averagerating'),iB=col('binding'),iDR=col('dateread'),iDA=col('dateadded'),iS=col('exclusiveshelf'),iISBN=col('isbn'),iRev=col('myreview'),iPages=col('numberofpages');if(iT<0||iA<0)throw new Error('Could not find title/author columns.');let added=0,updated=0;const touched=[];for(let i=1;i<lines.length;i++){const line=lines[i].trim();if(!line)continue;const row=parseCSVLine(line);if(row.length<3)continue;const rawTitle=(row[iT]||'').trim(),author=(row[iA]||'').trim();if(!rawTitle||!author)continue;const shelf=(row[iS]||'').trim().toLowerCase();const status=shelf==='read'?'read':shelf==='currently-reading'?'reading':'tbr';const binding=(row[iB]||'').trim();let format='Unknown';if(/kindle/i.test(binding))format='Ebook';else if(/audio/i.test(binding))format='Audiobook';else if(/hardcover|hardback|paperback|mass market/i.test(binding))format='Hardcopy';else if(/ebook|digital/i.test(binding))format='Ebook';let dateRead=(row[iDR]||'').trim();if(dateRead&&dateRead!=='0000-00-00')dateRead=dateRead.slice(0,7);else dateRead='';let series='',seriesNumber='';const sm=rawTitle.match(/\(([^,]+),\s*#?([0-9.]+)\)\s*$/);if(sm){series=sm[1].trim();seriesNumber=sm[2];}const title=rawTitle.replace(/\s*\([^)]+\)\s*$/,'').trim();const r=upsertBook(title,author,status,format,{series,seriesNumber,dateRead,rating:parseInt(row[iR])||0,grRating:parseFloat(row[iGR])||0,isbn:(iISBN>=0?row[iISBN]:'').replace(/[="']/g,'').trim(),pages:iPages>=0?(parseInt(row[iPages])||0):0,notes:(iRev>=0?row[iRev]:'').trim()});if(!r)continue;if(r.status==='added'){added++;touched.push(r.id);}else if(r.status==='updated'){updated++;touched.push(r.id);}}save();renderLib();document.getElementById('gr-result').innerHTML=`<div class="iresult ok">${added} new books added, ${updated} existing records updated.</div>`;flagImportedForReview(touched);}catch(err){document.getElementById('gr-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
 function processAudible(file){const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);const raw=data.books||data;if(!Array.isArray(raw))throw new Error('No books array found.');let added=0,updated=0;const touched=[];raw.forEach(ab=>{const title=(ab.title||'').trim(),author=(ab.authors&&ab.authors[0])?ab.authors[0].name.trim():'Unknown';if(!title)return;const progress=(ab.progress||'').trim();const status=progress==='Finished'?'read':progress&&progress.includes('left')?'reading':'owned';const si=ab.series&&ab.series[0];const r=upsertBook(title,author,status,'Audiobook',{series:si?si.name:'',seriesNumber:si&&si.bookNumbers?si.bookNumbers[0]:'',isbn:ab.asin||''});if(!r)return;if(r.status==='added'){added++;touched.push(r.id);}else if(r.status==='updated'){updated++;touched.push(r.id);}});save();renderLib();document.getElementById('au-result').innerHTML=`<div class="iresult ok">${added} new audiobooks added, ${updated} updated.</div>`;flagImportedForReview(touched);}catch(err){document.getElementById('au-result').innerHTML=`<div class="iresult err">${esc(err.message)}</div>`;}};reader.readAsText(file,'utf-8');}
 
@@ -4944,7 +4958,7 @@ function processKindle(file){const reader=new FileReader();reader.onload=e=>{try
 
 function exportJSON(){const blob=new Blob([JSON.stringify(books,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='my-books-backup.json';a.click();URL.revokeObjectURL(u);}
 function exportCSV(){
-  const cols=['title','author','status','formats','borrowedFormats','series','seriesNumber','dateStarted','dateRead','dateAdded','rating','grRating','isbn','pages','genre','lendable','lentTo','notes'];
+  const cols=['title','author','status','formats','series','seriesNumber','dateStarted','dateRead','dateAdded','rating','grRating','isbn','pages','genre','lendable','lentTo','lentDate','notes'];
   const csvEsc=v=>{const s=String(v==null?'':v);return/[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;};
   const rows=[cols.join(',')];
   books.forEach(b=>{
